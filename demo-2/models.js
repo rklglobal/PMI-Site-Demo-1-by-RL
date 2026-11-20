@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GULF } from './gulf.js?v=3';
+import { GULF } from './gulf.js?v=9';
 
 /* Surface-sampled point clouds: models are built from real meshes, then particles are
    scattered over their triangles (area-weighted) and along feature edges. */
@@ -27,7 +27,14 @@ export class Model {
   _seg(a, b, w, t) { this.S.push(a.x, a.y, a.z, b.x, b.y, b.z); this.SW.push(a.distanceTo(b) * 0.035 * w); this.ST.push(t); }
   line(a, b, w = 1, t = 0) { const m = this.stack[this.stack.length - 1]; this._seg(_a.set(...a).applyMatrix4(m), _b.set(...b).applyMatrix4(m), w, t); return this; }
   poly(pts, w = 1, closed = false, t = 0) { for (let i = 1; i < pts.length; i++) this.line(pts[i - 1], pts[i], w, t); if (closed) this.line(pts[pts.length - 1], pts[0], w, t); return this; }
-  build(N, fit = [3.9, 2.7]) {
+  ground() {
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, z0 = 1e9, z1 = -1e9; const scan = (A) => { for (let i = 0; i < A.length; i += 3) { x0 = Math.min(x0, A[i]); x1 = Math.max(x1, A[i]); y0 = Math.min(y0, A[i + 1]); z0 = Math.min(z0, A[i + 2]); z1 = Math.max(z1, A[i + 2]); } }; scan(this.T); scan(this.S);
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, rad = Math.hypot(x1 - x0, z1 - z0) / 2 + 0.12, circ = (r, w) => { const p = []; for (let k = 0; k <= 72; k++) { const a = k / 72 * PI * 2; p.push([cx + Math.cos(a) * r, y0, cz + Math.sin(a) * r]); } this.poly(p, w); };
+    circ(rad, 1.1); circ(rad * 0.97, 0.5); circ(rad * 0.62, 0.35); circ(rad * 0.3, 0.25);
+    for (let k = 0; k < 24; k++) { const a = k / 24 * PI * 2, r0 = k % 6 === 0 ? 0.3 : 0.9; this.line([cx + Math.cos(a) * rad * r0, y0, cz + Math.sin(a) * rad * r0], [cx + Math.cos(a) * rad * 0.97, y0, cz + Math.sin(a) * rad * 0.97], k % 6 === 0 ? 0.3 : 0.6); }
+    return this;
+  }
+  build(N, fit = [4.5, 2.6]) {
     const nt = this.TW.length, ns = this.SW.length, cum = new Float64Array(nt + ns); let tot = 0;
     for (let i = 0; i < nt; i++) cum[i] = (tot += this.TW[i]); for (let i = 0; i < ns; i++) cum[nt + i] = (tot += this.SW[i]);
     const pos = new Float32Array(N * 3), tint = new Float32Array(N), bb = new THREE.Box3();
@@ -38,7 +45,7 @@ export class Model {
       else { const j = (lo - nt) * 6, S = this.S, u = R(); x = S[j] + (S[j + 3] - S[j]) * u; y = S[j + 1] + (S[j + 4] - S[j + 1]) * u; z = S[j + 2] + (S[j + 5] - S[j + 2]) * u; tint[i] = this.ST[lo - nt]; }
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; bb.expandByPoint(_a.set(x, y, z));
     }
-    const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3()), s = Math.min(fit[0] / Math.max(sz.x, sz.z * 0.8), fit[1] / sz.y);
+    const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3()), s = Math.min(fit[0] / Math.max(sz.x, sz.z), fit[1] / sz.y);
     for (let i = 0; i < N; i++) { pos[i * 3] = (pos[i * 3] - c.x) * s; pos[i * 3 + 1] = (pos[i * 3 + 1] - c.y) * s; pos[i * 3 + 2] = (pos[i * 3 + 2] - c.z) * s; }
     return { pos, tint, xf: p => [(p[0] - c.x) * s, (p[1] - c.y) * s, (p[2] - c.z) * s] };
   }
@@ -86,15 +93,18 @@ function gateValve(m, p, axis, rp) {      // body + bonnet + yoke + rising stem 
   flange(m, [-rp * 2.2, 0, 0], 'x', rp); flange(m, [rp * 2.2, 0, 0], 'x', rp);
   return m.pop();
 }
-function person(m, p, ry = 0, s = 0.27) {
+function person(m, p, ry = 0, s = 0.27, weld = false) {
   m.push(p, [0, ry, 0], s);
-  [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 1.4 }));
-  m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 1.4 });
-  [-0.25, 0.25].forEach(x => m.add(cyl(0.05, 0.55, 8), { p: [x, 1.1, 0.05], r: [0.25, 0, x * 0.5], w: 1.4 }));
-  m.add(sph(0.11), { p: [0, 1.56, 0], w: 1.4 }).add(dome(0.13), { p: [0, 1.6, 0], w: 2.5 }).add(ring(0.1, 0.19), { p: [0, 1.61, 0.03], r: UP, w: 2.5 });
+  [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 1.5 }));
+  m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 1.5 });
+  if (weld) { rod(m, [-0.24, 1.3, 0], [-0.1, 1.12, 0.42], 0.05, { w: 1.5 }); rod(m, [0.24, 1.3, 0], [0.08, 1.15, 0.45], 0.05, { w: 1.5 }); rod(m, [0.08, 1.15, 0.45], [0.02, 1.08, 0.78], 0.014, { w: 4 }); m.add(box(0.26, 0.3, 0.1), { p: [0, 1.55, 0.13], e: 3, w: 1.5 }); m.add(box(0.16, 0.06, 0.02), { p: [0, 1.58, 0.185], e: 2, w: 1 }); }
+  else [-0.25, 0.25].forEach(x => m.add(cyl(0.05, 0.55, 8), { p: [x, 1.1, 0.05], r: [0.25, 0, x * 0.5], w: 1.5 }));
+  m.add(sph(0.11), { p: [0, 1.56, 0], w: 1.5 }).add(dome(0.13), { p: [0, 1.6, 0], w: 2 }).add(ring(0.1, 0.19), { p: [0, 1.61, 0.03], r: UP, w: 2 });
   return m.pop();
 }
 function cloud(m, c, r, w, t = 1, sc = [1, 1, 1]) { return m.add(sph(r), { p: c, s: sc, w: w * 0.12, t }).add(sph(r * 0.4), { p: c, s: sc, w: w * 0.5, t }); }
+// welding arc: a tight electric-blue point with a short fan of sparks dropping away from the work
+function arc(m, c, dir = 1) { m.add(sph(0.014), { p: c, w: 9, t: 2 }); for (let k = 0; k < 9; k++) { const a = (k / 8 - 0.5) * 1.5; m.line(c, [c[0] + Math.sin(a) * 0.1, c[1] - 0.05 - Math.cos(a) * 0.09 * (0.6 + R() * 0.6), c[2] + dir * (0.03 + R() * 0.08)], 0.25, 2); } }
 function column(m, x, z, r, y0, h, plats) {
   m.push([x, 0, z]);
   m.add(cyl(r, h, 36), { p: [0, y0 + h / 2 + 0.25, 0] }).add(dome(r), { p: [0, y0 + h + 0.25, 0], s: [1, 0.55, 1] }).add(cyl(r * 1.08, 0.25, 30, true, r), { p: [0, y0 + 0.125, 0] }).add(ring(r * 0.9, r * 1.35), { p: [0, y0 + 0.005, 0], r: UP, w: 2 });
@@ -153,13 +163,13 @@ function mechanical() {
   m.add(cyl(0.075, 0.22, 14), { p: [-1.3, cy, 0], r: AX }); flange(m, [-1.42, cy, 0], 'x', 0.075);
   rod(m, [0.75, cy - 0.25, r + 0.09], [0.75, cy + 0.3, r + 0.09], 0.02, { w: 3 }); [-0.25, 0.3].forEach(o => m.line([0.75, cy + o, r - 0.05], [0.75, cy + o, r + 0.09], 2));
   // process line: up from the nozzle, across through a gate valve, down and out
-  const py = 0.72; m.add(pipeGeo([[0.3, cy + r + 0.25, 0], [0.3, py, 0], [1.45, py, 0], [1.45, g + 0.32, 0], [2.0, g + 0.32, 0]], 0.085, 0.24));
-  gateValve(m, [0.85, py, 0], 'x', 0.085); flange(m, [2.0, g + 0.32, 0], 'x', 0.085);
-  [[0.3, 0.42, 0, 'y'], [1.45, 0.2, 0, 'y'], [1.2, py, 0, 'x'], [1.75, g + 0.32, 0, 'x']].forEach(([x, y, z, ax]) => m.add(tor(0.09, 0.008), { p: [x, y, z], r: ax === 'y' ? UP : [0, PI / 2, 0], w: 3 }));
-  m.add(box(0.05, 0.3, 0.05), { p: [1.75, g + 0.15, 0], e: 2 }).add(box(0.2, 0.03, 0.2), { p: [1.75, g + 0.015, 0], e: 2 });
+  const py = 0.72; m.add(pipeGeo([[0.3, cy + r + 0.25, 0], [0.3, py, 0], [1.45, py, 0], [1.45, g + 0.38, 0], [2.0, g + 0.38, 0]], 0.085, 0.24));
+  gateValve(m, [0.85, py, 0], 'x', 0.085); flange(m, [2.0, g + 0.38, 0], 'x', 0.085);
+  [[0.3, 0.42, 0, 'y'], [1.45, 0.2, 0, 'y'], [1.2, py, 0, 'x'], [1.75, g + 0.38, 0, 'x']].forEach(([x, y, z, ax]) => m.add(tor(0.09, 0.008), { p: [x, y, z], r: ax === 'y' ? UP : [0, PI / 2, 0], w: 3 }));
+  m.add(box(0.05, 0.3, 0.05), { p: [1.6, g + 0.15, 0], e: 2 }).add(box(0.2, 0.03, 0.2), { p: [1.6, g + 0.015, 0], e: 2 });
   // welder working the girth seam
-  person(m, [0.32, g, r + 0.34], PI, 0.3); cloud(m, [0.32, cy - 0.12, r + 0.03], 0.05, 40); cloud(m, [0.32, cy - 0.3, r + 0.16], 0.2, 2.2, 1, [1, 1.3, 0.8]);
-  m.add(box(0.28, 0.3, 0.42), { p: [0.95, g + 0.17, r + 0.5], e: 2 }); m.poly([[0.95, g + 0.25, r + 0.3], [0.7, g + 0.02, r + 0.3], [0.45, g + 0.02, r + 0.45], [0.36, g + 0.3, r + 0.36]], 2);
+  person(m, [1.75, g, 0.38], PI, 0.36, true); arc(m, [1.75, g + 0.39, 0.1]);
+  m.add(box(0.3, 0.3, 0.44), { p: [0.75, g + 0.17, 1.0], e: 2.5 }); m.poly([[0.9, g + 0.25, 0.9], [1.2, g + 0.02, 0.8], [1.55, g + 0.02, 0.6], [1.72, g + 0.4, 0.45]], 2);
   return { m, hot: { enter: [2.3, 0.3, 0], a: [0.85, 1.7, 0], b: [-1.9, -0.2, 0.3], c: [0.5, -1.75, 1.0] } };
 }
 
@@ -207,7 +217,7 @@ function softCraft() {
   [-0.09, 0.09].forEach(o => m.line([-h - 0.03, g, 0.35 + o], [-h - 0.03, g + 2.5, 0.35 + o], 1.6)); for (let y = g + 0.1; y < g + 2.5; y += 0.1) m.line([-h - 0.03, y, 0.26], [-h - 0.03, y, 0.44], 0.7);
   // insulator fitting cladding, painter spraying the lower shell
   person(m, [0.25, g + 1.135, h - 0.16], PI, 0.3); person(m, [-0.3, g + 2.235, h - 0.16], PI * 0.9, 0.3);
-  rod(m, [0.2, g + 1.48, h - 0.25], [0.12, g + 1.5, r + 0.2], 0.01, { w: 3 }); m.add(new THREE.ConeGeometry(0.16, 0.2, 14, 3, true), { p: [0.1, g + 1.5, r + 0.1], r: [-PI / 2, 0, 0], w: 1.6, t: 1 });
+  rod(m, [0.2, g + 1.48, h - 0.25], [0.12, g + 1.5, r + 0.2], 0.01, { w: 3 }); m.add(new THREE.ConeGeometry(0.16, 0.2, 14, 3, true), { p: [0.1, g + 1.5, r + 0.1], r: [-PI / 2, 0, 0], w: 1.2, t: 0 });
   m.add(new THREE.CylinderGeometry(r + 0.075, r + 0.075, 0.42, 20, 1, true, -0.9, 1.5), { p: [0, 0.75, 0], w: 3, e: 3 });
   return { m, hot: { enter: [2.0, 0.3, 0], a: [1.7, 1.2, 0.4], b: [-1.8, 0.2, 0.6], c: [1.6, -1.0, 0.9] } };
 }
@@ -240,7 +250,7 @@ function cleaning() {
   person(m, [0.55, g, 1.15], PI / 2, 0.3); rod(m, [0.62, g + 0.32, 1.15], [1.05, g + 0.26, 1.15], 0.012, { w: 3 });
   m.poly([[0.3, g + 0.5, 0.3], [0.2, g + 0.02, 0.7], [0.45, g + 0.02, 1.0], [0.6, g + 0.3, 1.13]], 2);
   m.add(cyl(0.11, 0.7, 16), { p: [1.75, g + 0.26, 1.15], r: AX }); flange(m, [1.4, g + 0.26, 1.15], 'x', 0.11); m.add(box(0.08, 0.15, 0.3), { p: [1.8, g + 0.075, 1.15], e: 2 });
-  m.add(new THREE.ConeGeometry(0.1, 0.32, 14, 4, true), { p: [1.21, g + 0.26, 1.15], r: [0, 0, PI / 2], w: 2.2, t: 1 }); cloud(m, [1.37, g + 0.28, 1.15], 0.15, 3, 1, [0.4, 1.2, 1.2]);
+  m.add(new THREE.ConeGeometry(0.1, 0.32, 14, 4, true), { p: [1.21, g + 0.26, 1.15], r: [0, 0, PI / 2], w: 2.2, t: 2 }); cloud(m, [1.37, g + 0.28, 1.15], 0.13, 2.5, 2, [0.35, 1.2, 1.2]);
   return { m, hot: { enter: [2.2, 0.5, 0], a: [-0.6, 0.6, 0], b: [2.1, -0.9, 1.1], c: [-2.2, -0.5, 0.6] } };
 }
 
@@ -264,7 +274,8 @@ function pipeline() {
   F.forEach((p, i) => { const q = F[(i + 1) % 4]; if (i !== 0) [0.3, 0.6].forEach(o => m.line([p[0], g + o, p[1]], [q[0], g + o, q[1]], 0.9)); for (let k = 0; k <= 4; k++) { const x = p[0] + (q[0] - p[0]) * k / 4, z = p[1] + (q[1] - p[1]) * k / 4; if (i !== 0) m.line([x, g, z], [x, g + 0.62, z], 0.9); } });
   [[-1.9, -0.6], [2.05, -0.6]].forEach(([x, z]) => { rod(m, [x, g, z], [x, g + 0.55, z], 0.014, { w: 2 }); m.add(box(0.02, 0.14, 0.11), { p: [x, g + 0.52, z], e: 2 }); });
   // field weld at the tie-in
-  person(m, [1.98, g, 0.36], PI, 0.3); cloud(m, [1.98, y + 0.08, r + 0.02], 0.045, 40); cloud(m, [1.98, y - 0.1, r + 0.12], 0.17, 2.2, 1, [1, 1.3, 0.8]);
+  person(m, [1.98, g, 0.42], PI, 0.36, true); arc(m, [1.98, g + 0.39, r + 0.01]);
+  m.add(box(0.3, 0.3, 0.44), { p: [1.1, g + 0.17, 1.05], e: 2.5 }); m.poly([[1.25, g + 0.25, 0.95], [1.5, g + 0.02, 0.85], [1.8, g + 0.02, 0.65], [1.95, g + 0.4, 0.5]], 2);
   m.add(cyl(r, 0.5, 28), { p: [2.3, y, 0], r: AX }); m.add(box(0.14, 0.27, 0.5), { p: [2.35, g + 0.135, 0], e: 2 });
   return { m, hot: { enter: [2.3, 0.6, 0], a: [0.2, 1.25, 0], b: [-1.7, 0.75, 0.3], c: [2.2, -0.35, 0.5] } };
 }
@@ -314,7 +325,7 @@ function gulfMap(N) {
 
 const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility];
 export function buildAll(N) {
-  const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
+  const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
   const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, hot: { enter: [2.2, 0.9, 0], a: [-0.5, -0.25, 0.1], b: [1.6, 1.3, 0], c: g.city(-77.25, 17.95) }, flat: true });
   return out;
 }

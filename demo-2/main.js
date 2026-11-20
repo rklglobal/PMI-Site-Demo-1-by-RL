@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=5';
-import { buildAll, CITIES } from './models.js?v=5';
+import { Snd } from './audio.js?v=9';
+import { buildAll, CITIES } from './models.js?v=9';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -66,11 +66,11 @@ const TOPICS = [
    ========================================================= */
 const canvas = document.getElementById('scene');
 const mobile = window.innerWidth < 760;
-const N = mobile ? 42000 : 80000;
+const N = mobile ? 110000 : 240000;
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'high-performance' });
 const DPR = Math.min(window.devicePixelRatio, 2); renderer.setPixelRatio(DPR);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100); camera.position.z = 8.6;
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100); camera.position.z = 7.2;
 const group = new THREE.Group(); scene.add(group);
 
 const SH = buildAll(N);
@@ -86,7 +86,7 @@ geo.setAttribute('aTo', new THREE.BufferAttribute(RING.slice(), 3));
 geo.setAttribute('aT0', new THREE.BufferAttribute(new Float32Array(N), 1));
 geo.setAttribute('aT1', new THREE.BufferAttribute(RT.slice(), 1));
 geo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
-const U = { uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0135 }, uScale: { value: 1 }, uMin: { value: DPR * 1.15 } };
+const U = { uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 } };
 const mat = new THREE.ShaderMaterial({
   uniforms: U, transparent: true, depthWrite: false,
   vertexShader: `
@@ -102,24 +102,24 @@ const mat = new THREE.ShaderMaterial({
       p.xz = mat2(c, -s, s, c) * p.xz;
       p += burst * vec3((aRnd.w - 0.35) * 3.2, sin(aRnd.y * 6.283 + uTime) * 0.5 + (aRnd.z - 0.5) * 1.2, (aRnd.y - 0.5) * 2.0);
       // a few loose particles orbit the object as a dust ring
-      float loose = step(0.93, aRnd.w);
+      float loose = step(0.965, aRnd.w);
       float oa = uTime * (0.08 + aRnd.x * 0.12) + aRnd.y * 6.283, orad = 2.1 + aRnd.z * 1.2;
       vec3 orb = vec3(cos(oa) * orad, sin(oa * 0.7 + aRnd.x * 6.0) * 0.5 + (aRnd.z - 0.5) * 1.4, sin(oa) * orad * 0.8);
       p = mix(p, orb, loose * (1.0 - burst * 0.5));
-      p += 0.006 * vec3(sin(uTime * 1.3 + aRnd.x * 40.0), cos(uTime * 1.1 + aRnd.y * 40.0), sin(uTime * 0.9 + aRnd.z * 40.0));
+      p += 0.0025 * vec3(sin(uTime * 1.3 + aRnd.x * 40.0), cos(uTime * 1.1 + aRnd.y * 40.0), sin(uTime * 0.9 + aRnd.z * 40.0));
       vTint = mix(aT0, aT1, e) * (1.0 - loose);
-      p += vTint * 0.02 * vec3(sin(uTime * 9.0 + aRnd.x * 50.0), cos(uTime * 8.0 + aRnd.y * 50.0), sin(uTime * 7.0 + aRnd.z * 50.0));
+      p += min(vTint, 1.0) * 0.008 * vec3(sin(uTime * 9.0 + aRnd.x * 50.0), cos(uTime * 8.0 + aRnd.y * 50.0), sin(uTime * 7.0 + aRnd.z * 50.0));
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       gl_Position = projectionMatrix * mv;
       vec2 d = (gl_Position.xy / gl_Position.w - uMouse) * vec2(uAspect, 1.0);
       float f = smoothstep(0.11, 0.0, length(d));
       gl_Position.xy += normalize(d + 1e-5) / vec2(uAspect, 1.0) * f * 0.045 * gl_Position.w;
-      float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + vTint * 0.25) * uPix / -mv.z;
+      float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + max(vTint - 1.0, 0.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0))) * uPix / -mv.z;
       gl_PointSize = max(sz, uMin);
-      float depth = clamp((-mv.z - 6.6) / 4.0, 0.0, 1.0);
-      vA = (0.7 + 0.3 * aRnd.x) * mix(1.0, 0.38, depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
+      float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
+      vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
     }`,
-  fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.32, d); vec3 col = mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), vTint); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + vTint * 0.4)); }`,
+  fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
 const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; group.add(cloud);
 
@@ -208,7 +208,7 @@ let baseScale = 1, ang = 0, offX = 0;
 function fit() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   U.uAspect.value = w / h; U.uPix.value = DU.uPix.value = h * DPR / (2 * Math.tan(camera.fov * Math.PI / 360));
-  baseScale = Math.min(0.9, (w / h) * 1.15); offX = w > 900 ? 0.95 : 0;
+  baseScale = Math.min(0.92, (w / h) * 1.2); offX = w > 900 ? 0.15 * 2 * Math.tan(camera.fov * Math.PI / 360) * camera.position.z * (w / h) : 0;
 }
 window.addEventListener('resize', fit); fit();
 
@@ -224,15 +224,15 @@ function frame() {
   const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
   // overview: the camera flies around the object (orbit + dolly + rise); detail: it settles so hotspots hold still
   const fly = mode === 'over' && !flat, hero = cur === 0;
-  const dolly = fly ? (hero ? 0.1 + 0.22 * Math.sin(el * 0.21) : 0.06 * Math.sin(el * 0.25)) : 0;
+  const dolly = fly ? (hero ? 0.08 + 0.12 * Math.sin(el * 0.21) : 0) : 0;
   zoom += ((detail ? (narrow ? 1.08 : flat ? 1.12 : 1.25) : 1 + dolly) - zoom) * 0.04;
   const sc = baseScale * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
-  const px = mode === 'intro' ? 0 : offX * (detail ? 0.75 : 1), py = (narrow && mode !== 'intro' ? (detail ? 0.5 : 1.15) : 0) + (fly && hero ? 0.1 - 0.12 * Math.sin(el * 0.21) : 0);
+  const px = mode === 'intro' ? 0 : offX * (detail ? 0.75 : 1), py = narrow && mode !== 'intro' ? (detail ? 0.5 : 1.1) : -0.1;
   group.position.x += (px - group.position.x) * 0.05; group.position.y += (py - group.position.y) * 0.05;
-  if (fly) ang += dt * (hero ? 0.2 : 0.14);
+  if (fly) ang += dt * 0.16;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.1 : 0.2); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.04; }
-  const rx = mode === 'intro' ? 0 : (flat ? -0.55 : 0.14 + (fly && hero ? 0.16 * Math.sin(el * 0.17) : 0)) - mouse.y * 0.12;
-  group.rotation.y = ang + mouse.x * 0.2; group.rotation.x += (rx - group.rotation.x) * 0.04;
+  const rx = mode === 'intro' ? 0.1 : flat ? -0.5 : 0.34;
+  group.rotation.y = ang; group.rotation.x += (rx - group.rotation.x) * 0.1;
   group.updateMatrixWorld();
   hotEls.forEach(h => { if (mode === 'over') { v.set(group.position.x + (narrow ? 1.25 : 2.0) * baseScale, group.position.y + 1.1 * baseScale, 0).project(camera); h.el.style.transform = `translate(${((v.x + 1) / 2 * innerWidth - 23).toFixed(1)}px, ${((1 - v.y) / 2 * innerHeight - 23).toFixed(1)}px)`; } else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 8));
   renderer.render(scene, camera);
