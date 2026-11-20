@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { SoundEngine } from './audio.js?v=3';
+import { SoundEngine } from './audio.js?v=4';
 
 /* =========================================================
    Renderer / scene
    ========================================================= */
 const canvas = document.getElementById('scene');
 const isMobile = window.innerWidth < 760;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 1.75));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.NeutralToneMapping;
@@ -41,7 +41,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048);
 Object.assign(sun.shadow.camera, { left: -75, right: 75, top: 75, bottom: -75, near: 1, far: 400 });
 sun.shadow.camera.updateProjectionMatrix();
-sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.04;
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.09;
 scene.add(sun, sun.target);
 
 /* =========================================================
@@ -342,7 +342,7 @@ TANKS.forEach(([x, z, r, h], i) => {
   rbox(4, 1.8, 6, 0.1, M.galv, -26, 8.5, -74);
   [0xbfc3c7, 0x2b2f34, 0xb3161c, 0x9aa4ad, 0xf2f2f2, 0x26364d, 0x5b6167].forEach((c, i) => {
     const car = new THREE.Group(); car.position.set(-10.5, 0, -82 + i * 3.4); scene.add(car);
-    rbox(2, 0.85, 4.4, 0.25, std(c, 0.5, 0.35), 0, 0.75, 0, car); rbox(1.75, 0.65, 2.3, 0.2, M.glass, 0, 1.4, -0.2, car);
+    mesh(new RoundedBoxGeometry(2, 0.85, 4.4, 6, 0.25), std(c, 0.3, 0.45), 0, 0.75, 0, car); mesh(new RoundedBoxGeometry(1.7, 0.7, 2.3, 6, 0.2), M.glass, 0, 1.42, -0.2, car);
     [-1.4, 1.4].forEach(zz => [-0.95, 0.95].forEach(xx => xcyl(0.33, 0.22, M.rubber, xx, 0.33, zz, car, 16)));
   });
   cyl(0.06, 0.06, 12, M.galv, -16, 6, -54, scene, 8);
@@ -355,13 +355,13 @@ const barrier = new THREE.Group(); barrier.position.set(-7.6, 1.15, -97.5); scen
 // Civil: foundations, formwork, rebar, excavator
 {
   const C = V(-16, 0, 56);
-  mesh(new THREE.PlaneGeometry(26, 22).rotateX(-Math.PI / 2), M.dirt, C.x, 0.03, C.z);
+  mesh(new THREE.PlaneGeometry(26, 22).rotateX(-Math.PI / 2), M.dirt, C.x, 0.07, C.z);
   box(6, 1.2, 6, M.concrete, C.x - 6, 0.6, C.z - 4); box(6, 1.2, 6, M.concrete, C.x + 2, 0.6, C.z - 4);
   const ab = []; [-6, 2].forEach(ox => [-2, 2].forEach(a => [-2, 2].forEach(b => ab.push(T4(C.x + ox + a, 1.45, C.z - 4 + b)))));
   inst(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 6), M.steel, ab);
   box(14, 0.9, 4, M.concrete, C.x - 2, 0.45, C.z + 5);
   [-1, 1].forEach(s => box(0.15, 1.2, 6.4, M.wood, C.x + 8 + s * 3.1, 0.6, C.z - 4));
-  [-1, 1].forEach(s => box(6.4, 1.2, 0.15, M.wood, C.x + 8, 0.6, C.z - 4 + s * 3.1));
+  [-1, 1].forEach(s => box(6.05, 1.18, 0.15, M.wood, C.x + 8, 0.59, C.z - 4 + s * 3.1));
   const rb = []; for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) rb.push(T4(C.x + 5.5 + i, 1.0, C.z - 6.5 + j));
   inst(new THREE.CylinderGeometry(0.03, 0.03, 2, 4), std(0x8a4a2e, 0.4, 0.6), rb);
   mesh(new THREE.ConeGeometry(4, 3, 16), M.dirt, C.x - 9, 1.5, C.z + 6);
@@ -627,7 +627,7 @@ scene.traverse(o => {
    Timeline
    ========================================================= */
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const P_ARRIVE = 0.395, P_LIFT0 = 0.425, P_LIFT1 = 0.505;
+const P_ARRIVE = 0.395, P_LIFT0 = 0.40, P_LIFT1 = 0.462;
 const truckTarget = p => THREE.MathUtils.lerp(TRUCK_Z0, TRUCK_Z1, ease(Math.min(1, p / P_ARRIVE)));
 
 const K = [
@@ -637,9 +637,9 @@ const K = [
   { p: 0.305, pos: T => T.clone().add(V(-34, 34, -46)), look: T => T.clone().add(V(0, 0, 70)) },
   { p: 0.395, pos: () => V(-3, 6, -62), look: () => V(4, 3.2, -31) },
   { p: 0.465, pos: () => V(-14, 21, -66), look: () => V(7, 9, -31) },
-  { p: 0.555, pos: () => V(19.5, 5.5, -35), look: () => V(31, 4.5, -10) },
+  { p: 0.555, nz: 0.08, pos: () => V(19.5, 5.5, -35), look: () => V(31, 4.5, -10) },
   { p: 0.627, pos: () => V(8, 14, 30), look: () => V(-16, 0, 56) },
-  { p: 0.697, pos: () => V(20, 15, -37), look: () => V(34, 12.5, -25) },
+  { p: 0.697, nz: 0.12, pos: () => V(54, 21, -34), look: () => V(34, 12, -26) },
   { p: 0.767, pos: () => V(-6, 15, -14), look: () => V(-34, 2, -44) },
   { p: 0.837, pos: () => V(22, 5, 118), look: () => V(-30, 1.5, 102) },
   { p: 0.872, pos: () => V(-30, 55, 40), look: () => V(-14, 0, -40) },
@@ -654,7 +654,7 @@ function cameraAt(p, T) {
   let i = 0; while (i < K.length - 2 && p > K[i + 1].p) i++;
   const e = smooth(0.08, 0.92, (p - K[i].p) / (K[i + 1].p - K[i].p));
   const u = (i + e) / (K.length - 1);
-  return { pos: posCurve.getPoint(u), look: lookCurve.getPoint(u) };
+  return { pos: posCurve.getPoint(u), look: lookCurve.getPoint(u), nz: THREE.MathUtils.lerp(K[i].nz ?? 0.55, K[i + 1].nz ?? 0.55, e) };
 }
 
 /* =========================================================
@@ -672,7 +672,39 @@ let pTarget = 0, p = 0, lastActive = -1, statsDone = false;
 const storyMax = () => story.offsetHeight - window.innerHeight;
 const storyProgress = () => Math.min(1, Math.max(0, window.scrollY / storyMax()));
 window.addEventListener('scroll', () => { pTarget = storyProgress(); }, { passive: true });
-chapters.forEach(b => b.addEventListener('click', () => window.scrollTo({ top: (+b.dataset.at) * storyMax() + 2, behavior: 'smooth' })));
+
+// One swipe = one section. Wheel, touch and keys step between fixed stops in the story.
+const STOPS = [0, 0.105, 0.205, 0.305, 0.465, 0.555, 0.627, 0.697, 0.767, 0.837, 0.905, 0.985];
+let lockUntil = 0, anim = 0;
+const inStory = () => window.scrollY <= storyMax() + 4;
+const nearestStop = pp => STOPS.reduce((b, s, i) => Math.abs(s - pp) < Math.abs(STOPS[b] - pp) ? i : b, 0);
+function scrollAnim(to, ms = 1100) {
+  cancelAnimationFrame(anim);
+  const from = window.scrollY, t0 = performance.now();
+  lockUntil = t0 + ms + 250;
+  const step = now => { const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3); window.scrollTo({ top: from + (to - from) * e, behavior: 'instant' }); if (k < 1) anim = requestAnimationFrame(step); };
+  anim = requestAnimationFrame(step);
+}
+function go(dir) {
+  if (performance.now() < lockUntil) return;
+  const cur = storyProgress(), i = nearestStop(cur);
+  let n = Math.abs(STOPS[i] - cur) > 0.012 ? (dir > 0 ? STOPS.findIndex(s => s > cur) : STOPS.findLastIndex(s => s < cur)) : i + dir;
+  if (n >= STOPS.length || (dir > 0 && n === -1)) { scrollAnim(story.offsetHeight, 900); return; }   // leave the story into the page
+  n = Math.max(0, n);
+  scrollAnim(STOPS[n] * storyMax());
+}
+let lastWheel = 0;
+window.addEventListener('wheel', e => { if (!inStory()) return; e.preventDefault(); const now = performance.now(), fresh = now - lastWheel > 180; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) go(Math.sign(e.deltaY)); }, { passive: false });
+let touchY = null;
+window.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+window.addEventListener('touchmove', e => { if (inStory() && e.cancelable) e.preventDefault(); }, { passive: false });
+window.addEventListener('touchend', e => { if (touchY === null || !inStory()) return; const dy = touchY - e.changedTouches[0].clientY; touchY = null; if (Math.abs(dy) > 35) go(Math.sign(dy)); }, { passive: true });
+window.addEventListener('keydown', e => {
+  if (!inStory()) return;
+  const d = ['ArrowDown', 'PageDown', ' '].includes(e.key) ? 1 : ['ArrowUp', 'PageUp'].includes(e.key) ? -1 : 0;
+  if (d) { e.preventDefault(); go(d); }
+});
+chapters.forEach(b => b.addEventListener('click', () => { lockUntil = 0; scrollAnim(STOPS[nearestStop(+b.dataset.at)] * storyMax(), 1400); }));
 
 function panelAlpha(pp, a, b) { const f = 0.014; return (a <= 0 ? 1 : smooth(a, a + f, pp)) * (b >= 1 ? 1 : 1 - smooth(b - f, b, pp)); }
 function updateDOM(pp) {
@@ -778,8 +810,13 @@ function tick() {
   if (liftS < 0.95) landed = false;
 
   const c = cameraAt(p, T);
-  camera.position.copy(c.pos); camera.lookAt(c.look);
-  sun.target.position.copy(c.look); sun.position.copy(c.look).add(SUN_OFF);
+  // Portrait screens: pull the camera back and widen the lens so subjects aren't cropped
+  const narrow = THREE.MathUtils.clamp((1.25 - camera.aspect) / 0.8, 0, 1);
+  camera.position.copy(c.look).addScaledVector(c.pos.clone().sub(c.look), 1 + narrow * c.nz);
+  if (camera.position.y < 1.2) camera.position.y = 1.2;
+  camera.lookAt(c.look);
+  const fov = 40 + narrow * 16; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  sun.target.position.set(Math.round(c.look.x / 10) * 10, 0, Math.round(c.look.z / 10) * 10); sun.position.copy(sun.target.position).add(SUN_OFF);
 
   HL.forEach((h, i) => {
     const pn = panels.find(q => q.cap === String(i));
@@ -824,8 +861,14 @@ function tick() {
   renderer.render(scene, camera);
 }
 
+function fitView() {
+  const w = window.innerWidth, h = window.innerHeight; camera.aspect = w / h;
+  if (w / h < 0.8) camera.setViewOffset(w, h, 0, h * 0.17, w, h); else camera.clearViewOffset();   // lift the subject above the text panel on phones
+  camera.updateProjectionMatrix();
+}
+fitView();
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+  fitView();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
