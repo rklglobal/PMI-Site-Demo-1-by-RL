@@ -54,8 +54,8 @@ h1,h2,h3{font-family:var(--head);font-weight:400;letter-spacing:.01em;line-heigh
 .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(90deg,rgba(255,255,255,.9) 0%,rgba(255,255,255,.6) 30%,rgba(255,255,255,0) 52%)}
 .story{position:relative;height:1600vh;z-index:2}
-.story-panels{position:sticky;top:0;height:100vh;overflow:hidden;pointer-events:none}
-.panel{--rise:0px;position:absolute;left:6vw;top:calc(50% + var(--nav-h) / 2);transform:translateY(calc(-50% + var(--rise)));width:min(560px,86vw);max-height:calc(100vh - var(--nav-h) - 40px);opacity:0;visibility:hidden;will-change:opacity,transform}
+.story-panels{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;pointer-events:none}
+.panel{--rise:0px;position:absolute;left:6vw;top:calc(50% + var(--nav-h) / 2);transform:translateY(calc(-50% + var(--rise)));width:min(560px,86vw);max-height:calc(100svh - var(--nav-h) - 40px);opacity:0;visibility:hidden;will-change:opacity,transform}
 .panel.on{pointer-events:auto}
 .panel h1{font-size:clamp(3.4rem,7.6vw,7.6rem);margin-bottom:1.4rem}
 .panel h2{font-size:clamp(2.4rem,4.4vw,4.2rem);margin-bottom:1.2rem}
@@ -166,7 +166,7 @@ footer img{height:40px;width:auto}
   .nav-logo img{height:40px}
   .nav .btn{padding:.6rem .9rem;font-size:.7rem}
   .vignette{background:linear-gradient(0deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.75) 42%,rgba(255,255,255,0) 66%)}
-  .panel{left:6vw;top:auto;bottom:6vh;transform:translateY(var(--rise));width:88vw;max-height:calc(100vh - var(--nav-h) - 8vh)}
+  .panel{left:6vw;top:auto;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(var(--rise));width:88vw;max-height:calc(100svh - var(--nav-h) - 40px)}
   .panel h1{font-size:3.2rem}
   .panel h2{font-size:2.4rem}
   .panel p{font-size:.95rem}
