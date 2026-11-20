@@ -6,7 +6,7 @@
 <title>Palacios Marine &amp; Industrial | Site Concept Demo 2</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/pmi-logo.png">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=5">
 <script type="importmap">{ "imports": { "three": "../vendor/three.module.js" } }</script>
 </head>
 <body>
@@ -14,18 +14,26 @@
 <div class="bg"><div class="rays"></div></div>
 <canvas id="scene"></canvas>
 
-<a class="logo" href="#" aria-label="PMI"><img src="../assets/pmi-logo.png" alt="Palacios Marine &amp; Industrial"></a>
-<button class="all-btn ui" aria-label="All topics"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>All topics</span></button>
+<header class="nav">
+  <a class="logo" href="#" aria-label="PMI"><img src="../assets/pmi-logo.png" alt="Palacios Marine &amp; Industrial"></a>
+  <div class="nav-r">
+    <button class="all-btn ui" aria-label="All topics"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>All topics</span></button>
+    <button class="snd ui" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+    <a class="btn-red" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>
+  </div>
+</header>
 <nav class="rail ui" aria-label="Topics"></nav>
 <h2 class="topic-title"></h2>
+<div class="copy ui"><p class="eyebrow"></p><h1></h1><p class="lead"></p><ul></ul></div>
 <div class="hotspots"></div>
 <div class="pins"></div>
 <button class="next ui"><i></i><span></span></button>
-<div class="foot ui"><a href="../">Demo 1</a><a href="mailto:bids@palaciosmarineindustrial.com">bids@palaciosmarineindustrial.com</a><button class="snd" aria-label="Sound"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button></div>
+<div class="foot ui"><a href="../">Demo 1</a></div>
 
 <section class="intro">
   <div class="intro-icons"><svg viewBox="0 0 24 24"><path d="M9 3h6v15H9zM7 21h10M9 8h6M9 13h6"/></svg><svg viewBox="0 0 24 24"><path d="M3 17h18M5 17a7 7 0 0 1 14 0M12 6v4"/></svg></div>
-  <h1>Our self-perform mission</h1>
+  <p class="eyebrow">Turnkey industrial contractor · Since 2003</p>
+  <h1>Our self-perform <span>mission</span></h1>
   <p>Palacios Marine &amp; Industrial is a turnkey industrial contractor. One team self-performs civil, mechanical, soft craft, industrial cleaning, pipeline and facility services, reducing complexity and delivering results for the facilities we serve.</p>
   <button class="start"><i></i><span>Start</span></button>
 </section>
@@ -33,6 +41,6 @@
 <aside class="card" aria-hidden="true"><button class="card-x" aria-label="Close">×</button><div class="card-body"></div></aside>
 <aside class="all" aria-hidden="true"><button class="card-x all-x" aria-label="Close">×</button><div class="all-grid"></div></aside>
 
-<script type="module" src="main.js?v=3"></script>
+<script type="module" src="main.js?v=5"></script>
 </body>
 </html>

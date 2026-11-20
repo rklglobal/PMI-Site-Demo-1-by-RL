@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=3';
-import { buildAll, CITIES } from './models.js?v=3';
+import { Snd } from './audio.js?v=5';
+import { buildAll, CITIES } from './models.js?v=5';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -25,36 +25,36 @@ const svc = (n, name, icon, items, big) => head(`${n} / 06 · Self-performed`, n
 const val = (eyebrow, title, text) => head(eyebrow, title) + `<p>${text}</p>`;
 
 const TOPICS = [
-  { key: 'intro', name: 'Why PMI', rot: 0.5, hot: [
+  { key: 'intro', eyebrow: 'Turnkey industrial contractor · Since 2003', title: 'Reducing complexity. <span>Delivering results.</span>', lead: 'One contractor. Turnkey execution. Fewer handoffs.', name: 'Why PMI', rot: 0.5, hot: [
     { label: 'Why choose PMI', icon: IC.star, html: head('Why choose PMI', 'Every scope, working together') + `<p>The success of a project depends on how well every scope works together. PMI delivers coordinated, accountable, multi-discipline execution that reduces gaps between scopes and keeps work moving safely and efficiently.</p>` + diagram(IC.intro, ['One contractor, multiple scopes', 'Field-to-leadership alignment', 'Built to keep work moving', 'Execution that adapts']) + `<div class="cols"><div class="big"><b>6</b><span>disciplines under one team</span><b>29</b><span>self-performed services</span><b>2003</b><span>founded in Port Lavaca, Texas</span></div><div><p>Palacios Marine &amp; Industrial is a privately owned turnkey industrial contractor and Certified Minority Business Enterprise (MBE) delivering construction, maintenance, turnaround, and specialty services.</p><p>By integrating multiple disciplines under one team, PMI helps clients simplify project delivery, reduce contractor interfaces, and maintain operational continuity.</p></div></div>` },
     { label: 'PMI advantage', icon: IC.list, html: head('PMI advantage', 'Construction · Maintenance · Turnarounds') + `<p>PMI simplifies project delivery through a self-perform approach that reduces complexity, improves coordination, and helps keep projects on schedule.</p>` + diagram(IC.star, ['Eliminate handoffs that delay your project', 'Minimize disruption to operations', 'Take back control of your project schedule', 'Clear accountability at every stage']) },
     { label: 'Industries served', icon: IC.fac, html: head('Industries served', 'Where we work') + `<div class="pics">${[['petrochemical', 'Petrochemical'], ['refining', 'Refining'], ['midstream', 'Midstream'], ['food', 'Food &amp; Beverage'], ['mining', 'Mining &amp; Smelting'], ['power', 'Power Generation'], ['pulp', 'Pulp &amp; Paper'], ['datacenter', 'Mission Critical &amp; Data Centers']].map(([f, n]) => `<figure><img loading="lazy" src="../assets/ind-${f}.jpg" alt=""><figcaption>${n}</figcaption></figure>`).join('')}</div>` },
   ] },
-  { key: 'mech', name: 'Mechanical', rot: 0.5, hot: [
+  { key: 'mech', eyebrow: '<b>01</b> / 06 · Self-performed', title: 'Mechanical', items: ['Piping Systems Installation', 'Equipment Setting and Alignment', 'ASME “U” and “S” Code Work', 'NBIC “R” Stamp Repair', 'Structural Steel Erection'], name: 'Mechanical', rot: 0.5, hot: [
     { label: 'Mechanical services', icon: IC.list, html: svc('01', 'Mechanical', IC.mech, ['Piping Systems Installation', 'Equipment Setting and Alignment', 'ASME “U” and “S” Code Work', 'NBIC “R” Stamp Repair', 'Structural Steel Erection'], ['U · S · R', 'ASME and NBIC code stamps held']) },
     { label: 'Fab &amp; shop support', icon: IC.shop, html: head('Fabrication &amp; shop support', 'From our shops to your pipe rack') + diagram(IC.shop, ['Corpus Christi', 'Port Lavaca', 'Freeport', 'Houston', 'Baton Rouge']) + `<p>By self-performing critical scopes with our own workforce, PMI helps reduce subcontractor dependency and maintain greater control over project timelines.</p>` },
   ] },
-  { key: 'civil', name: 'Civil', rot: 0.45, hot: [
+  { key: 'civil', eyebrow: '<b>02</b> / 06 · Self-performed', title: 'Civil', items: ['Site Preparation and Earthwork', 'Concrete Foundations', 'Equipment Pads and Structural Foundations', 'Underground Utilities', 'Drainage and Erosion Control'], name: 'Civil', rot: 0.45, hot: [
     { label: 'Civil services', icon: IC.list, html: svc('02', 'Civil', IC.civil, ['Site Preparation and Earthwork', 'Concrete Foundations', 'Equipment Pads and Structural Foundations', 'Underground Utilities', 'Drainage and Erosion Control'], ['1', 'contractor from the ground up']) },
     { label: 'One contractor', icon: IC.star, html: val('One contractor, multiple scopes', 'Fewer handoffs', 'Simplify project delivery through one team managing civil, mechanical, soft craft, pipeline, and facility services, reducing handoff delays and improving coordination.') },
   ] },
-  { key: 'soft', name: 'Soft Craft', rot: 0.6, hot: [
+  { key: 'soft', eyebrow: '<b>03</b> / 06 · Self-performed', title: 'Soft Craft', items: ['Scaffold Design and Access', 'Insulation Systems', 'Industrial Coatings', 'Fireproofing Applications', 'Abatement'], name: 'Soft Craft', rot: 0.6, hot: [
     { label: 'Soft craft services', icon: IC.list, html: svc('03', 'Soft Craft', IC.soft, ['Scaffold Design and Access', 'Insulation Systems', 'Industrial Coatings', 'Fireproofing Applications', 'Abatement'], ['1', 'team from access to final coat']) },
     { label: 'Keep work moving', icon: IC.star, html: val('Built to keep work moving', 'Real-time response', 'Coordinated teams respond to challenges in real time, reducing delays, improving accountability, and maintaining project momentum.') },
   ] },
-  { key: 'clean', name: 'Industrial Cleaning', rot: -0.45, hot: [
+  { key: 'clean', eyebrow: '<b>04</b> / 06 · Self-performed', title: 'Industrial Cleaning', items: ['Hydroblasting', 'Tank Cleaning', 'Hydro Excavation', 'Vacuum Services', 'Line Cleaning'], name: 'Industrial Cleaning', rot: -0.45, hot: [
     { label: 'Cleaning services', icon: IC.list, html: svc('04', 'Industrial Cleaning', IC.clean, ['Hydroblasting', 'Tank Cleaning', 'Hydro Excavation', 'Vacuum Services', 'Line Cleaning'], ['1', 'call for cleaning and the work that follows']) },
     { label: 'Minimize disruption', icon: IC.star, html: val('Minimize disruption to operations', 'Planned around your site', 'Work is planned around site conditions and production requirements to help minimize disruption and support ongoing operations.') },
   ] },
-  { key: 'pipe', name: 'Pipeline', rot: 0.5, hot: [
+  { key: 'pipe', eyebrow: '<b>05</b> / 06 · Self-performed', title: 'Pipeline', items: ['Pipeline Construction', 'Compressor, Metering, and Pump Stations', 'Pipeline Repair and Replacement', 'Integrity and Coating Services', 'Right-of-Way Maintenance'], name: 'Pipeline', rot: 0.5, hot: [
     { label: 'Pipeline services', icon: IC.list, html: svc('05', 'Pipeline', IC.pipe, ['Pipeline Construction', 'Compressor, Metering, and Pump Stations', 'Pipeline Repair and Replacement', 'Integrity and Coating Services', 'Right-of-Way Maintenance'], ['1', 'team from right-of-way to station']) },
     { label: 'Execution that adapts', icon: IC.star, html: val('Execution that adapts', 'Real-world conditions', 'Keep work progressing across maintenance, turnarounds, capital projects, startups, and decommissioning activities with execution that adapts to real-world conditions.') },
   ] },
-  { key: 'fac', name: 'Facility Services', rot: -0.4, hot: [
+  { key: 'fac', eyebrow: '<b>06</b> / 06 · Self-performed', title: 'Facility Services', items: ['Routine Facility Maintenance', 'Janitorial and Site Services', 'Grounds and Exterior Maintenance', 'Security Services'], name: 'Facility Services', rot: -0.4, hot: [
     { label: 'Facility services', icon: IC.list, html: svc('06', 'Facility Services', IC.fac, ['Routine Facility Maintenance', 'Janitorial and Site Services', 'Grounds and Exterior Maintenance', 'Security Services'], ['24/7', 'site needs handled by one contractor']).replace('<b>24/7</b><span>site needs handled by one contractor</span>', '') },
     { label: 'Our values', icon: IC.star, html: head('Core values', 'People. Grit. Integrity.') + diagram(IC.star, ['People: a people-first culture', 'Grit: dependable results', 'Integrity: accountability and follow-through']) + `<p>PMI strives to be our customers’ greatest asset by providing exceptional service through unrivaled responsiveness, reliability, and accountability, while maintaining a safety conscience workforce.</p>` },
   ] },
-  { key: 'loc', name: 'Locations', rot: 0, flat: true, hot: [
+  { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], name: 'Locations', rot: 0, flat: true, hot: [
     { label: 'All locations', icon: IC.loc, html: head('Locations', 'Gulf Coast and beyond') + diagram(IC.loc, ['Corporate Office: Port Lavaca, Texas', 'Texas: Corpus Christi · Victoria · Freeport · Deer Park · Houston', 'Louisiana: Lake Charles · Baton Rouge', 'Alabama: Mobile', 'International: Clarendon, Jamaica']) },
     { label: 'Contact PMI', icon: IC.mail, html: head('Let’s discuss', 'Your next project') + `<p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>` + list(['888.744.9699', 'bids@palaciosmarineindustrial.com', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>` },
     { label: 'Jamaica', icon: IC.loc, html: val('International', 'Clarendon, Jamaica', 'PMI supports clients beyond the Gulf Coast with an international location in Clarendon, Jamaica.') },
@@ -117,9 +117,9 @@ const mat = new THREE.ShaderMaterial({
       float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + vTint * 0.25) * uPix / -mv.z;
       gl_PointSize = max(sz, uMin);
       float depth = clamp((-mv.z - 6.6) / 4.0, 0.0, 1.0);
-      vA = (0.62 + 0.38 * aRnd.x) * mix(1.0, 0.42, depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
+      vA = (0.7 + 0.3 * aRnd.x) * mix(1.0, 0.38, depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
     }`,
-  fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.32, d); vec3 col = mix(vec3(1.0, 0.985, 0.975), vec3(1.0, 0.86, 0.42), vTint); gl_FragColor = vec4(col, a * min(1.0, vA + vTint * 0.4)); }`,
+  fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.32, d); vec3 col = mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), vTint); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + vTint * 0.4)); }`,
 });
 const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; group.add(cloud);
 
@@ -134,7 +134,7 @@ const dust = new THREE.Points(dgeo, new THREE.ShaderMaterial({
     void main(){ vec3 p = position; p.x = mod(p.x + uTime * (0.06 + aR.x * 0.2) + uRush * (2.0 + aR.y * 6.0) + 11.0, 22.0) - 11.0; p.y += sin(uTime * 0.25 + aR.y * 20.0) * 0.4 + p.x * 0.14;
       vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
       vB = step(0.8, aR.z); vC = aR.y; gl_PointSize = (vB > 0.5 ? 0.3 + aR.x * 0.3 : 0.022 + aR.z * 0.035) * uPix / -mv.z; vA = vB > 0.5 ? 0.09 : 0.35 + aR.x * 0.5; }`,
-  fragmentShader: `varying float vA; varying float vB; varying float vC; void main(){ float d = length(gl_PointCoord - 0.5); float a = vB > 0.5 ? smoothstep(0.5, 0.28, d) : smoothstep(0.5, 0.2, d); vec3 col = vB > 0.5 ? vec3(1.0, 0.62, 0.58) : mix(vec3(1.0, 0.8, 0.76), vec3(1.0, 0.9, 0.5), step(0.7, vC)); gl_FragColor = vec4(col, a * vA); }`,
+  fragmentShader: `varying float vA; varying float vB; varying float vC; void main(){ float d = length(gl_PointCoord - 0.5); float a = vB > 0.5 ? smoothstep(0.5, 0.28, d) : smoothstep(0.5, 0.2, d); vec3 col = vB > 0.5 ? vec3(0.55, 0.6, 0.66) : mix(vec3(0.35, 0.38, 0.42), vec3(0.89, 0.12, 0.14), step(0.78, vC)); gl_FragColor = vec4(col, a * vA * 0.8); }`,
 }));
 dust.frustumCulled = false; scene.add(dust);
 
@@ -143,7 +143,7 @@ dust.frustumCulled = false; scene.add(dust);
    ========================================================= */
 const snd = new Snd();
 const $ = s => document.querySelector(s);
-const rail = $('.rail'), hots = $('.hotspots'), pins = $('.pins'), title = $('.topic-title'), pill = $('.next'), cardEl = $('.card'), cardBody = $('.card-body'), allEl = $('.all');
+const copy = $('.copy'), rail = $('.rail'), hots = $('.hotspots'), pins = $('.pins'), title = $('.topic-title'), pill = $('.next'), cardEl = $('.card'), cardBody = $('.card-body'), allEl = $('.all');
 let cur = -1, mode = 'intro', morph = { t0: 0, dur: 1, on: false }, hotEls = [], pinEls = [], lock = 0, zoom = 1;
 
 TOPICS.forEach((t, i) => {
@@ -174,6 +174,7 @@ function go(i) {
   const same = i === cur; lock = performance.now() + 900; cur = i; mode = 'over'; closeCard(true);
   if (!same) { snd.morph(); setTarget(SH[i], 2.5); }
   title.textContent = TOPICS[i].name;
+  if (!same) { copy.classList.add('swap'); setTimeout(() => { if (cur !== i) return; const t = TOPICS[i]; copy.querySelector('.eyebrow').innerHTML = t.eyebrow; copy.querySelector('h1').innerHTML = t.title; copy.querySelector('.lead').textContent = t.lead || ''; copy.querySelector('ul').innerHTML = (t.items || []).map(x => `<li>${x}</li>`).join(''); copy.classList.remove('swap'); }, 650); }
   [...rail.children].forEach((b, k) => b.classList.toggle('on', k === i)); [...$('.all-grid').children].forEach((b, k) => b.classList.toggle('on', k === i));
   layout(); setTimeout(() => { if (cur === i && mode === 'over') showHots(); }, same ? 0 : 1700);
 }
@@ -203,16 +204,16 @@ const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 window.addEventListener('pointermove', e => { mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = -(e.clientY / innerHeight * 2 - 1); if (e.pointerType === 'mouse') U.uMouse.value.set(mouse.tx, mouse.ty); });
 document.addEventListener('pointerleave', () => U.uMouse.value.set(9, 9));
 
-let baseScale = 1;
+let baseScale = 1, ang = 0, offX = 0;
 function fit() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   U.uAspect.value = w / h; U.uPix.value = DU.uPix.value = h * DPR / (2 * Math.tan(camera.fov * Math.PI / 360));
-  baseScale = Math.min(0.95, (w / h) * 1.15);
+  baseScale = Math.min(0.9, (w / h) * 1.15); offX = w > 900 ? 0.95 : 0;
 }
 window.addEventListener('resize', fit); fit();
 
 const v = new THREE.Vector3(); let t0 = performance.now(), el = 0, rush = 0;
-function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(group.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(120, y)); } h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
+function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(group.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -220,16 +221,20 @@ function frame() {
   let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (k >= 1) morph.on = false; }
   rush += Math.sin(Math.PI * Math.max(0, k)) * dt * 0.9; DU.uRush.value = rush;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;
-  const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat;
-  zoom += ((detail ? (innerWidth < 760 ? 1.08 : t.flat ? 1.12 : 1.28) : 1) - zoom) * 0.05;
+  const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
+  // overview: the camera flies around the object (orbit + dolly + rise); detail: it settles so hotspots hold still
+  const fly = mode === 'over' && !flat, hero = cur === 0;
+  const dolly = fly ? (hero ? 0.1 + 0.22 * Math.sin(el * 0.21) : 0.06 * Math.sin(el * 0.25)) : 0;
+  zoom += ((detail ? (narrow ? 1.08 : flat ? 1.12 : 1.25) : 1 + dolly) - zoom) * 0.04;
   const sc = baseScale * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
-  group.position.y += (((innerWidth < 760 ? 0.25 : 0) + (detail ? -0.1 : 0)) - group.position.y) * 0.05;
-  const sway = flat ? 0.12 : detail ? 0.22 : 0.4;
-  const ry = mode === 'intro' ? Math.sin(el * 0.15) * 0.06 : t.rot + Math.sin(el * 0.2) * sway + mouse.x * 0.28;
-  const rx = mode === 'intro' ? 0 : (flat ? -0.55 : 0.14) - mouse.y * 0.12;
-  group.rotation.y += (ry - group.rotation.y) * 0.04; group.rotation.x += (rx - group.rotation.x) * 0.04;
+  const px = mode === 'intro' ? 0 : offX * (detail ? 0.75 : 1), py = (narrow && mode !== 'intro' ? (detail ? 0.5 : 1.15) : 0) + (fly && hero ? 0.1 - 0.12 * Math.sin(el * 0.21) : 0);
+  group.position.x += (px - group.position.x) * 0.05; group.position.y += (py - group.position.y) * 0.05;
+  if (fly) ang += dt * (hero ? 0.2 : 0.14);
+  else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.1 : 0.2); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.04; }
+  const rx = mode === 'intro' ? 0 : (flat ? -0.55 : 0.14 + (fly && hero ? 0.16 * Math.sin(el * 0.17) : 0)) - mouse.y * 0.12;
+  group.rotation.y = ang + mouse.x * 0.2; group.rotation.x += (rx - group.rotation.x) * 0.04;
   group.updateMatrixWorld();
-  hotEls.forEach(h => place(h, 23, 23, true)); pinEls.forEach(h => place(h, 0, 8));
+  hotEls.forEach(h => { if (mode === 'over') { v.set(group.position.x + (narrow ? 1.25 : 2.0) * baseScale, group.position.y + 1.1 * baseScale, 0).project(camera); h.el.style.transform = `translate(${((v.x + 1) / 2 * innerWidth - 23).toFixed(1)}px, ${((1 - v.y) / 2 * innerHeight - 23).toFixed(1)}px)`; } else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 8));
   renderer.render(scene, camera);
 }
 morph = { t0: performance.now() + 500, dur: 3200, on: true };
