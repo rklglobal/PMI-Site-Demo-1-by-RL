@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=9';
-import { buildAll, CITIES } from './models.js?v=9';
+import { Snd } from './audio.js?v=10';
+import { buildAll, CITIES } from './models.js?v=10';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -71,7 +71,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false
 const DPR = Math.min(window.devicePixelRatio, 2); renderer.setPixelRatio(DPR);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100); camera.position.z = 7.2;
-const group = new THREE.Group(); scene.add(group);
+const group = new THREE.Group(), spin = new THREE.Group(); group.add(spin); scene.add(group);
 
 const SH = buildAll(N);
 const RING = new Float32Array(N * 3), RT = new Float32Array(N);
@@ -121,7 +121,7 @@ const mat = new THREE.ShaderMaterial({
     }`,
   fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
-const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; group.add(cloud);
+const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; spin.add(cloud);
 
 // ambient dust and soft bokeh drifting through the frame
 const DN = mobile ? 420 : 900, dgeo = new THREE.BufferGeometry(), dp = new Float32Array(DN * 3), dr = new Float32Array(DN * 3);
@@ -159,13 +159,14 @@ function setTarget(s, dur) {
 function wire(el) { el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') snd.hover(); }); el.addEventListener('pointerdown', () => snd.click()); return el; }
 function hotspot(icon, label, at, fn) { const el = wire(document.createElement('button')); el.className = 'hot'; el.innerHTML = `<b>${svg(icon)}</b>${label ? `<span>${label}</span>` : ''}`; el.onclick = fn; hots.appendChild(el); const h = { el, at: new THREE.Vector3(...at) }; hotEls.push(h); return h; }
 function showHots() { hotEls.forEach((h, k) => setTimeout(() => h.el.classList.add('show'), 150 + k * 170)); }
-function layout() {      // (re)build hotspots for the current mode
+function layout() { area();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
   else { t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
     if (t.flat) CITIES.forEach(([n, lo, la], k) => { if (k === 9) return; const el = document.createElement('div'); el.className = 'pin'; el.textContent = n; pins.appendChild(el); const c = SH[7].hot; pinEls.push({ el, at: new THREE.Vector3((lo + 92) * 0.19 * 0.98 - (0.5 * 0.19 * 0.98), ((la - 27.2) * 0.19 * 1.13 + 0.6 * 0.19 * 1.13) * 0.98, 0.1) }); setTimeout(() => el.classList.add('show'), 500 + k * 90); }); }
-  pill.querySelector('span').textContent = mode === 'over' ? t.name : 'Close';
+  pill.querySelector('span').textContent = mode === 'over' ? 'Explore ' + t.name : 'Close';
+  pill.classList.toggle('x', mode === 'detail');
   document.body.classList.toggle('detail', mode === 'detail');
 }
 function go(i) {
@@ -204,16 +205,29 @@ const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 window.addEventListener('pointermove', e => { mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = -(e.clientY / innerHeight * 2 - 1); if (e.pointerType === 'mouse') U.uMouse.value.set(mouse.tx, mouse.ty); });
 document.addEventListener('pointerleave', () => U.uMouse.value.set(9, 9));
 
-let baseScale = 1, ang = 0, offX = 0;
+let ang = 0, tick = 0;
+const view = { x: 0, y: 0, s: 0.8, tx: 0, ty: 0, ts: 0.8, w: 1, h: 1 };
 function fit() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-  U.uAspect.value = w / h; U.uPix.value = DU.uPix.value = h * DPR / (2 * Math.tan(camera.fov * Math.PI / 360));
-  baseScale = Math.min(0.92, (w / h) * 1.2); offX = w > 900 ? 0.15 * 2 * Math.tan(camera.fov * Math.PI / 360) * camera.position.z * (w / h) : 0;
+  U.uAspect.value = w / h; U.uPix.value = DU.uPix.value = h * DPR / (2 * Math.tan(camera.fov * Math.PI / 360)); area();
+}
+// free screen area for the model: between the header, the text block, the rail and the bottom button
+function area() {
+  const w = innerWidth, h = innerHeight, narrow = w <= 900, detail = mode === 'detail', navB = $('.nav').getBoundingClientRect().bottom, pillT = pill.getBoundingClientRect().top || h - 80;
+  let l = 0, r = w, t = navB + 8, b = h;
+  if (mode !== 'intro') {
+    const c = copy.getBoundingClientRect();
+    if (narrow) b = (detail ? pillT : Math.min(c.top, pillT)) - 8;
+    else { l = c.right + 10; r = (rail.getBoundingClientRect().left || w) - 16; b = pillT - 10; }
+  }
+  const ppu = (h / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
+  view.w = r - l; view.h = b - t; view.tx = (l + r) / 2 - w / 2; view.ty = (t + b) / 2 - h / 2;
+  view.ts = mode === 'intro' ? Math.min(0.9, w / h * 1.1) : Math.min(1.15, view.w / (4.5 * ppu), view.h / (3.15 * ppu));
 }
 window.addEventListener('resize', fit); fit();
 
 const v = new THREE.Vector3(); let t0 = performance.now(), el = 0, rush = 0;
-function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(group.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
+function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(spin.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -222,19 +236,20 @@ function frame() {
   rush += Math.sin(Math.PI * Math.max(0, k)) * dt * 0.9; DU.uRush.value = rush;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;
   const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
-  // overview: the camera flies around the object (orbit + dolly + rise); detail: it settles so hotspots hold still
-  const fly = mode === 'over' && !flat, hero = cur === 0;
-  const dolly = fly ? (hero ? 0.08 + 0.12 * Math.sin(el * 0.21) : 0) : 0;
-  zoom += ((detail ? (narrow ? 1.08 : flat ? 1.12 : 1.25) : 1 + dolly) - zoom) * 0.04;
-  const sc = baseScale * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
-  const px = mode === 'intro' ? 0 : offX * (detail ? 0.75 : 1), py = narrow && mode !== 'intro' ? (detail ? 0.5 : 1.1) : -0.1;
-  group.position.x += (px - group.position.x) * 0.05; group.position.y += (py - group.position.y) * 0.05;
-  if (fly) ang += dt * 0.16;
-  else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.1 : 0.2); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.04; }
-  const rx = mode === 'intro' ? 0.1 : flat ? -0.5 : 0.34;
-  group.rotation.y = ang; group.rotation.x += (rx - group.rotation.x) * 0.1;
+  if (tick++ % 12 === 0) area();
+  // the model stays at the origin, dead on the optical axis, and turns about its vertical axis like a turntable;
+  // the lens is shifted to place it in the free area, so the pivot never skews
+  view.x += (view.tx - view.x) * 0.06; view.y += (view.ty - view.y) * 0.06; view.s += (view.ts - view.s) * 0.06;
+  camera.setViewOffset(innerWidth, innerHeight, -view.x, -view.y, innerWidth, innerHeight);
+  const fly = mode === 'over' && !flat;
+  zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
+  const sc = view.s * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
+  if (fly) ang += dt * 0.17;
+  else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
+  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.5 : 0.36, 0, 0);
+  spin.rotation.y = ang;
   group.updateMatrixWorld();
-  hotEls.forEach(h => { if (mode === 'over') { v.set(group.position.x + (narrow ? 1.25 : 2.0) * baseScale, group.position.y + 1.1 * baseScale, 0).project(camera); h.el.style.transform = `translate(${((v.x + 1) / 2 * innerWidth - 23).toFixed(1)}px, ${((1 - v.y) / 2 * innerHeight - 23).toFixed(1)}px)`; } else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 8));
+  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 8));
   renderer.render(scene, camera);
 }
 morph = { t0: performance.now() + 500, dur: 3200, on: true };
