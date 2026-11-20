@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { SoundEngine } from './audio.js?v=4';
+import { SoundEngine } from './audio.js?v=7';
 
 /* =========================================================
    Renderer / scene

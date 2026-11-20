@@ -21,8 +21,8 @@ export class SoundEngine {
     const rev = ctx.createGain(); rev.gain.value = 0.6;
     this.reverb.connect(rev).connect(this.master);
 
-    this.musicBus = ctx.createGain(); this.musicBus.gain.value = 0.55;
-    const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1500;
+    this.musicBus = ctx.createGain(); this.musicBus.gain.value = 0.7;
+    const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 3200;
     this.musicBus.connect(tone); tone.connect(this.master); tone.connect(this.reverb);
 
     this.sfxBus = ctx.createGain(); this.sfxBus.gain.value = 0.6;
@@ -62,31 +62,58 @@ export class SoundEngine {
   }
   _loop(buf) { const s = this.ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.start(); return s; }
 
-  // Slow overlapping chords: each note fades in over ~4 s and out over ~7 s
+  // Chill lounge-house loop, 112 BPM: soft four-on-the-floor kick, offbeat hats, snap on 2 and 4,
+  // warm electric-piano chord stabs, round bass, gentle sidechain pump. All synthesized.
   _music() {
-    const hz = n => 440 * Math.pow(2, (n - 69) / 12);
-    const chords = [[48, 55, 62, 64], [45, 52, 60, 64], [41, 53, 57, 64], [43, 55, 59, 62]];
-    let i = 0;
-    const play = () => {
-      if (this.ctx.state !== 'running') return;
-      const t = this.ctx.currentTime + 0.05;
-      chords[i++ % chords.length].forEach((n, k) => this._note(hz(n), t + k * 0.35, 0.05));
-      if (i % 2 === 0) this._note(hz([72, 76, 79, 74][(i / 2) % 4]), t + 5, 0.018);
+    const ctx = this.ctx;
+    this.drumBus = ctx.createGain(); this.drumBus.gain.value = 0.5; this.drumBus.connect(this.master);
+    this.pump = ctx.createGain(); this.pump.connect(this.musicBus);
+    const step = 60 / 112 / 4;
+    const chords = [[50, 57, 60, 64, 65], [43, 59, 62, 64, 65], [48, 55, 59, 62, 64], [45, 55, 59, 60, 64]]; // Dm9, G13, Cmaj9, Am9
+    let n = 0, next = 0;
+    const tick = () => {
+      if (ctx.state !== 'running') return;
+      if (next < ctx.currentTime) next = ctx.currentTime + 0.05;
+      while (next < ctx.currentTime + 0.25) {
+        const s = n % 16, ch = chords[Math.floor(n / 16) % 4], t = next;
+        if (s % 4 === 0) this._kick(t);
+        if (s % 4 === 2) this._hat(t, 0.06, 0.05); else if (s % 2 === 1) this._hat(t, 0.018, 0.03);
+        if (s === 4 || s === 12) this._snap(t);
+        if (s === 0) ch.slice(1).forEach(m => this._tone(m + 12, t, step * 15, 0.012, 'sine', 1.2));           // pad
+        if (s === 3 || s === 6 || s === 11) ch.slice(1).forEach(m => this._tone(m, t, 0.45, 0.04, 'triangle', 0.01)); // keys
+        if (s === 2 || s === 7 || s === 10 || s === 14) this._bass(ch[0] - 12, t, s === 7 ? step * 1.5 : step * 2.5);
+        next += step; n++;
+      }
     };
-    play();
-    this.musicTimer = setInterval(play, 11000);
+    this.musicTimer = setInterval(tick, 60);
   }
-  _note(f, t, peak) {
-    const ctx = this.ctx, g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + 4);
-    g.gain.setValueAtTime(peak, t + 8);
-    g.gain.linearRampToValueAtTime(0.0001, t + 15);
-    const a = ctx.createOscillator(); a.type = 'sine'; a.frequency.value = f;
-    const b = ctx.createOscillator(); b.type = 'triangle'; b.frequency.value = f * 1.003;
-    const bg = ctx.createGain(); bg.gain.value = 0.35;
-    a.connect(g); b.connect(bg).connect(g); g.connect(this.musicBus);
-    a.start(t); b.start(t); a.stop(t + 15.2); b.stop(t + 15.2);
+  _hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+  _kick(t) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.12);
+    g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.connect(g).connect(this.drumBus); o.start(t); o.stop(t + 0.32);
+    this.pump.gain.cancelScheduledValues(t); this.pump.gain.setValueAtTime(0.45, t); this.pump.gain.linearRampToValueAtTime(1, t + 0.3);
+  }
+  _noiseShot(t, type, freq, q, dur, gain) {
+    const ctx = this.ctx, s = ctx.createBufferSource(); s.buffer = this.white;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = ctx.createGain(); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f).connect(g).connect(this.drumBus); s.start(t, Math.random()); s.stop(t + dur + 0.02);
+  }
+  _hat(t, gain, dur) { this._noiseShot(t, 'highpass', 7500, 0.7, dur, gain); }
+  _snap(t) { this._noiseShot(t, 'bandpass', 1700, 1.2, 0.13, 0.11); }
+  _tone(m, t, dur, peak, type, attack) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = this._hz(m);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + attack + dur);
+    o.connect(g).connect(this.pump); o.start(t); o.stop(t + attack + dur + 0.05);
+  }
+  _bass(m, t, dur) {
+    const ctx = this.ctx, g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.2, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    ['sine', 'triangle'].forEach((type, i) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = this._hz(m + i * 12); o.connect(lp); o.start(t); o.stop(t + dur + 0.05); });
+    lp.connect(g).connect(this.pump);
   }
 
   _ambience() {
