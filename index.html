@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palacios Marine &amp; Industrial | Site Concept Demo 1</title>
+<meta name="description" content="Concept demo of a refreshed Palacios Marine & Industrial (PMI) website. Turnkey industrial contractor: construction, maintenance, turnarounds.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="PMI | Reducing complexity. Delivering results.">
+<meta property="og:description" content="One contractor. Turnkey execution. Fewer handoffs. Concept site demo.">
+<meta property="og:image" content="assets/og.jpg">
+<link rel="icon" href="assets/pmi-logo.png">
+<link rel="preload" href="assets/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+
+<div id="loader">
+  <img src="assets/pmi-logo.png" alt="PMI">
+  <div class="loader-bar"><span></span></div>
+  <p class="loader-msg">Mobilizing crews…</p>
+  <div class="enter">
+    <button class="btn btn-red" data-enter="sound">Enter with sound</button>
+    <button class="btn" data-enter="mute">Enter without sound</button>
+    <small>Headphones recommended</small>
+  </div>
+</div>
+
+<button class="sound-toggle" aria-label="Toggle sound" title="Sound">
+  <span></span><span></span><span></span><span></span>
+  <em>Sound</em>
+</button>
+
+<header class="nav">
+  <a class="nav-logo" href="#top"><img src="assets/pmi-logo.png" alt="Palacios Marine &amp; Industrial"></a>
+  <nav>
+    <a href="#capabilities">Capabilities</a>
+    <a href="#industries">Industries</a>
+    <a href="#about">About</a>
+    <a href="#locations">Locations</a>
+    <a class="btn btn-red" href="#contact">Request a Bid</a>
+  </nav>
+</header>
+
+<canvas id="scene"></canvas>
+<div class="vignette"></div>
+
+<!-- Scroll-driven story: panels fade in/out by scroll progress -->
+<section id="top" class="story">
+  <div class="story-panels">
+
+    <div class="panel panel-hero" data-in="0" data-out="0.055">
+      <p class="eyebrow">Turnkey Industrial Contractor · Since 2003</p>
+      <h1>Reducing<br>complexity.<br><span class="red">Delivering<br>results.</span></h1>
+      <p class="lead">One contractor. Turnkey execution. Fewer handoffs.</p>
+      <div class="scroll-cue"><span></span>Scroll to roll out</div>
+    </div>
+
+    <div class="panel" data-in="0.075" data-out="0.155">
+      <p class="eyebrow">Why choose PMI</p>
+      <h2>The success of a project depends on how well <span class="red">every scope works together.</span></h2>
+      <p>PMI delivers coordinated, accountable, multi-discipline execution that reduces gaps between scopes and keeps work moving safely and efficiently.</p>
+    </div>
+
+    <div class="panel" data-in="0.17" data-out="0.25">
+      <p class="eyebrow">One team. Every scope.</p>
+      <div class="duo">
+        <div><h3>One contractor, multiple scopes</h3><p>Civil, mechanical, soft craft, pipeline and facility services under one team, cutting handoff delays and improving coordination.</p></div>
+        <div><h3>Field-to-leadership alignment</h3><p>Direct communication and responsive leadership mean faster decisions and quicker issue resolution when conditions change.</p></div>
+      </div>
+    </div>
+
+    <div class="panel" data-in="0.265" data-out="0.355">
+      <p class="eyebrow">The self-perform advantage</p>
+      <h2>Our crews. Our equipment. <span class="red">Your savings.</span></h2>
+      <p>By self-performing critical scopes with our own workforce, PMI reduces subcontractor dependency, takes back control of your schedule, and keeps more of your budget on the work itself.</p>
+    </div>
+
+    <div class="panel" data-in="0.385" data-out="0.505">
+      <p class="eyebrow">From our fab shops to your pipe rack</p>
+      <h2>Fabricated. Delivered. <span class="red">Set.</span></h2>
+      <p>Shop support in Corpus Christi, Port Lavaca, Freeport, Houston and Baton Rouge, with PMI crews and rigging in the field. No handoff between the shop and the steel.</p>
+    </div>
+
+    <!-- Capabilities: one per discipline -->
+    <div class="panel panel-cap" data-in="0.525" data-out="0.585" data-cap="0">
+      <p class="eyebrow"><b>01</b> / 06 · Self-performed</p>
+      <h2>Mechanical</h2>
+      <ul><li>Piping Systems Installation</li><li>Equipment Setting and Alignment</li><li>ASME “U” and “S” Code Work</li><li>NBIC “R” Stamp Repair</li><li>Structural Steel Erection</li></ul>
+    </div>
+    <div class="panel panel-cap" data-in="0.6" data-out="0.655" data-cap="1">
+      <p class="eyebrow"><b>02</b> / 06 · Self-performed</p>
+      <h2>Civil</h2>
+      <ul><li>Site Preparation and Earthwork</li><li>Concrete Foundations</li><li>Equipment Pads and Structural Foundations</li><li>Underground Utilities</li><li>Drainage and Erosion Control</li></ul>
+    </div>
+    <div class="panel panel-cap" data-in="0.67" data-out="0.725" data-cap="2">
+      <p class="eyebrow"><b>03</b> / 06 · Self-performed</p>
+      <h2>Soft Craft</h2>
+      <ul><li>Scaffold Design and Access</li><li>Insulation Systems</li><li>Industrial Coatings</li><li>Fireproofing Applications</li><li>Abatement</li></ul>
+    </div>
+    <div class="panel panel-cap" data-in="0.74" data-out="0.795" data-cap="3">
+      <p class="eyebrow"><b>04</b> / 06 · Self-performed</p>
+      <h2>Industrial Cleaning</h2>
+      <ul><li>Hydroblasting</li><li>Tank Cleaning</li><li>Hydro Excavation</li><li>Vacuum Services</li><li>Line Cleaning</li></ul>
+    </div>
+    <div class="panel panel-cap" data-in="0.81" data-out="0.865" data-cap="4">
+      <p class="eyebrow"><b>05</b> / 06 · Self-performed</p>
+      <h2>Pipeline</h2>
+      <ul><li>Pipeline Construction</li><li>Compressor, Metering, and Pump Stations</li><li>Pipeline Repair and Replacement</li><li>Integrity and Coating Services</li><li>Right-of-Way Maintenance</li></ul>
+    </div>
+    <div class="panel panel-cap" data-in="0.88" data-out="0.93" data-cap="5">
+      <p class="eyebrow"><b>06</b> / 06 · Self-performed</p>
+      <h2>Facility Services</h2>
+      <ul><li>Routine Facility Maintenance</li><li>Janitorial and Site Services</li><li>Grounds and Exterior Maintenance</li><li>Security Services</li></ul>
+    </div>
+
+    <div class="panel panel-stats" data-in="0.95" data-out="1.01">
+      <p class="eyebrow">One contractor. One call.</p>
+      <h2>Everything your site needs, <span class="red">self&#8209;performed.</span></h2>
+      <div class="stats">
+        <div><b data-count="6">0</b><span>Disciplines</span></div>
+        <div><b data-count="29">0</b><span>Self-performed services</span></div>
+        <div><b data-count="5">0</b><span>Fab &amp; shop locations</span></div>
+        <div><b data-count="10">0</b><span>Operating locations</span></div>
+      </div>
+      <a class="btn btn-red" href="#contact">Talk to PMI about your next project</a>
+    </div>
+
+  </div>
+
+  <div class="chapters" aria-hidden="true">
+    <span data-at="0">Intro</span>
+    <span data-at="0.11">Why PMI</span>
+    <span data-at="0.31">Self-perform</span>
+    <span data-at="0.44">Delivery</span>
+    <span data-at="0.55">Capabilities</span>
+    <span data-at="0.97">Scale</span>
+    <i class="chapters-fill"></i>
+  </div>
+</section>
+
+<main class="content">
+
+  <section id="capabilities" class="sec">
+    <div class="wrap">
+      <p class="eyebrow">Our capabilities</p>
+      <h2 class="big">Six disciplines. <span class="red">One team.</span></h2>
+      <p class="intro">PMI supports maintenance, turnarounds, capital projects, and specialty work through a coordinated self-perform approach. Executing multiple disciplines under one team reduces contractor interfaces, improves schedule control, and delivers consistent project execution.</p>
+      <div class="cap-grid">
+        <article><span class="num">01</span><h3>Mechanical</h3><ul><li>Piping Systems Installation</li><li>Equipment Setting and Alignment</li><li>ASME “U” and “S” Code Work</li><li>NBIC “R” Stamp Repair</li><li>Structural Steel Erection</li></ul></article>
+        <article><span class="num">02</span><h3>Civil</h3><ul><li>Site Preparation and Earthwork</li><li>Concrete Foundations</li><li>Equipment Pads and Structural Foundations</li><li>Underground Utilities</li><li>Drainage and Erosion Control</li></ul></article>
+        <article><span class="num">03</span><h3>Soft Craft</h3><ul><li>Scaffold Design and Access</li><li>Insulation Systems</li><li>Industrial Coatings</li><li>Fireproofing Applications</li><li>Abatement</li></ul></article>
+        <article><span class="num">04</span><h3>Industrial Cleaning</h3><ul><li>Hydroblasting</li><li>Tank Cleaning</li><li>Hydro Excavation</li><li>Vacuum Services</li><li>Line Cleaning</li></ul></article>
+        <article><span class="num">05</span><h3>Pipeline</h3><ul><li>Pipeline Construction</li><li>Compressor, Metering, and Pump Stations</li><li>Pipeline Repair and Replacement</li><li>Integrity and Coating Services</li><li>Right-of-Way Maintenance</li></ul></article>
+        <article><span class="num">06</span><h3>Facility Services</h3><ul><li>Routine Facility Maintenance</li><li>Janitorial and Site Services</li><li>Grounds and Exterior Maintenance</li><li>Security Services</li></ul></article>
+      </div>
+      <div class="certs">
+        <div><b>ASME “U”</b><span>Pressure vessels</span></div>
+        <div><b>ASME “S”</b><span>Power boilers</span></div>
+        <div><b>NBIC “R”</b><span>Repairs &amp; alterations</span></div>
+        <div><b>MBE</b><span>Certified Minority Business Enterprise</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec-advantage">
+    <div class="wrap">
+      <p class="eyebrow">PMI advantage</p>
+      <h2 class="big">Construction · Maintenance · <span class="red">Turnarounds</span></h2>
+      <div class="adv-grid">
+        <article><h3>Eliminate handoffs that delay your project</h3><p>Coordinated execution across multiple disciplines reduces contractor interfaces, improves communication, and keeps work moving from planning through completion.</p></article>
+        <article><h3>Minimize disruption to operations</h3><p>Work is planned around site conditions and production requirements to help minimize disruption and support ongoing operations.</p></article>
+        <article><h3>Take back control of your schedule</h3><p>By self-performing critical scopes with our own workforce, PMI reduces subcontractor dependency and maintains greater control over project timelines.</p></article>
+        <article><h3>Clear accountability at every stage</h3><p>Experienced field leadership provides consistent oversight, proactive communication, and ownership throughout maintenance, turnaround, and capital projects.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="industries" class="sec">
+    <div class="wrap">
+      <p class="eyebrow">Industries served</p>
+      <h2 class="big">Where we <span class="red">work</span></h2>
+      <div class="ind-grid">
+        <figure><img loading="lazy" src="assets/ind-petrochemical.jpg" alt=""><figcaption>Petrochemical</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-refining.jpg" alt=""><figcaption>Refining</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-midstream.jpg" alt=""><figcaption>Midstream</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-food.jpg" alt=""><figcaption>Food &amp; Beverage</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-mining.jpg" alt=""><figcaption>Mining &amp; Smelting</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-power.jpg" alt=""><figcaption>Power Generation</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-pulp.jpg" alt=""><figcaption>Pulp &amp; Paper</figcaption></figure>
+        <figure><img loading="lazy" src="assets/ind-datacenter.jpg" alt=""><figcaption>Mission Critical &amp; Data Centers</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="sec sec-about">
+    <div class="wrap about">
+      <div class="about-img"><img loading="lazy" src="assets/welder.jpg" alt="PMI craftsman"></div>
+      <div>
+        <p class="eyebrow">About PMI</p>
+        <h2 class="big">Built on <span class="red">people, grit &amp; integrity</span></h2>
+        <p>Palacios Marine &amp; Industrial (PMI) is a privately owned turnkey industrial contractor and Certified Minority Business Enterprise (MBE) delivering construction, maintenance, turnaround, and specialty services that help industrial facilities operate safely, efficiently, and reliably.</p>
+        <p>Founded in 2003 and headquartered in Port Lavaca, Texas, PMI executes work through a coordinated self-perform approach designed to improve accountability, schedule performance, and project outcomes.</p>
+        <div class="values">
+          <div><img src="assets/icon-people.png" alt=""><h3>People</h3><p>A people-first culture drives stronger field leadership, proactive problem-solving and reliable project support.</p></div>
+          <div><img src="assets/icon-grit.png" alt=""><h3>Grit</h3><p>Dependable results that help clients maintain productivity and project momentum.</p></div>
+          <div><img src="assets/icon-integrity.png" alt=""><h3>Integrity</h3><p>Transparent communication, accountability, and follow-through.</p></div>
+        </div>
+        <blockquote>PMI strives to be our customers’ greatest asset by providing exceptional service through unrivaled responsiveness, reliability, and accountability.</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section id="locations" class="sec">
+    <div class="wrap">
+      <p class="eyebrow">Locations</p>
+      <h2 class="big">Across the <span class="red">Gulf Coast</span> and beyond</h2>
+      <div class="loc-wrap">
+        <svg class="loc-map" viewBox="0 0 800 420" aria-label="PMI locations map"></svg>
+        <div class="loc-list">
+          <div><h4>Corporate Office</h4><p>Port Lavaca, Texas</p></div>
+          <div><h4>Texas</h4><p>Corpus Christi · Victoria · Freeport · Deer Park · Houston</p></div>
+          <div><h4>Louisiana</h4><p>Lake Charles · Baton Rouge</p></div>
+          <div><h4>Alabama</h4><p>Mobile</p></div>
+          <div><h4>International</h4><p>Clarendon, Jamaica</p></div>
+          <div><h4><i class="shop-dot"></i>Fabrication &amp; Shop Support</h4><p>Corpus Christi · Port Lavaca · Freeport · Houston · Baton Rouge</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="sec sec-contact">
+    <div class="wrap contact">
+      <div>
+        <p class="eyebrow">Let’s discuss</p>
+        <h2 class="big">Your next <span class="red">project</span></h2>
+        <p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>
+      </div>
+      <div class="contact-card">
+        <a href="tel:18887449699"><small>Call</small>888.744.9699</a>
+        <a href="mailto:bids@palaciosmarineindustrial.com"><small>Bids</small>bids@palaciosmarineindustrial.com</a>
+        <a href="https://palaciosmarineindustrial.com/" target="_blank" rel="noopener"><small>Web</small>palaciosmarineindustrial.com</a>
+        <p><small>Corporate Office</small>2392 State Highway 35 N, Port Lavaca, TX 77979</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <img src="assets/pmi-logo.png" alt="PMI">
+    <p>© 2026 Palacios Marine &amp; Industrial</p>
+    <p class="demo-note">Concept demo 1 by Ross Landry. Not the official PMI website. 3D scene is illustrative.</p>
+  </footer>
+</main>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
