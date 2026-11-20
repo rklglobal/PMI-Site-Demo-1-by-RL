@@ -341,7 +341,8 @@ TANKS.forEach(([x, z, r, h], i) => {
   box(14.6, 0.6, 28.6, M.struct, -24, 7.3, -70);
   rbox(4, 1.8, 6, 0.1, M.galv, -26, 8.5, -74);
   [0xbfc3c7, 0x2b2f34, 0xb3161c, 0x9aa4ad, 0xf2f2f2, 0x26364d, 0x5b6167].forEach((c, i) => {
-    const car = new THREE.Group(); car.position.set(-10.5, 0, -82 + i * 3.4); scene.add(car);
+    const car = new THREE.Group(); car.position.set(-12, 0, -80 + i * 3.1); car.rotation.y = Math.PI / 2; scene.add(car);
+    box(4.8, 0.02, 0.12, M.white, -12, 0.09, -81.55 + i * 3.1); if (i === 6) box(4.8, 0.02, 0.12, M.white, -12, 0.09, -81.55 + 7 * 3.1);
     mesh(new RoundedBoxGeometry(2, 0.85, 4.4, 6, 0.25), std(c, 0.3, 0.45), 0, 0.75, 0, car); mesh(new RoundedBoxGeometry(1.7, 0.7, 2.3, 6, 0.2), M.glass, 0, 1.42, -0.2, car);
     [-1.4, 1.4].forEach(zz => [-0.95, 0.95].forEach(xx => xcyl(0.33, 0.22, M.rubber, xx, 0.33, zz, car, 16)));
   });
