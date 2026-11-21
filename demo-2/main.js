@@ -186,7 +186,7 @@ let cur = -1, mode = 'intro', morph = { t0: 0, dur: 1, on: false }, hotEls = [],
 
 TOPICS.forEach((t, i) => {
   const b = document.createElement('button'); b.innerHTML = svg(IC[t.key]) + `<span>${t.name}</span>`; b.onclick = () => go(i); rail.appendChild(b);
-  const g = document.createElement('button'); g.innerHTML = svg(IC[t.key]) + `<span>${t.name}</span>`; g.onclick = () => { closeAll(); go(i); }; $('.all-grid').appendChild(g);
+  const g = document.createElement('button'); g.innerHTML = svg(IC[t.key]) + `<span>${t.name}</span>`; g.onclick = () => pick(i, g); $('.all-grid').appendChild(g);
 });
 
 function setTarget(s, dur) {
@@ -224,9 +224,9 @@ window.addEventListener('pointerdown', e => { if (locPin && !e.target.closest('.
 const PL = [[13, -6], [-13, -8, 1], [-14, -30, 1], [14, -19], [-10, -64, 1], [-12, -47, 1], [-14, -44], [-8, -58], [14, -26], [14, -22]];   // label offsets per city so the Texas cluster stays readable
 const hint = $('.hint'), touch = matchMedia('(pointer:coarse)').matches; let moves = 0;
 hint.classList.toggle('touch', touch);
-function go(i) {
-  if (mode === 'intro' || performance.now() < lock) return;
-  i = (i + TOPICS.length) % TOPICS.length; if (i === cur && mode === 'over') return;
+function go(i, force) {
+  if (mode === 'intro' || (!force && performance.now() < lock)) return;
+  i = (i + TOPICS.length) % TOPICS.length; if (i === cur) { if (mode === 'detail') leave(); return; }
   const same = i === cur; lock = performance.now() + 900; if (!same) focus = null; cur = i; mode = 'over'; closeCard(true);
   if (!same) { snd.morph(); setTarget(SH[i], 2.5); if (++moves > 3) hint.classList.add('seen'); }
   title.textContent = TOPICS[i].name;
@@ -239,6 +239,17 @@ function leave() { if (mode !== 'detail') return; mode = 'over'; closeCard(true)
 function openCard(html) { cardBody.innerHTML = html; cardBody.scrollTop = 0; cardEl.classList.add('open'); snd.open(); }
 function closeCard(quiet) { if (!cardEl.classList.contains('open')) return; cardEl.classList.remove('open'); if (!quiet) snd.close(); }
 function closeAll() { allEl.classList.remove('open'); }
+// menu pick: the tapped tile fills red, the others drop away in a ripple from it, the panel fades out
+// while the particles are already morphing into the new section behind it
+function pick(i, g) {
+  if (allEl.classList.contains('leaving')) return;
+  const btns = [...$('.all-grid').children], gi = btns.indexOf(g);
+  btns.forEach((b, k) => { b.style.transitionDelay = ((Math.abs((k >> 1) - (gi >> 1)) + Math.abs((k & 1) - (gi & 1))) * 45) + 'ms'; });
+  g.classList.add('pick'); allEl.classList.add('leaving'); snd.open();
+  go(i, true);
+  setTimeout(() => { allEl.classList.add('fade'); closeAll(); }, 430);
+  setTimeout(() => { allEl.classList.remove('leaving', 'fade'); btns.forEach(b => { b.classList.remove('pick'); b.style.transitionDelay = ''; }); }, 1350);
+}
 document.querySelectorAll('button, a').forEach(wire);
 
 $('.start').onclick = () => { snd.start(); mode = 'over'; $('.intro').classList.add('gone'); document.body.classList.add('live'); lock = 0; cur = -1; go(0); };

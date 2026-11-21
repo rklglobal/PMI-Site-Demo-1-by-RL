@@ -324,3 +324,14 @@ body.dark .dia text{fill:#eef0f2}body.dark .dia rect{stroke:rgba(255,255,255,.3)
 .svcgrid li::before{content:"";position:absolute;left:0;top:.75em;width:5px;height:5px;background:var(--red);transform:rotate(45deg)}
 body.dark .svcgrid>div{background:rgba(255,255,255,.04)}
 .pics{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+
+/* menu pick animation */
+.all{transition:transform .8s var(--ease),opacity .45s}
+.all.fade{opacity:0}
+.all-grid button{touch-action:manipulation}
+.all.leaving .all-grid button{transition:opacity .3s,transform .45s var(--ease),background .2s,color .2s;opacity:0;transform:scale(.88)}
+.all.leaving .all-grid button.pick{opacity:1;transform:scale(1.04);background:var(--red);color:#fff;transition-delay:0s!important;z-index:2}
+.all.leaving .all-grid button.pick svg{color:#fff;translate:0 -6px}
+.all.leaving .all-grid button.pick::after{width:100%;background:#fff}
+.all.leaving,.all.leaving .all-grid{background:transparent!important;box-shadow:none;transition:transform .8s var(--ease),opacity .45s,background .25s,box-shadow .25s}
+.all.leaving .all-x{opacity:0;transition:opacity .2s}
