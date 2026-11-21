@@ -359,10 +359,10 @@ function facility() {
 // a worker built from joints: red coveralls (tint 1), hard hat with brim and ridge, safety glasses, blue ear muffs (tint 2)
 function worker(m, base, ry, J) {
   m.push(base, [0, ry, 0]);
-  const limb = (a, b, r, t = 1, w = 2.4) => { rod(m, a, b, r, { w, t }); m.add(sph(r), { p: b, w: w * 0.6, t }); };
+  const suit = J.suit === undefined ? 1 : J.suit, limb = (a, b, r, t = suit, w = 2.4) => { rod(m, a, b, r, { w, t }); m.add(sph(r), { p: b, w: w * 0.6, t }); };
   limb(J.hipL, J.kneeL, 0.06); limb(J.kneeL, J.footL, 0.05); limb(J.hipR, J.kneeR, 0.06); limb(J.kneeR, J.footR, 0.05);
   [J.footL, J.footR].forEach(f => m.add(box(0.1, 0.07, 0.2), { p: [f[0], f[1] - 0.02, f[2] + (J.toe || 0.05)], w: 2.6 }));
-  m.add(new THREE.CapsuleGeometry(0.15, 0.32, 4, 12), { p: J.chest, r: J.lean || [0, 0, 0], s: [1, 1, 0.72], w: 2.4, t: 1 });
+  m.add(new THREE.CapsuleGeometry(0.15, 0.32, 4, 12), { p: J.chest, r: J.lean || [0, 0, 0], s: [1, 1, 0.72], w: 2.4, t: suit });
   [[J.shL, J.elL, J.hdL], [J.shR, J.elR, J.hdR]].forEach(([a, b, c]) => { limb(a, b, 0.045); limb(b, c, 0.04); m.add(sph(0.045), { p: c, w: 2.5 }); });
   // reflective bands on the coveralls
   [[J.elL, J.hdL], [J.elR, J.hdR], [J.kneeL, J.footL], [J.kneeR, J.footR]].forEach(([a, b]) => { const q = a.map((v, k) => v + (b[k] - v) * 0.45); m.add(sph(0.055), { p: q, s: [1, 0.35, 1], w: 3 }); });
@@ -416,10 +416,17 @@ function quality() {
   m.add(tor(rp + 0.006, 0.028), { p: [-0.35, y, 0.2], r: [0, PI / 2, 0], w: 6, t: 1 });                                  // girth weld being inspected
   m.add(tor(rp + 0.006, 0.02), { p: [0.55, y, 0.2], r: [0, PI / 2, 0], w: 3 });
   [-1.25, 0.35].forEach(x => { rod(m, [x, g, 0.2], [x, y - rp, 0.2], 0.03, { w: 2 }); m.add(box(0.3, 0.03, 0.3), { p: [x, g + 0.015, 0.2], e: 2 }); m.add(new THREE.CylinderGeometry(rp + 0.03, rp + 0.03, 0.12, 16, 1, true, PI * 0.6, PI * 0.8), { p: [x, y, 0.2], r: AX, w: 2 }); });
-  // inspector at the weld with a light
-  person(m, [-0.35, g, 0.95], PI, 0.32);
-  rod(m, [-0.35 + 0.06, g + 0.42, 0.95 - 0.05], [-0.33, g + 0.5, 0.62], 0.014, { w: 4 }); m.add(cyl(0.02, 0.09, 10), { p: [-0.33, g + 0.51, 0.58], r: AZ, w: 4 });
-  for (let k = 0; k < 6; k++) m.line([-0.33, g + 0.51, 0.53], [-0.35 + (k - 2.5) * 0.03, y - 0.05 + (k % 2) * 0.1, 0.2 + rp + 0.02], 0.4, 1);
+  // inspector beside the weld (plain coveralls so the weld stays the red focus): leaning in, light in his right hand aimed at the joint, clipboard in his left
+  const ib = [-0.95, g, 0.78], iry = PI - 0.75;
+  worker(m, ib, iry, { suit: 0, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.04], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.06], footR: [0.12, 0.06, 0.04],
+    chest: [0, 1.2, 0.06], lean: [0.28, 0, 0], shL: [-0.2, 1.4, 0.1], elL: [-0.26, 1.14, 0.16], hdL: [-0.16, 1.02, 0.3], shR: [0.2, 1.4, 0.1], elR: [0.24, 1.2, 0.28], hdR: [0.12, 1.08, 0.42],
+    head: [0, 1.58, 0.16], tilt: [0.45, 0, 0] });
+  m.push(ib, [0, iry, 0]);
+  m.add(cyl(0.022, 0.12, 10), { p: [0.12, 1.08, 0.48], r: [PI / 2 - 0.5, 0, 0], w: 4 });                       // flashlight
+  m.add(box(0.22, 0.3, 0.012), { p: [-0.15, 1.04, 0.36], r: [-0.7, 0, 0], e: 3, w: 2.5 });                     // clipboard
+  m.pop();
+  const lt = new THREE.Vector3(0.12, 1.08, 0.54).applyAxisAngle(new THREE.Vector3(0, 1, 0), iry).add(new THREE.Vector3(...ib)).toArray();
+  for (let k = 0; k < 7; k++) m.line(lt, [-0.35 + (k - 3) * 0.025, y + 0.06 + (k % 2) * 0.06, 0.2 + rp + 0.01], 0.35, 1);   // light on the weld
   // code vessel behind on saddles, with nameplate
   const vy = g + 0.55, vz = -1.05;
   m.add(cyl(0.42, 1.7, 36), { p: [0, vy, vz], r: AX }).add(dome(0.42), { p: [0.85, vy, vz], r: [0, 0, -PI / 2], s: [1, 0.5, 1] }).add(dome(0.42), { p: [-0.85, vy, vz], r: [0, 0, PI / 2], s: [1, 0.5, 1] });
