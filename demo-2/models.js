@@ -346,12 +346,14 @@ function gulfMap(N) {
   const c = [(bx0 + bx1) / 2, (by0 + by1) / 2, 0], s = Math.min(4.3 / (bx1 - bx0), 3.0 / (by1 - by0));
   for (let k = 0; k < N; k++) { pos[k * 3] = (pos[k * 3] - c[0]) * s; pos[k * 3 + 1] = (pos[k * 3 + 1] - c[1]) * s; pos[k * 3 + 2] *= s; }
   const xf = p => [(p[0] - c[0]) * s, (p[1] - c[1]) * s, p[2] * s];
-  return { pos, tint, xf, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
+  // which state a point of the finished map lies in (model x, y), for tap-to-zoom; the Jamaica inset box counts as JM
+  const state = (x, y) => { const X = x / s + c[0], Y = y / s + c[1]; if (X > PX(JM.lo - 3.5) && X < PX(JM.lo + 3.5) && Y > PY(JM.la - 1.7) && Y < PY(JM.la + 1.9)) return 'JM'; for (const q of polys) if (X >= q.x0 && X <= q.x1 && Y >= q.y0 && Y <= q.y1 && inside(q.r, X, Y)) return q.s; return null; };
+  return { pos, tint, xf, state, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
 }
 
 const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility];
 export function buildAll(N) {
   const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
-  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
+  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, state: g.state, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
   return out;
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=21';
-import { buildAll, CITIES } from './models.js?v=21';
+import { Snd } from './audio.js?v=23';
+import { buildAll, CITIES } from './models.js?v=23';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -92,7 +92,7 @@ const mat = new THREE.ShaderMaterial({
     attribute vec3 aFrom, aTo; attribute vec4 aRnd; attribute float aT0, aT1;
     uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
     void main(){
-      float dl = mix(aRnd.x, clamp(aFrom.x / 1.7 + 0.5, 0.0, 1.0) * 0.75 + aRnd.x * 0.25, uIntro);      // opening: a clean left-to-right wipe
+      float dl = mix(aRnd.x, clamp(aFrom.x / 1.7 + 0.5, 0.0, 1.0) * 0.9 + aRnd.x * 0.1, uIntro);      // opening: a clean left-to-right wipe
       float t = clamp(uT * 1.8 - dl * 0.8, 0.0, 1.0);
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
       vec3 p = mix(aFrom, aTo, e);
@@ -119,7 +119,7 @@ const mat = new THREE.ShaderMaterial({
       float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + clamp(vTint - 1.0, 0.0, 1.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0)) + spark * (0.15 + 0.7 * step(0.0, sin(uTime * (14.0 + aRnd.z * 20.0) + aRnd.x * 60.0)))) * uPix / -mv.z;
       gl_PointSize = min(max(sz, uMin), uMin * 14.0);
       float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
-      vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
+      vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
     }`,
   fragmentShader: `varying float vA; varying float vTint; varying float vR; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
@@ -161,7 +161,7 @@ function setTarget(s, dur) {
 function wire(el) { el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') snd.hover(); }); el.addEventListener('pointerdown', () => snd.click()); return el; }
 function hotspot(icon, label, at, fn) { const el = wire(document.createElement('button')); el.className = 'hot'; el.innerHTML = `<b>${svg(icon)}</b>${label ? `<span>${label}</span>` : ''}`; el.onclick = fn; hots.appendChild(el); const h = { el, at: new THREE.Vector3(...at) }; hotEls.push(h); return h; }
 function showHots() { hotEls.forEach((h, k) => setTimeout(() => h.el.classList.add('show'), 150 + k * 170)); }
-function layout() { area(); closeLoc();      // (re)build hotspots for the current mode
+function layout() { area(); closeLoc(); hintText();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
@@ -186,11 +186,11 @@ function placeLoc() { if (!locPin || locPin.x === undefined) return; const W = l
 window.addEventListener('pointerdown', e => { if (locPin && !e.target.closest('.loc') && !e.target.closest('.pin')) closeLoc(); });
 const PL = [[13, -6], [-13, -8, 1], [-14, -30, 1], [14, -19], [-10, -64, 1], [-12, -47, 1], [-14, -44], [-8, -58], [14, -26], [14, -22]];   // label offsets per city so the Texas cluster stays readable
 const hint = $('.hint'), touch = matchMedia('(pointer:coarse)').matches; let moves = 0;
-hint.classList.toggle('touch', touch); hint.querySelector('span').textContent = touch ? 'Swipe up to explore' : 'Scroll to explore';
+hint.classList.toggle('touch', touch);
 function go(i) {
   if (mode === 'intro' || performance.now() < lock) return;
   i = (i + TOPICS.length) % TOPICS.length; if (i === cur && mode === 'over') return;
-  const same = i === cur; lock = performance.now() + 900; cur = i; mode = 'over'; closeCard(true);
+  const same = i === cur; lock = performance.now() + 900; if (!same) focus = null; cur = i; mode = 'over'; closeCard(true);
   if (!same) { snd.morph(); setTarget(SH[i], 2.5); if (++moves > 3) hint.classList.add('seen'); }
   title.textContent = TOPICS[i].name;
   if (!same) { copy.classList.add('swap'); setTimeout(() => { if (cur !== i) return; const t = TOPICS[i]; copy.querySelector('.eyebrow').innerHTML = t.eyebrow; copy.querySelector('h1').innerHTML = t.title; copy.querySelector('.lead').textContent = t.lead || ''; copy.querySelector('ul').innerHTML = (t.items || []).map(x => `<li>${x}</li>`).join(''); copy.classList.remove('swap'); }, 650); }
@@ -213,11 +213,27 @@ $('.snd').onclick = e => { const on = !snd.on; snd.set(on); e.currentTarget.clas
 $('.logo').onclick = e => { e.preventDefault(); go(0); };
 
 let lastWheel = 0, ty = null;
+// ---- map zoom: tap a state to move in on its sites; any swipe / scroll / arrow zooms back out
+const FO0 = { x: 0, y: 0, k: 1 }, FOCUS = { TX: [-96.25, 28.8, 3.0, 'Texas'], LA: [-92.2, 30.3, 3.0, 'Louisiana'], AL: [-88.04, 30.69, 3.2, 'Alabama'], JM: [-77.3, 18.1, 2.3, 'Jamaica'] };
+let focus = null, fz = 1; const ray = new THREE.Raycaster(), inv = new THREE.Matrix4();
+function hintText() { const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? (touch ? 'Swipe to zoom back out' : 'Scroll to zoom back out') : map ? 'Tap a state to zoom in' : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
+function setFocus(code) {
+  const f = code && FOCUS[code]; if (!f) { if (focus) { focus = null; snd.close(); closeLoc(); hintText(); } return; }
+  const c = SH[cur].city(f[0], f[1]); focus = { x: c[0], y: c[1], k: innerWidth <= 900 ? f[2] : f[2] * 0.8, code }; closeLoc(); snd.open(); hintText();
+}
+const nav = d => { if (focus) { setFocus(null); lock = performance.now() + 500; return; } go(cur + d); };
+window.addEventListener('click', e => {
+  if (mode === 'intro' || cur < 0 || !TOPICS[cur].flat || blocked() || e.target !== canvas) return;
+  ray.setFromCamera({ x: e.clientX / innerWidth * 2 - 1, y: -(e.clientY / innerHeight) * 2 + 1 }, camera);
+  const o = ray.ray.origin.clone(), d = ray.ray.direction.clone(); inv.copy(cloud.matrixWorld).invert(); o.applyMatrix4(inv); d.transformDirection(inv); if (Math.abs(d.z) < 1e-6) return;
+  const k = -o.z / d.z, code = SH[cur].state(o.x + d.x * k, o.y + d.y * k);
+  if (code && FOCUS[code] && (!focus || focus.code !== code)) setFocus(code);
+});
 const blocked = () => cardEl.classList.contains('open') || allEl.classList.contains('open');
-window.addEventListener('wheel', e => { if (blocked()) return; const now = performance.now(), fresh = now - lastWheel > 200; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) go(cur + Math.sign(e.deltaY)); }, { passive: true });
+window.addEventListener('wheel', e => { if (blocked()) return; const now = performance.now(), fresh = now - lastWheel > 200; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) nav(Math.sign(e.deltaY)); }, { passive: true });
 window.addEventListener('touchstart', e => { ty = e.touches[0].clientY; }, { passive: true });
-window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) go(cur + Math.sign(dy)); }, { passive: true });
-window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (blocked()) { closeCard(); closeAll(); } else leave(); return; } if (blocked()) return; if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) go(cur + 1); if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) go(cur - 1); if (e.key === 'Enter') mode === 'detail' ? leave() : enter(); });
+window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) nav(Math.sign(dy)); }, { passive: true });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (blocked()) { closeCard(); closeAll(); } else leave(); return; } if (blocked()) return; if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) nav(1); if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) nav(-1); if (e.key === 'Enter') mode === 'detail' ? leave() : enter(); });
 
 const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 window.addEventListener('pointermove', e => { mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = -(e.clientY / innerHeight * 2 - 1); if (e.pointerType === 'mouse') U.uMouse.value.set(mouse.tx, mouse.ty); });
@@ -246,12 +262,12 @@ function area() {
 window.addEventListener('resize', fit); fit();
 
 const v = new THREE.Vector3(); let t0 = performance.now(), el = 0, rush = 0;
-function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(spin.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.x = x; h.y = y; h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
+function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(cloud.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.x = x; h.y = y; h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
   U.uTime.value = DU.uTime.value = el;
-  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (k >= 1) { morph.on = false; U.uIntro.value = 0; } }
+  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (U.uIntro.value) loader.style.setProperty('--w', (Math.min(1.1, Math.max(0, (k - 0.012) / 0.4)) * 100).toFixed(1) + '%'); if (k >= 1) { morph.on = false; U.uIntro.value = 0; } }
   rush += Math.sin(Math.PI * Math.max(0, k)) * dt * 0.9; DU.uRush.value = rush;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;
   const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
@@ -262,7 +278,8 @@ function frame() {
   camera.setViewOffset(innerWidth, innerHeight, -view.x, -view.y, innerWidth, innerHeight);
   const fly = mode === 'over' && !flat;
   zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
-  const sc = view.s * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
+  const fo = focus && flat ? focus : FO0; fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07;
+  const sc = view.s * zoom * fz; group.scale.setScalar(sc); U.uScale.value = view.s * zoom * Math.pow(fz, 0.6);
   if (fly) ang += dt * 0.17;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
   group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36, 0, 0);
@@ -285,7 +302,7 @@ function logoShape(img) {
 }
 function opening(img) {
   let ok = false; try { ok = img && logoShape(img); } catch (e) { ok = false; }
-  area(); view.s = view.ts; view.x = view.tx; view.y = view.ty;
+  area(); view.s = view.ts; view.x = view.tx; view.y = view.ty; U.uIntro.value = ok ? 1 : 0;
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', view.ty.toFixed(1) + 'px');
   setTimeout(() => {
