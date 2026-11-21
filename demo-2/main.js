@@ -200,8 +200,7 @@ function showHots() { hotEls.forEach((h, k) => setTimeout(() => h.el.classList.a
 function layout() { document.body.classList.toggle('map', cur >= 0 && !!TOPICS[cur].flat); area(); closeLoc(); hintText();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
-  if (mode === 'over') { if (!t.flat) hotspot(IC[t.key], '', s.hot.enter, enter); }
-  else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html), k));
+  if (mode !== 'over') t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html), k));
   if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); const ph = { el, at: new THREE.Vector3(...s.city(lo, la)) }; pinEls.push(ph); wire(el.querySelector('svg')).addEventListener('click', e => { e.stopPropagation(); if (!focus || focus.code !== CITY_ST[k]) setFocus(CITY_ST[k]); else openLoc(k, ph); }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
   pill.querySelector('span').textContent = mode === 'over' ? (t.cta || 'Explore ' + t.name) : 'Close';
   pill.classList.toggle('x', mode === 'detail');
