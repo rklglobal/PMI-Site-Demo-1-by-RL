@@ -128,6 +128,7 @@ const mat = new THREE.ShaderMaterial({
       float dl = mix(aRnd.x, clamp(aFrom.x / 1.7 + 0.5, 0.0, 1.0) * 0.9 + aRnd.x * 0.1, uIntro);      // opening: a clean left-to-right wipe
       float t = clamp(uT * 1.8 - dl * 0.8, 0.0, 1.0);
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+      e = mix(e, 1.0 - pow(1.0 - t, 3.0), uIntro);      // opening: particles leave the logo at once (no slow start that would show a second, particle copy of the logo)
       vec3 p = mix(aFrom, aTo, e);
       float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro);
       // in flight: swirl around the axis and stream across as a ribbon before settling
@@ -374,8 +375,8 @@ function opening(img) {
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', '0px');
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 420, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 420);
-    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 1750);
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 620, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 620 + 850);      // one breath, then break up; the view stays put until the whole logo has gone
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 2050);
   }, Math.max(150, 750 - (performance.now() - born)));
 }
 U.uT.value = 0; frame();

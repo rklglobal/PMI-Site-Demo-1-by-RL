@@ -23,10 +23,11 @@ svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 #loader b::after{content:"";position:absolute;inset:0;width:45%;background:var(--red);animation:lbar 1.1s ease-in-out infinite}
 #loader.go{background:rgba(255,255,255,0);pointer-events:none}
 #loader.go b{opacity:0}
-#loader.go img{animation:none}
+#loader.go img{animation:lbreath .6s ease-in-out both}
 #loader img{-webkit-mask-image:linear-gradient(90deg,transparent calc(var(--w,0%) - 3%),#000 calc(var(--w,0%) + 3%));mask-image:linear-gradient(90deg,transparent calc(var(--w,0%) - 3%),#000 calc(var(--w,0%) + 3%))}
 #loader.done{display:none}
 @keyframes lin{from{opacity:0;transform:translate(-50%,-50%) scale(.82)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes lbreath{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.075)}}
 @keyframes lbar{0%{transform:translateX(-110%)}100%{transform:translateX(240%)}}
 @keyframes lout{from{opacity:1;transform:translate(-50%,-50%)}to{opacity:0;transform:translate(-50%,-50%)}}
 @keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
