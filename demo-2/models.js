@@ -461,11 +461,11 @@ function quality() {
   // inspector at the weld with his checklist: clipboard in both hands, looking at the joint; red ticks are the only red in the scene
   const ib = [-0.95, g, 0.78], iry = PI - 0.75;
   worker(m, ib, iry, { suit: 0, muffs: false, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.03], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.03], footR: [0.12, 0.06, 0],
-    chest: [0, 1.2, 0.03], lean: [0.12, 0, 0], shL: [-0.2, 1.4, 0.06], elL: [-0.22, 1.16, 0.18], hdL: [-0.1, 1.12, 0.32], shR: [0.2, 1.4, 0.06], elR: [0.22, 1.16, 0.18], hdR: [0.1, 1.12, 0.32],
-    head: [0, 1.6, 0.08], tilt: [0.3, 0, 0] });
-  m.push(ib, [0, iry, 0]); m.push([0, 1.17, 0.36], [-0.75, 0, 0]);
-  m.add(box(0.26, 0.34, 0.012), { e: 3, w: 2.5 }).add(box(0.1, 0.03, 0.02), { p: [0, 0.16, 0.008], e: 2, w: 3 });
-  [0.08, 0.02, -0.04, -0.1].forEach((v, k) => { m.line([-0.04, v, 0.008], [0.1, v, 0.008], 1.5); if (k < 3) m.poly([[-0.1, v, 0.009], [-0.085, v - 0.015, 0.009], [-0.06, v + 0.02, 0.009]], 2.5, false, 1); });
+    chest: [0, 1.2, 0.03], lean: [0.12, 0, 0], shL: [-0.2, 1.4, 0.06], elL: [-0.23, 1.14, 0.14], hdL: [-0.13, 1.02, 0.28], shR: [0.2, 1.4, 0.06], elR: [0.23, 1.14, 0.14], hdR: [0.13, 1.02, 0.28],
+    head: [0, 1.6, 0.08], tilt: [0.55, 0, 0] });
+  m.push(ib, [0, iry, 0]); m.push([0, 1.1, 0.33], [0.93, 0, 0]);
+  m.add(box(0.26, 0.34, 0.012), { e: 3, w: 2.5 }).add(box(0.1, 0.03, 0.02), { p: [0, 0.16, -0.008], e: 2, w: 3 });
+  [0.08, 0.02, -0.04, -0.1].forEach((v, k) => { m.line([0.04, v, -0.008], [-0.1, v, -0.008], 1.5); if (k < 3) m.poly([[0.1, v, -0.009], [0.085, v - 0.015, -0.009], [0.06, v + 0.02, -0.009]], 2.5, false, 1); });
   m.pop(); m.pop();
   // code vessel behind on saddles, with nameplate
   const vy = g + 0.55, vz = -1.05;
