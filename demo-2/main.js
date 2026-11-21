@@ -85,7 +85,7 @@ geo.setAttribute('aTo', new THREE.BufferAttribute(RING.slice(), 3));
 geo.setAttribute('aT0', new THREE.BufferAttribute(new Float32Array(N), 1));
 geo.setAttribute('aT1', new THREE.BufferAttribute(RT.slice(), 1));
 geo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
-const U = { uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 } };
+const U = { uInk: { value: new THREE.Vector3(0.07, 0.075, 0.09) }, uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 } };
 const mat = new THREE.ShaderMaterial({
   uniforms: U, transparent: true, depthWrite: false,
   vertexShader: `
@@ -121,7 +121,7 @@ const mat = new THREE.ShaderMaterial({
       float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
       vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
     }`,
-  fragmentShader: `varying float vA; varying float vTint; varying float vR; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
+  fragmentShader: `varying float vA; varying float vTint; varying float vR; uniform vec3 uInk; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(uInk, vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
 const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; spin.add(cloud);
 
@@ -129,14 +129,14 @@ const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; spin.add(
 const DN = mobile ? 420 : 900, dgeo = new THREE.BufferGeometry(), dp = new Float32Array(DN * 3), dr = new Float32Array(DN * 3);
 for (let i = 0; i < DN; i++) { dp[i * 3] = (R() - 0.5) * 22; dp[i * 3 + 1] = (R() - 0.5) * 12; dp[i * 3 + 2] = (R() - 0.5) * 12; dr[i * 3] = R(); dr[i * 3 + 1] = R(); dr[i * 3 + 2] = R(); }
 dgeo.setAttribute('position', new THREE.BufferAttribute(dp, 3)); dgeo.setAttribute('aR', new THREE.BufferAttribute(dr, 3));
-const DU = { uTime: { value: 0 }, uPix: { value: 1 }, uRush: { value: 0 } };
+const DU = { uDk: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uRush: { value: 0 } };
 const dust = new THREE.Points(dgeo, new THREE.ShaderMaterial({
   uniforms: DU, transparent: true, depthWrite: false,
   vertexShader: `attribute vec3 aR; uniform float uTime, uPix, uRush; varying float vA; varying float vB; varying float vC;
     void main(){ vec3 p = position; p.x = mod(p.x + uTime * (0.06 + aR.x * 0.2) + uRush * (2.0 + aR.y * 6.0) + 11.0, 22.0) - 11.0; p.y += sin(uTime * 0.25 + aR.y * 20.0) * 0.4 + p.x * 0.14;
       vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
       vB = step(0.8, aR.z); vC = aR.y; gl_PointSize = (vB > 0.5 ? 0.3 + aR.x * 0.3 : 0.022 + aR.z * 0.035) * uPix / -mv.z; vA = vB > 0.5 ? 0.09 : 0.35 + aR.x * 0.5; }`,
-  fragmentShader: `varying float vA; varying float vB; varying float vC; void main(){ float d = length(gl_PointCoord - 0.5); float a = vB > 0.5 ? smoothstep(0.5, 0.28, d) : smoothstep(0.5, 0.2, d); vec3 col = vB > 0.5 ? vec3(0.55, 0.6, 0.66) : mix(vec3(0.35, 0.38, 0.42), vec3(0.89, 0.12, 0.14), step(0.78, vC)); gl_FragColor = vec4(col, a * vA * 0.8); }`,
+  fragmentShader: `uniform float uDk; varying float vA; varying float vB; varying float vC; void main(){ float d = length(gl_PointCoord - 0.5); float a = vB > 0.5 ? smoothstep(0.5, 0.28, d) : smoothstep(0.5, 0.2, d); vec3 col = vB > 0.5 ? vec3(0.55, 0.6, 0.66) : mix(vec3(0.35, 0.38, 0.42), vec3(0.89, 0.12, 0.14), step(0.78, vC)); col = mix(col, vec3(1.0) - col * 0.35, uDk * (1.0 - step(0.78, vC) * step(vB, 0.5))); gl_FragColor = vec4(col, a * vA * 0.8); }`,
 }));
 dust.frustumCulled = false; scene.add(dust);
 
@@ -144,6 +144,9 @@ dust.frustumCulled = false; scene.add(dust);
    UI: overview (one icon + name pill) -> detail (title, hotspots, Close pill) -> content panel
    ========================================================= */
 const snd = new Snd();
+// ---- light / dark: remembered per browser; first visit follows the phone's or computer's setting
+function setTheme(dk) { document.body.classList.toggle('dark', dk); U.uInk.value.set(...(dk ? [0.9, 0.91, 0.93] : [0.07, 0.075, 0.09])); DU.uDk.value = dk ? 1 : 0; const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = dk ? '#0c0d0f' : '#ffffff'; try { localStorage.setItem('pmi-theme', dk ? 'dark' : 'light'); } catch (e) {} }
+{ let saved = null; try { saved = localStorage.getItem('pmi-theme'); } catch (e) {} setTheme(saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches); }
 const $ = s => document.querySelector(s);
 const copy = $('.copy'), rail = $('.rail'), hots = $('.hotspots'), pins = $('.pins'), title = $('.topic-title'), pill = $('.next'), cardEl = $('.card'), cardBody = $('.card-body'), allEl = $('.all');
 let cur = -1, mode = 'intro', morph = { t0: 0, dur: 1, on: false }, hotEls = [], pinEls = [], lock = 0, zoom = 1;
@@ -159,13 +162,13 @@ function setTarget(s, dur) {
   U.uT.value = 0; morph = { t0: performance.now(), dur: dur * 1000, on: true };
 }
 function wire(el) { el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') snd.hover(); }); el.addEventListener('pointerdown', () => snd.click()); return el; }
-function hotspot(icon, label, at, fn) { const el = wire(document.createElement('button')); el.className = 'hot'; el.innerHTML = `<b>${svg(icon)}</b>${label ? `<span>${label}</span>` : ''}`; el.onclick = fn; hots.appendChild(el); const h = { el, at: new THREE.Vector3(...at) }; hotEls.push(h); return h; }
+function hotspot(icon, label, at, fn, k) { const el = wire(document.createElement('button')); el.className = 'hot' + (k !== undefined ? ' tile' : ''); el.innerHTML = k !== undefined ? `<i class="ix">0${k + 1}</i><b>${svg(icon)}</b><span>${label}</span>` : `<b>${svg(icon)}</b>${label ? `<span>${label}</span>` : ''}`; el.onclick = fn; hots.appendChild(el); const h = { el, at: new THREE.Vector3(...at), k, t0: performance.now() + 350 + (k || 0) * 140 }; hotEls.push(h); return h; }
 function showHots() { hotEls.forEach((h, k) => setTimeout(() => h.el.classList.add('show'), 150 + k * 170)); }
 function layout() { area(); closeLoc(); hintText();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
-  else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
+  else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html), k));
   if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); const ph = { el, at: new THREE.Vector3(...s.city(lo, la)) }; pinEls.push(ph); wire(el.querySelector('svg')).addEventListener('click', e => { e.stopPropagation(); if (!focus || focus.code !== CITY_ST[k]) setFocus(CITY_ST[k]); else openLoc(k, ph); }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
   pill.querySelector('span').textContent = mode === 'over' ? (t.cta || 'Explore ' + t.name) : 'Close';
   pill.classList.toggle('x', mode === 'detail');
@@ -210,6 +213,7 @@ pill.onclick = () => mode === 'detail' ? leave() : enter();
 $('.card .card-x').onclick = () => closeCard();
 $('.all-btn').onclick = () => { closeCard(true); allEl.classList.add('open'); snd.open(); };
 $('.all-x').onclick = () => { closeAll(); snd.close(); };
+$('.thm').onclick = () => setTheme(!document.body.classList.contains('dark'));
 $('.snd').onclick = e => { const on = !snd.on; snd.set(on); e.currentTarget.classList.toggle('off', !on); };
 $('.logo').onclick = e => { e.preventDefault(); go(0); };
 
@@ -248,13 +252,14 @@ function fit() {
   U.uAspect.value = w / h; U.uPix.value = DU.uPix.value = h * DPR / (2 * Math.tan(camera.fov * Math.PI / 360)); area();
 }
 // free screen area for the model: between the header, the text block, the rail and the bottom button
+const DOCK = () => innerWidth <= 900 ? 96 : 108;      // height of the docked buttons in detail mode
 function area() {
   const w = innerWidth, h = innerHeight, narrow = w <= 900, detail = mode === 'detail', navB = $('.nav').getBoundingClientRect().bottom, pillT = pill.getBoundingClientRect().top || h - 80;
   let l = 0, r = w, t = navB + 8, b = h;
   if (mode !== 'intro') {
     const c = copy.getBoundingClientRect();
-    if (narrow) b = (detail ? pillT : Math.min(c.top, pillT)) - 8;
-    else { l = c.right + 10; r = (rail.getBoundingClientRect().left || w) - 16; b = pillT - 10; }
+    if (narrow) b = (detail ? pillT - DOCK() - 10 : Math.min(c.top, pillT)) - 8;
+    else { l = c.right + 10; r = (rail.getBoundingClientRect().left || w) - 16; b = pillT - 10 - (detail ? DOCK() + 6 : 0); }
   }
   const ppu = (h / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   view.w = r - l; view.h = b - t; view.tx = (l + r) / 2 - w / 2; view.ty = (t + b) / 2 - h / 2;
@@ -265,6 +270,19 @@ window.addEventListener('resize', fit); fit();
 
 const v = new THREE.Vector3(); let t0 = performance.now(), el = 0, rush = 0;
 function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(cloud.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.x = x; h.y = y; h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
+// detail buttons: a row of equal tiles centred under the model. Each one starts as a small chip on its part of the model,
+// flies down and opens out into its slot. The row is centred on the Close button.
+const easeO = x => 1 - Math.pow(1 - x, 4);
+function dock(h, now) {
+  const n = hotEls.length, narrow = innerWidth <= 900, gap = narrow ? 8 : 12, th = DOCK(), maxW = innerWidth - 24;
+  const tw = Math.min(narrow ? 150 : 178, (maxW - gap * (n - 1)) / n), cx = (() => { const q = pill.getBoundingClientRect(); return q.width ? q.left + q.width / 2 : innerWidth / 2; })(), top = (pill.getBoundingClientRect().top || innerHeight - 80) - 12 - th;
+  const sx = cx - (n * tw + (n - 1) * gap) / 2 + h.k * (tw + gap);
+  v.copy(h.at).applyMatrix4(cloud.matrixWorld).project(camera); const ax = (v.x + 1) / 2 * innerWidth, ay = (1 - v.y) / 2 * innerHeight;
+  const e = easeO(Math.min(1, Math.max(0, (now - h.t0) / 900))), sc = 0.32 + 0.68 * e;
+  const x = (ax - tw * sc / 2) + (sx - (ax - tw * sc / 2)) * e, y = (ay - th * sc / 2) + (top - (ay - th * sc / 2)) * e;
+  h.el.style.width = tw.toFixed(1) + 'px'; h.el.style.height = th + 'px'; h.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+  h.el.style.opacity = e > 0 ? 1 : 0; h.x = sx + tw / 2; h.y = top;
+}
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -287,7 +305,7 @@ function frame() {
   group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36, 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
-  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();
+  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else dock(h, now); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();
   renderer.render(scene, camera);
 }
 // Opening: the crisp PMI logo dissolves in place into the same logo made of particles, which then break apart and

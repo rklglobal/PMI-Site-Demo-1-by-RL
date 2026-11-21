@@ -240,3 +240,65 @@ body.detail .hint{opacity:0!important}
 .copy .st.on{color:var(--red)}
 .copy .st.on::before{transform:rotate(45deg) scale(1.4)}
 body.zoomed .pin span{display:block!important;opacity:1}
+
+/* ---------- detail buttons: docked tiles under the model ---------- */
+.hot.tile{--c:12px;position:absolute;left:0;top:0;width:150px;height:96px;gap:7px;justify-content:center;padding:14px 8px 12px;transform-origin:0 0;
+  background:linear-gradient(160deg,rgba(17,19,22,.22),rgba(227,30,36,.5));isolation:isolate;transition:background .3s;
+  clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,var(--c) 100%,0 calc(100% - var(--c)))}
+.hot.tile::before{content:"";position:absolute;left:1px;top:1px;right:1px;bottom:1px;width:auto;height:auto;margin:0;border:0;animation:none;z-index:-1;
+  background:linear-gradient(170deg,#fff 0%,#f5f6f7 55%,#eceef0 100%);
+  clip-path:polygon(0 0,calc(100% - var(--c) + .4px) 0,100% calc(var(--c) - .4px),100% 100%,calc(var(--c) - .4px) 100%,0 calc(100% - var(--c) + .4px));transition:background .3s}
+.hot.tile::after{content:"";position:absolute;left:var(--c);top:auto;bottom:0;width:22px;height:3px;margin:0;border:0;border-radius:0;background:var(--red);animation:none;transition:width .4s var(--ease)}
+.hot.tile:hover::after{width:calc(100% - var(--c))}
+.hot.tile b{width:38px;height:38px;flex:none;animation:none;background:linear-gradient(140deg,#ff3b41 0%,var(--red) 45%,#a0141a 100%);color:#fff;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));transition:transform .35s var(--ease)}
+.hot.tile b svg{width:20px;height:20px;stroke-width:1.8}
+.hot.tile:hover b{transform:translateY(-2px) rotate(-4deg) scale(1.06);background:linear-gradient(140deg,#2b2f35,var(--ink))}
+.hot.tile span{background:none;color:var(--ink);padding:0;border:0;clip-path:none;width:auto;white-space:normal;text-align:center;font-size:.6rem;line-height:1.25;letter-spacing:.13em}
+.hot.tile:hover span{background:none;color:var(--red)}
+.hot.tile .ix{position:absolute;left:10px;top:7px;font-style:normal;font-size:.56rem;font-weight:600;letter-spacing:.12em;color:var(--mute)}
+.hot.tile .ix::after{content:"";display:inline-block;width:12px;height:1px;margin:0 0 3px 5px;background:currentColor;opacity:.6}
+.hot.tile:active{scale:.96}
+@media (min-width:901px){.hot.tile{height:108px}.hot.tile b{width:44px;height:44px}.hot.tile span{font-size:.64rem}}
+.tethers{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.tethers path{fill:none;stroke:var(--red);stroke-width:1.2;stroke-dasharray:3 4;opacity:.7;transition:opacity .3s}
+.tethers circle{fill:var(--red)}
+.tethers .rg{fill:none;stroke:var(--red);stroke-width:1;opacity:.5;transform-box:fill-box;transform-origin:center;animation:tring 2.2s var(--ease) infinite}
+.tethers .hi path{opacity:1;stroke-dasharray:none;stroke-width:1.6}
+@keyframes tring{from{transform:scale(.4);opacity:.8}to{transform:scale(1.8);opacity:0}}
+/* overview button: a little more than flat black */
+.hot:not(.tile) b{background:linear-gradient(145deg,#30343a 0%,var(--ink) 55%,#050607 100%);box-shadow:inset 0 -3px 0 var(--red)}
+
+/* ---------- theme button ---------- */
+.thm{height:40px;width:40px;display:flex;align-items:center;justify-content:center;position:relative;border:0;background:var(--ink);isolation:isolate;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));color:var(--ink);transition:color .25s,scale .15s}
+.thm::before{content:"";position:absolute;inset:1.5px;background:#fff;z-index:-1;clip-path:polygon(0 0,calc(100% - 8.4px) 0,100% 8.4px,100% 100%,8.4px 100%,0 calc(100% - 8.4px));transition:background .25s}
+.thm::after{content:"";position:absolute;left:9px;bottom:0;width:14px;height:3px;background:var(--red);transition:width .3s var(--ease)}
+.thm:hover{color:#fff}.thm:hover::before{background:var(--ink)}.thm:hover::after{width:calc(100% - 9px)}
+.thm svg{width:18px;height:18px}.thm .sun{display:none}
+body.dark .thm .sun{display:inline}body.dark .thm .moon{display:none}
+@media (max-width:900px){.thm{width:40px}}
+
+/* ---------- dark mode ---------- */
+body.dark{--line:rgba(255,255,255,.14);--mute:#9aa1a9;--ink2:#c8ccd1;color:#eef0f2;background:#0b0c0e}
+body.dark .bg{background:radial-gradient(120% 100% at 70% 30%,#1b1e23 0%,#111316 45%,#08090a 100%)}
+body.dark .rays{opacity:.5}
+body.dark .nav{background:rgba(11,12,14,.84);border-bottom-color:rgba(255,255,255,.08)}
+body.dark .logo img{background:#fff;padding:4px 7px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+body.dark .all-btn,body.dark .snd,body.dark .thm{background:#4a4f57;color:#eef0f2}
+body.dark .all-btn::before,body.dark .snd::before,body.dark .thm::before{background:#15171a}
+body.dark .all-btn:hover::before,body.dark .snd:hover::before,body.dark .thm:hover::before{background:#2c3036}
+body.dark .rail button{color:rgba(255,255,255,.4)}body.dark .rail button.on{color:#fff}
+body.dark .rail button span,body.dark .pin span{background:rgba(20,22,25,.92);color:#eef0f2}
+body.dark .pin path{stroke:#0b0c0e}body.dark .pin.hq path,body.dark .pin.sel path{fill:#fff}body.dark .pin.hq circle,body.dark .pin.sel circle{fill:#0b0c0e}
+body.dark .intro,body.dark .card,body.dark .all,body.dark .loc{background:#15171a;color:#eef0f2}
+body.dark .all-grid button{background:#1c1f23;color:#eef0f2}
+body.dark .card-x,body.dark .loc-x{background:#eef0f2;color:#111316}
+body.dark .next,body.dark .start{background:#1d2025}
+body.dark .hot:not(.tile) span{background:#1d2025}
+body.dark .hot.tile{background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(227,30,36,.7))}
+body.dark .hot.tile::before{background:linear-gradient(170deg,#202328 0%,#17191d 55%,#111316 100%)}
+body.dark .hot.tile span{color:#eef0f2}
+body.dark .hot.tile:hover b{background:linear-gradient(140deg,#fff,#cfd3d8);color:var(--ink)}
+body.dark #loader{background:#0b0c0e}
+body.dark .copy li{border-color:var(--line)}
+body.dark .dia text{fill:#eef0f2}body.dark .dia rect{stroke:rgba(255,255,255,.3)}
