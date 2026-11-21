@@ -17,14 +17,17 @@ svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 @keyframes rays{from{transform:translate3d(-4%,0,0)}to{transform:translate3d(6%,3%,0)}}
 #scene{position:fixed;inset:0;width:100%;height:100%;display:block}
 
-#loader{position:fixed;inset:0;z-index:50;background:#fff;display:grid;place-items:center;transition:opacity .9s,visibility .9s}
-#loader img{width:130px;position:relative;animation:pop .8s var(--ease) both}
-#loader.done{opacity:0;visibility:hidden}
-.rings i{position:absolute;left:50%;top:50%;border:1px solid var(--red);opacity:0;animation:ring 2.2s var(--ease) infinite}
-.rings i:nth-child(1){width:240px;height:240px;margin:-120px}
-.rings i:nth-child(2){width:420px;height:420px;margin:-210px;animation-delay:.25s}
-.rings i:nth-child(3){width:640px;height:640px;margin:-320px;animation-delay:.5s}
-@keyframes ring{0%{opacity:0;transform:scale(.8)}40%{opacity:.5}100%{opacity:0;transform:scale(1.08)}}
+#loader{position:fixed;inset:0;z-index:50;background:#fff;transition:background .55s}
+#loader img{position:absolute;left:50%;top:50%;width:var(--lw,170px);margin-top:var(--ly,0px);transform:translate(-50%,-50%);animation:lin .7s var(--ease) both}
+#loader b{position:absolute;left:50%;top:calc(50% + var(--ly,0px) + var(--lw,170px) * .33 + 26px);width:120px;height:2px;margin-left:-60px;background:var(--line);overflow:hidden;transition:opacity .3s}
+#loader b::after{content:"";position:absolute;inset:0;width:45%;background:var(--red);animation:lbar 1.1s ease-in-out infinite}
+#loader.go{background:rgba(255,255,255,0);pointer-events:none}
+#loader.go b{opacity:0}
+#loader.go img{animation:lfly 1.05s cubic-bezier(.7,0,.95,.35) .15s both}
+#loader.done{display:none}
+@keyframes lin{from{opacity:0;transform:translate(-50%,-50%) scale(.82)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes lbar{0%{transform:translateX(-110%)}100%{transform:translateX(240%)}}
+@keyframes lfly{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(11);filter:blur(5px)}}
 @keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
 
 .ui{opacity:0;pointer-events:none;transition:opacity .8s}
@@ -72,8 +75,29 @@ body.live .ui{opacity:1;pointer-events:auto}
 .hot span{font-size:.64rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;background:rgba(255,255,255,.85);padding:3px 7px}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
 .pins{position:fixed;inset:0;z-index:3;pointer-events:none}
-.pin{position:absolute;left:0;top:0;font-size:.62rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity .6s;padding-left:10px;text-shadow:0 0 4px #fff,0 0 8px #fff}
+.pin{position:absolute;left:0;top:0;width:0;height:0;opacity:0;transition:opacity .5s}
 .pin.show{opacity:1}
+.pin svg{position:absolute;left:-10px;top:-27px;width:20px;height:27px;overflow:visible;filter:drop-shadow(0 3px 4px rgba(17,19,22,.35));transform-origin:50% 100%;transform:translateY(-16px) scale(.6);transition:transform .6s cubic-bezier(.3,1.6,.5,1)}
+.pin.show svg{transform:none}
+.pin path{fill:var(--red);stroke:#fff;stroke-width:1.6}
+.pin circle{fill:#fff}
+.pin.hq svg{left:-13px;top:-35px;width:26px;height:35px}
+.pin.hq path{fill:var(--ink)}
+.pin::after{content:"";position:absolute;left:-7px;top:-3.5px;width:14px;height:7px;border-radius:50%;border:1.5px solid var(--red);opacity:0;animation:pinp 2.4s infinite}
+.pin.hq::after{animation-duration:1.6s}
+@keyframes pinp{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.pin span{position:absolute;opacity:0;transition:opacity .4s;background:rgba(255,255,255,.94);padding:2px 6px;box-shadow:0 2px 6px rgba(17,19,22,.18);font-size:.62rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 4px #fff,0 0 8px #fff}
+body.detail .pin span{opacity:1}
+.hint{display:flex;align-items:center;gap:.8rem;margin-top:1.3rem;font-size:.68rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
+.hint i{position:relative;width:22px;height:34px;border:2px solid var(--ink);border-radius:12px;flex:none}
+.hint i::before{content:"";position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--red);animation:hintd 1.5s infinite}
+.hint i::after{content:"";position:absolute;inset:-7px;border-radius:17px;border:2px solid var(--red);opacity:0;animation:hintp 1.5s infinite}
+.hint.touch i::before{top:auto;bottom:5px;width:8px;height:8px;margin-left:-4px;border-radius:50%;animation-name:hintu}
+.hint b{color:var(--red);font-weight:700}
+.hint.seen i::after{animation:none}.hint.seen{opacity:.6}
+@keyframes hintd{0%{transform:translateY(0);opacity:0}25%{opacity:1}80%{transform:translateY(11px);opacity:0}100%{opacity:0}}
+@keyframes hintu{0%{transform:translateY(0);opacity:0}25%{opacity:1}80%{transform:translateY(-15px);opacity:0}100%{opacity:0}}
+@keyframes hintp{0%{transform:scale(.85);opacity:.8}100%{transform:scale(1.25);opacity:0}}
 
 .next,.start{--cut:12px;position:relative;display:inline-flex;align-items:center;gap:16px;height:50px;padding:0 26px 0 0;background:var(--ink);color:#fff;font-size:.72rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)));transition:background .3s,padding .3s var(--ease);overflow:hidden}
 .next{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;filter:drop-shadow(0 12px 22px rgba(17,19,22,.28))}
@@ -134,7 +158,8 @@ body.live .ui{opacity:1;pointer-events:auto}
 @media (max-width:900px){
   :root{--nav:62px}
   .logo img{height:40px}
-  .rail,.pin,.foot{display:none}
+  .rail,.pin span,.foot{display:none}
+  .hint{margin-top:.8rem;font-size:.62rem}.hint i{width:18px;height:28px}
   .all-btn span{display:none}.all-btn{padding:0;width:40px;justify-content:center}
   .nav-r{gap:8px}.btn-red{padding:0 14px;font-size:.68rem}
   .copy{left:6vw;right:6vw;width:auto;top:auto;bottom:calc(92px + env(safe-area-inset-bottom));transform:none}

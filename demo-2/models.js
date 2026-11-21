@@ -95,16 +95,24 @@ function gateValve(m, p, axis, rp) {      // body + bonnet + yoke + rising stem 
 }
 function person(m, p, ry = 0, s = 0.27, weld = false) {
   m.push(p, [0, ry, 0], s);
-  [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 1.5 }));
-  m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 1.5 });
-  if (weld) { rod(m, [-0.24, 1.3, 0], [-0.1, 1.12, 0.42], 0.05, { w: 1.5 }); rod(m, [0.24, 1.3, 0], [0.08, 1.15, 0.45], 0.05, { w: 1.5 }); rod(m, [0.08, 1.15, 0.45], [0.02, 1.08, 0.78], 0.014, { w: 4 }); m.add(box(0.26, 0.3, 0.1), { p: [0, 1.55, 0.13], e: 3, w: 1.5 }); m.add(box(0.16, 0.06, 0.02), { p: [0, 1.58, 0.185], e: 2, w: 1 }); }
-  else [-0.25, 0.25].forEach(x => m.add(cyl(0.05, 0.55, 8), { p: [x, 1.1, 0.05], r: [0.25, 0, x * 0.5], w: 1.5 }));
-  m.add(sph(0.11), { p: [0, 1.56, 0], w: 1.5 }).add(dome(0.13), { p: [0, 1.6, 0], w: 2 }).add(ring(0.1, 0.19), { p: [0, 1.61, 0.03], r: UP, w: 2 });
+  [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 2.1 }));
+  m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 2.1 });
+  if (weld) { rod(m, [-0.24, 1.3, 0], [-0.1, 1.12, 0.42], 0.05, { w: 2.1 }); rod(m, [0.24, 1.3, 0], [0.08, 1.15, 0.45], 0.05, { w: 2.1 }); rod(m, [0.08, 1.15, 0.45], [0.02, 1.0, 0.82], 0.014, { w: 4 }); m.add(box(0.26, 0.3, 0.1), { p: [0, 1.55, 0.13], e: 3, w: 2.1 }); m.add(box(0.16, 0.06, 0.02), { p: [0, 1.58, 0.185], e: 2, w: 1 }); }
+  else [-0.25, 0.25].forEach(x => m.add(cyl(0.05, 0.55, 8), { p: [x, 1.1, 0.05], r: [0.25, 0, x * 0.5], w: 2.1 }));
+  m.add(sph(0.11), { p: [0, 1.56, 0], w: 2.1 }).add(dome(0.13), { p: [0, 1.6, 0], w: 2 }).add(ring(0.1, 0.19), { p: [0, 1.61, 0.03], r: UP, w: 2 });
   return m.pop();
 }
 function cloud(m, c, r, w, t = 1, sc = [1, 1, 1]) { return m.add(sph(r), { p: c, s: sc, w: w * 0.12, t }).add(sph(r * 0.4), { p: c, s: sc, w: w * 0.5, t }); }
-// welding arc: a tight electric-blue point with a short fan of sparks dropping away from the work
-function arc(m, c, dir = 1) { m.add(sph(0.014), { p: c, w: 9, t: 2 }); for (let k = 0; k < 9; k++) { const a = (k / 8 - 0.5) * 1.5; m.line(c, [c[0] + Math.sin(a) * 0.1, c[1] - 0.05 - Math.cos(a) * 0.09 * (0.6 + R() * 0.6), c[2] + dir * (0.03 + R() * 0.08)], 0.25, 2); } }
+// welding arc: a hot core with a wide shower of orange / yellow sparks thrown out and falling away from the work (tint 3)
+function arc(m, c, dir = 1) {
+  m.add(sph(0.016), { p: c, w: 10, t: 3 });
+  for (let k = 0; k < 10; k++) { const a = k / 10 * PI * 2, l = k % 2 ? 0.035 : 0.06; m.line(c, [c[0] + Math.cos(a) * l * 1.4, c[1] + Math.sin(a) * l * 1.4, c[2]], 1, 3); }     // arc flash star
+  for (let k = 0; k < 30; k++) {                                                                                                                         // sparks thrown away from the welder
+    const a = R() * PI * 2, v = 0.16 + R() * 0.34, up = 0.02 + R() * 0.22, vx = Math.cos(a) * v, vz = -dir * (Math.abs(Math.sin(a)) * v * 0.7 + 0.04), u0 = 0.25 + R() * 0.3, pts = [];
+    for (let j = 0; j <= 4; j++) { const u = u0 + j / 4 * (0.25 + R() * 0.5); pts.push([c[0] + vx * u, c[1] + up * u - 0.6 * u * u, c[2] + vz * u]); }
+    m.poly(pts, 0.38, false, 3);
+  }
+}
 function column(m, x, z, r, y0, h, plats) {
   m.push([x, 0, z]);
   m.add(cyl(r, h, 36), { p: [0, y0 + h / 2 + 0.25, 0] }).add(dome(r), { p: [0, y0 + h + 0.25, 0], s: [1, 0.55, 1] }).add(cyl(r * 1.08, 0.25, 30, true, r), { p: [0, y0 + 0.125, 0] }).add(ring(r * 0.9, r * 1.35), { p: [0, y0 + 0.005, 0], r: UP, w: 2 });
@@ -168,8 +176,8 @@ function mechanical() {
   [[0.3, 0.42, 0, 'y'], [1.45, 0.2, 0, 'y'], [1.2, py, 0, 'x'], [1.75, g + 0.38, 0, 'x']].forEach(([x, y, z, ax]) => m.add(tor(0.09, 0.008), { p: [x, y, z], r: ax === 'y' ? UP : [0, PI / 2, 0], w: 3 }));
   m.add(box(0.05, 0.3, 0.05), { p: [1.6, g + 0.15, 0], e: 2 }).add(box(0.2, 0.03, 0.2), { p: [1.6, g + 0.015, 0], e: 2 });
   // welder working the girth seam
-  person(m, [1.75, g, 0.38], PI, 0.36, true); arc(m, [1.75, g + 0.39, 0.1]);
-  m.add(box(0.3, 0.3, 0.44), { p: [0.75, g + 0.17, 1.0], e: 2.5 }); m.poly([[0.9, g + 0.25, 0.9], [1.2, g + 0.02, 0.8], [1.55, g + 0.02, 0.6], [1.72, g + 0.4, 0.45]], 2);
+  person(m, [1.75, g, 0.47], PI, 0.5, true); arc(m, [1.75, g + 0.49, 0.05]);
+  m.add(box(0.3, 0.3, 0.44), { p: [0.75, g + 0.17, 1.0], e: 2.5 }); m.poly([[0.9, g + 0.25, 0.9], [1.2, g + 0.02, 0.8], [1.55, g + 0.02, 0.7], [1.72, g + 0.55, 0.3]], 2);
   return { m, hot: { enter: [2.3, 0.3, 0], a: [0.85, 1.7, 0], b: [-1.9, -0.2, 0.3], c: [0.5, -1.75, 1.0] } };
 }
 
@@ -274,8 +282,8 @@ function pipeline() {
   F.forEach((p, i) => { const q = F[(i + 1) % 4]; if (i !== 0) [0.3, 0.6].forEach(o => m.line([p[0], g + o, p[1]], [q[0], g + o, q[1]], 0.9)); for (let k = 0; k <= 4; k++) { const x = p[0] + (q[0] - p[0]) * k / 4, z = p[1] + (q[1] - p[1]) * k / 4; if (i !== 0) m.line([x, g, z], [x, g + 0.62, z], 0.9); } });
   [[-1.9, -0.6], [2.05, -0.6]].forEach(([x, z]) => { rod(m, [x, g, z], [x, g + 0.55, z], 0.014, { w: 2 }); m.add(box(0.02, 0.14, 0.11), { p: [x, g + 0.52, z], e: 2 }); });
   // field weld at the tie-in
-  person(m, [1.98, g, 0.42], PI, 0.36, true); arc(m, [1.98, g + 0.39, r + 0.01]);
-  m.add(box(0.3, 0.3, 0.44), { p: [1.1, g + 0.17, 1.05], e: 2.5 }); m.poly([[1.25, g + 0.25, 0.95], [1.5, g + 0.02, 0.85], [1.8, g + 0.02, 0.65], [1.95, g + 0.4, 0.5]], 2);
+  person(m, [1.98, g, 0.52], PI, 0.5, true); arc(m, [1.98, g + 0.51, 0.1]);
+  m.add(box(0.3, 0.3, 0.44), { p: [1.1, g + 0.17, 1.05], e: 2.5 }); m.poly([[1.25, g + 0.25, 0.95], [1.5, g + 0.02, 0.85], [1.8, g + 0.02, 0.75], [1.95, g + 0.55, 0.35]], 2);
   m.add(cyl(r, 0.5, 28), { p: [2.3, y, 0], r: AX }); m.add(box(0.14, 0.27, 0.5), { p: [2.35, g + 0.135, 0], e: 2 });
   return { m, hot: { enter: [2.3, 0.6, 0], a: [0.2, 1.25, 0], b: [-1.7, 0.75, 0.3], c: [2.2, -0.35, 0.5] } };
 }
@@ -310,22 +318,23 @@ function gulfMap(N) {
   const polys = GULF.filter(o => !(o.s === 'FL' && o.r.length < 20)).map(o => { const r = o.r.map(p => [PX(p[0]), PY(p[1])]); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, len = 0; r.forEach((p, k) => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); if (k) len += Math.hypot(p[0] - r[k - 1][0], p[1] - r[k - 1][1]); }); return { r, x0, x1, y0, y1, len, area: (x1 - x0) * (y1 - y0), s: o.s }; });
   const inside = (r, x, y) => { let c = false; for (let a = 0, b = r.length - 1; a < r.length; b = a++) if ((r[a][1] > y) !== (r[b][1] > y) && x < (r[b][0] - r[a][0]) * (y - r[a][1]) / (r[b][1] - r[a][1]) + r[a][0]) c = !c; return c; };
   const put = (x, y, z, t) => { if (i >= N) return; pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; tint[i++] = t; };
-  const nCity = Math.floor(N * 0.035), nEdge = Math.floor(N * 0.3), nFill = N - nCity - nEdge;
+  const nCity = Math.floor(N * 0.02), nEdge = Math.floor(N * 0.3), nFill = N - nCity - nEdge;
   const totL = polys.reduce((s, p) => s + p.len, 0), totA = polys.reduce((s, p) => s + p.area * (p.s === 'JM' ? 3 : 1), 0);
   polys.forEach(p => { const n = Math.round(nEdge * p.len / totL); for (let k = 0; k < n; k++) { const j = 1 + ((R() * (p.r.length - 1)) | 0), u = R(), a = p.r[j - 1], b = p.r[j]; put(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, (R() - 0.5) * 0.05, 0); } });
   polys.forEach(p => { const n = Math.round(nFill * p.area * (p.s === 'JM' ? 3 : 1) / totA); let k = 0, guard = 0; while (k < n && guard++ < n * 40) { const x = p.x0 + R() * (p.x1 - p.x0), y = p.y0 + R() * (p.y1 - p.y0); if (inside(p.r, x, y)) { put(x, y, (R() - 0.5) * 0.03, 0); k++; } } });
   const per = Math.floor(nCity / CITIES.length);
-  CITIES.forEach(([, lo, la, hq]) => { for (let k = 0; k < per; k++) { const a = R() * PI * 2, rr = Math.pow(R(), 1.8) * (hq ? 0.07 : 0.045), up = R() < 0.4 ? R() * (hq ? 0.34 : 0.2) : 0; put(PX(lo) + Math.cos(a) * rr * (up ? 0.25 : 1), PY(la) + Math.sin(a) * rr * (up ? 0.25 : 1), 0.03 + up, 1); } });
+  CITIES.forEach(([, lo, la, hq]) => { for (let k = 0; k < per; k++) { const a = R() * PI * 2, rr = Math.sqrt(R()) * (hq ? 0.045 : 0.032); put(PX(lo) + Math.cos(a) * rr, PY(la) + Math.sin(a) * rr, 0.03, 1); } });
   while (i < N) { const j = (R() * i) | 0; put(pos[j * 3], pos[j * 3 + 1], pos[j * 3 + 2], tint[j]); }
-  const c = [PX(-91.5), PY(26.6), 0], s = 0.98;
+  let bx0 = 1e9, bx1 = -1e9, by0 = 1e9, by1 = -1e9; polys.forEach(p => { bx0 = Math.min(bx0, p.x0); bx1 = Math.max(bx1, p.x1); by0 = Math.min(by0, p.y0); by1 = Math.max(by1, p.y1); });
+  const c = [(bx0 + bx1) / 2, (by0 + by1) / 2, 0], s = Math.min(3.95 / (bx1 - bx0), 3.1 / (by1 - by0));
   for (let k = 0; k < N; k++) { pos[k * 3] = (pos[k * 3] - c[0]) * s; pos[k * 3 + 1] = (pos[k * 3 + 1] - c[1]) * s; pos[k * 3 + 2] *= s; }
   const xf = p => [(p[0] - c[0]) * s, (p[1] - c[1]) * s, p[2] * s];
-  return { pos, tint, xf, city: (lo, la) => xf([PX(lo), PY(la), 0.1]) };
+  return { pos, tint, xf, city: (lo, la) => xf([PX(lo), PY(la), 0.04]) };
 }
 
 const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility];
 export function buildAll(N) {
   const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
-  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, hot: { enter: [2.2, 0.9, 0], a: [-0.5, -0.25, 0.1], b: [1.6, 1.3, 0], c: g.city(-77.25, 17.95) }, flat: true });
+  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, hot: { enter: [2.2, 0.9, 0], a: g.city(-90.5, 25.6), b: g.city(-102.5, 23.2), c: g.city(-81.5, 15.6) }, flat: true });
   return out;
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=11';
-import { buildAll, CITIES } from './models.js?v=11';
+import { Snd } from './audio.js?v=13';
+import { buildAll, CITIES } from './models.js?v=13';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -86,12 +86,12 @@ geo.setAttribute('aTo', new THREE.BufferAttribute(RING.slice(), 3));
 geo.setAttribute('aT0', new THREE.BufferAttribute(new Float32Array(N), 1));
 geo.setAttribute('aT1', new THREE.BufferAttribute(RT.slice(), 1));
 geo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
-const U = { uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 } };
+const U = { uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 } };
 const mat = new THREE.ShaderMaterial({
   uniforms: U, transparent: true, depthWrite: false,
   vertexShader: `
     attribute vec3 aFrom, aTo; attribute vec4 aRnd; attribute float aT0, aT1;
-    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin; uniform vec2 uMouse; varying float vA; varying float vTint;
+    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
     void main(){
       float t = clamp(uT * 1.8 - aRnd.x * 0.8, 0.0, 1.0);
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
@@ -100,6 +100,7 @@ const mat = new THREE.ShaderMaterial({
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
       p.xz = mat2(c, -s, s, c) * p.xz;
+      p.z += uIntro * burst * (0.6 + aRnd.x * 6.5);      // opening: the logo flies through the camera as it breaks up
       p += burst * vec3((aRnd.w - 0.35) * 3.2, sin(aRnd.y * 6.283 + uTime) * 0.5 + (aRnd.z - 0.5) * 1.2, (aRnd.y - 0.5) * 2.0);
       // a few loose particles orbit the object as a dust ring
       float loose = step(0.965, aRnd.w);
@@ -109,17 +110,19 @@ const mat = new THREE.ShaderMaterial({
       p += 0.0025 * vec3(sin(uTime * 1.3 + aRnd.x * 40.0), cos(uTime * 1.1 + aRnd.y * 40.0), sin(uTime * 0.9 + aRnd.z * 40.0));
       vTint = mix(aT0, aT1, e) * (1.0 - loose);
       p += min(vTint, 1.0) * 0.008 * vec3(sin(uTime * 9.0 + aRnd.x * 50.0), cos(uTime * 8.0 + aRnd.y * 50.0), sin(uTime * 7.0 + aRnd.z * 50.0));
+      float spark = clamp(vTint - 2.0, 0.0, 1.0); vR = aRnd.y;
+      p += spark * 0.012 * vec3(sin(uTime * 23.0 + aRnd.x * 90.0), cos(uTime * 19.0 + aRnd.y * 90.0), sin(uTime * 17.0 + aRnd.z * 90.0));
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       gl_Position = projectionMatrix * mv;
       vec2 d = (gl_Position.xy / gl_Position.w - uMouse) * vec2(uAspect, 1.0);
       float f = smoothstep(0.11, 0.0, length(d));
       gl_Position.xy += normalize(d + 1e-5) / vec2(uAspect, 1.0) * f * 0.045 * gl_Position.w;
-      float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + max(vTint - 1.0, 0.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0))) * uPix / -mv.z;
-      gl_PointSize = max(sz, uMin);
+      float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + clamp(vTint - 1.0, 0.0, 1.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0)) + spark * (0.15 + 0.7 * step(0.0, sin(uTime * (14.0 + aRnd.z * 20.0) + aRnd.x * 60.0)))) * uPix / -mv.z;
+      gl_PointSize = min(max(sz, uMin), uMin * 14.0);
       float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
       vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35);
     }`,
-  fragmentShader: `varying float vA; varying float vTint; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
+  fragmentShader: `varying float vA; varying float vTint; varying float vR; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(vec3(0.07, 0.075, 0.09), vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
 const cloud = new THREE.Points(geo, mat); cloud.frustumCulled = false; spin.add(cloud);
 
@@ -163,17 +166,20 @@ function layout() { area();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
-  else { t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
-    if (t.flat) CITIES.forEach(([n, lo, la], k) => { if (k === 9) return; const el = document.createElement('div'); el.className = 'pin'; el.textContent = n; pins.appendChild(el); const c = SH[7].hot; pinEls.push({ el, at: new THREE.Vector3((lo + 92) * 0.19 * 0.98 - (0.5 * 0.19 * 0.98), ((la - 27.2) * 0.19 * 1.13 + 0.6 * 0.19 * 1.13) * 0.98, 0.1) }); setTimeout(() => el.classList.add('show'), 500 + k * 90); }); }
+  else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
+  if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); pinEls.push({ el, at: new THREE.Vector3(...s.city(lo, la)) }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
   pill.querySelector('span').textContent = mode === 'over' ? 'Explore ' + t.name : 'Close';
   pill.classList.toggle('x', mode === 'detail');
   document.body.classList.toggle('detail', mode === 'detail');
 }
+const PL = [[13, -6], [-13, -8, 1], [-14, -30, 1], [14, -19], [-10, -64, 1], [-12, -47, 1], [-14, -44], [-8, -58], [14, -26], [14, -22]];   // label offsets per city so the Texas cluster stays readable
+const hint = $('.hint'), touch = matchMedia('(pointer:coarse)').matches; let moves = 0;
+hint.classList.toggle('touch', touch); hint.querySelector('span').innerHTML = touch ? '<b>Swipe up</b> for the next service' : '<b>Scroll</b> or press <b>↓</b> for the next service';
 function go(i) {
   if (mode === 'intro' || performance.now() < lock) return;
   i = (i + TOPICS.length) % TOPICS.length; if (i === cur && mode === 'over') return;
   const same = i === cur; lock = performance.now() + 900; cur = i; mode = 'over'; closeCard(true);
-  if (!same) { snd.morph(); setTarget(SH[i], 2.5); }
+  if (!same) { snd.morph(); setTarget(SH[i], 2.5); if (++moves > 3) hint.classList.add('seen'); }
   title.textContent = TOPICS[i].name;
   if (!same) { copy.classList.add('swap'); setTimeout(() => { if (cur !== i) return; const t = TOPICS[i]; copy.querySelector('.eyebrow').innerHTML = t.eyebrow; copy.querySelector('h1').innerHTML = t.title; copy.querySelector('.lead').textContent = t.lead || ''; copy.querySelector('ul').innerHTML = (t.items || []).map(x => `<li>${x}</li>`).join(''); copy.classList.remove('swap'); }, 650); }
   [...rail.children].forEach((b, k) => b.classList.toggle('on', k === i)); [...$('.all-grid').children].forEach((b, k) => b.classList.toggle('on', k === i));
@@ -232,7 +238,7 @@ function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
   U.uTime.value = DU.uTime.value = el;
-  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (k >= 1) morph.on = false; }
+  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (k >= 1) { morph.on = false; U.uIntro.value = 0; } }
   rush += Math.sin(Math.PI * Math.max(0, k)) * dt * 0.9; DU.uRush.value = rush;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;
   const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
@@ -249,10 +255,31 @@ function frame() {
   group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.5 : 0.36, 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
-  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 8));
+  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 0));
   renderer.render(scene, camera);
 }
-morph = { t0: performance.now() + 500, dur: 3200, on: true };
-frame();
-setTimeout(() => document.getElementById('loader').classList.add('done'), 1300);
+// Opening: the PMI logo sits centred as particles under the crisp image, then flies through the camera, breaks up and
+// re-forms as the ring of disciplines before the welcome card appears.
+const loader = document.getElementById('loader'), LW = 1.7, born = performance.now();
+function logoShape(img) {
+  const W = 220, H = Math.round(W * img.naturalHeight / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, W, H); const d = x.getImageData(0, 0, W, H).data, px = [];
+  for (let i = 0; i < W * H; i++) { const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2]; if (d[i * 4 + 3] < 128) continue; if (r > 150 && g < 100 && b < 100) px.push(i, 1); else if (r + g + b < 330) px.push(i, 0); }
+  if (px.length < 200) return false;
+  const from = geo.attributes.aFrom.array, t0 = geo.attributes.aT0.array, n = px.length / 2;
+  for (let i = 0; i < N; i++) { const k = (R() * n) | 0, p = px[k * 2]; from[i * 3] = ((p % W + R()) / W - 0.5) * LW; from[i * 3 + 1] = (0.5 - (((p / W) | 0) + R()) / H) * LW * H / W; from[i * 3 + 2] = (R() - 0.5) * 0.02; t0[i] = px[k * 2 + 1]; }
+  geo.attributes.aFrom.needsUpdate = true; geo.attributes.aT0.needsUpdate = true; return true;
+}
+function opening(img) {
+  let ok = false; try { ok = img && logoShape(img); } catch (e) { ok = false; }
+  area(); view.s = view.ts; view.x = view.tx; view.y = view.ty;
+  const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
+  loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', view.ty.toFixed(1) + 'px');
+  setTimeout(() => {
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 620, dur: 3400, on: true }; loader.classList.add('go');
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 3000);
+  }, Math.max(350, 1100 - (performance.now() - born)));
+}
+U.uT.value = 0; frame();
+{ const img = new Image(); let fired = false; const once = ok => { if (fired) return; fired = true; opening(ok ? img : null); }; img.onload = () => once(true); img.onerror = () => once(false); setTimeout(() => once(false), 4000); img.src = '../assets/pmi-logo.png'; }
 window.__d2 = { go, enter, leave, snd };
