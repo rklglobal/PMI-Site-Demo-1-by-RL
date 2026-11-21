@@ -420,7 +420,7 @@ function worker(m, base, ry, J) {
     m.add(ring(hr * 1.12, hr * 1.42), { p: [0, 0.035, 0.03], r: UP, s: [1, 1.28, 1], w: 3 });                            // brim with front peak
   } else if (hat === 'cap') { m.add(dome(hr * 1.08), { p: [0, 0.02, 0], s: [1, 0.75, 1.05], w: 3 }).add(new THREE.CircleGeometry(hr * 0.7, 16, 0, PI), { p: [0, 0.02, hr * 0.9], r: [-PI / 2 + 0.12, 0, 0], w: 3.5 }); }
   if (J.glasses !== false) m.add(box(0.17, 0.035, 0.012), { p: [0, -0.005, hr * 0.98], e: 3, w: 3 });                 // safety glasses
-  if (J.muffs !== false) [-1, 1].forEach(sx => m.add(cyl(0.045, 0.045, 14), { p: [sx * hr * 1.02, -0.02, 0], r: AX, w: 4, t: 2 }));   // ear muffs
+  if (J.muffs !== false) [-1, 1].forEach(sx => m.add(cyl(0.045, 0.045, 14), { p: [sx * hr * 1.02, -0.02, 0], r: AX, w: 4 }));   // ear muffs
   m.pop();
   return m.pop();
 }
@@ -455,20 +455,18 @@ function quality() {
   const m = new Model(), g = -1.5, y = g + 0.75, rp = 0.2;
   m.add(pipeGeo([[-1.7, y, 0.2], [0.95, y, 0.2], [0.95, y + 1.0, 0.2]], rp, 0.4), { w: 1 });
   flange(m, [-1.7, y, 0.2], 'x', rp); flange(m, [0.95, y + 1.0, 0.2], 'y', rp);
-  m.add(tor(rp + 0.006, 0.028), { p: [-0.35, y, 0.2], r: [0, PI / 2, 0], w: 6, t: 1 });                                  // girth weld being inspected
+  m.add(tor(rp + 0.006, 0.028), { p: [-0.35, y, 0.2], r: [0, PI / 2, 0], w: 6 });                                       // girth weld being inspected
   m.add(tor(rp + 0.006, 0.02), { p: [0.55, y, 0.2], r: [0, PI / 2, 0], w: 3 });
   [-1.25, 0.35].forEach(x => { rod(m, [x, g, 0.2], [x, y - rp, 0.2], 0.03, { w: 2 }); m.add(box(0.3, 0.03, 0.3), { p: [x, g + 0.015, 0.2], e: 2 }); m.add(new THREE.CylinderGeometry(rp + 0.03, rp + 0.03, 0.12, 16, 1, true, PI * 0.6, PI * 0.8), { p: [x, y, 0.2], r: AX, w: 2 }); });
-  // inspector beside the weld (plain coveralls so the weld stays the red focus): leaning in, light in his right hand aimed at the joint, clipboard in his left
+  // inspector at the weld with his checklist: clipboard in both hands, looking at the joint; red ticks are the only red in the scene
   const ib = [-0.95, g, 0.78], iry = PI - 0.75;
-  worker(m, ib, iry, { suit: 0, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.04], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.06], footR: [0.12, 0.06, 0.04],
-    chest: [0, 1.2, 0.06], lean: [0.28, 0, 0], shL: [-0.2, 1.4, 0.1], elL: [-0.26, 1.14, 0.16], hdL: [-0.16, 1.02, 0.3], shR: [0.2, 1.4, 0.1], elR: [0.24, 1.2, 0.28], hdR: [0.12, 1.08, 0.42],
-    head: [0, 1.58, 0.16], tilt: [0.45, 0, 0] });
-  m.push(ib, [0, iry, 0]);
-  m.add(cyl(0.022, 0.12, 10), { p: [0.12, 1.08, 0.48], r: [PI / 2 - 0.5, 0, 0], w: 4 });                       // flashlight
-  m.add(box(0.22, 0.3, 0.012), { p: [-0.15, 1.04, 0.36], r: [-0.7, 0, 0], e: 3, w: 2.5 });                     // clipboard
-  m.pop();
-  const lt = new THREE.Vector3(0.12, 1.08, 0.54).applyAxisAngle(new THREE.Vector3(0, 1, 0), iry).add(new THREE.Vector3(...ib)).toArray();
-  for (let k = 0; k < 7; k++) m.line(lt, [-0.35 + (k - 3) * 0.025, y + 0.06 + (k % 2) * 0.06, 0.2 + rp + 0.01], 0.35, 1);   // light on the weld
+  worker(m, ib, iry, { suit: 0, muffs: false, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.03], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.03], footR: [0.12, 0.06, 0],
+    chest: [0, 1.2, 0.03], lean: [0.12, 0, 0], shL: [-0.2, 1.4, 0.06], elL: [-0.22, 1.16, 0.18], hdL: [-0.1, 1.12, 0.32], shR: [0.2, 1.4, 0.06], elR: [0.22, 1.16, 0.18], hdR: [0.1, 1.12, 0.32],
+    head: [0, 1.6, 0.08], tilt: [0.3, 0, 0] });
+  m.push(ib, [0, iry, 0]); m.push([0, 1.17, 0.36], [-0.75, 0, 0]);
+  m.add(box(0.26, 0.34, 0.012), { e: 3, w: 2.5 }).add(box(0.1, 0.03, 0.02), { p: [0, 0.16, 0.008], e: 2, w: 3 });
+  [0.08, 0.02, -0.04, -0.1].forEach((v, k) => { m.line([-0.04, v, 0.008], [0.1, v, 0.008], 1.5); if (k < 3) m.poly([[-0.1, v, 0.009], [-0.085, v - 0.015, 0.009], [-0.06, v + 0.02, 0.009]], 2.5, false, 1); });
+  m.pop(); m.pop();
   // code vessel behind on saddles, with nameplate
   const vy = g + 0.55, vz = -1.05;
   m.add(cyl(0.42, 1.7, 36), { p: [0, vy, vz], r: AX }).add(dome(0.42), { p: [0.85, vy, vz], r: [0, 0, -PI / 2], s: [1, 0.5, 1] }).add(dome(0.42), { p: [-0.85, vy, vz], r: [0, 0, PI / 2], s: [1, 0.5, 1] });
