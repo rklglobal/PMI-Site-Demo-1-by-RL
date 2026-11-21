@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=14';
-import { buildAll, CITIES } from './models.js?v=14';
+import { Snd } from './audio.js?v=15';
+import { buildAll, CITIES } from './models.js?v=15';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -93,14 +93,14 @@ const mat = new THREE.ShaderMaterial({
     attribute vec3 aFrom, aTo; attribute vec4 aRnd; attribute float aT0, aT1;
     uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
     void main(){
-      float t = clamp(uT * 1.8 - aRnd.x * 0.8, 0.0, 1.0);
+      float dl = mix(aRnd.x, clamp(aFrom.x / 1.7 + 0.5, 0.0, 1.0) * 0.75 + aRnd.x * 0.25, uIntro);      // opening: a clean left-to-right wipe
+      float t = clamp(uT * 1.8 - dl * 0.8, 0.0, 1.0);
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
       vec3 p = mix(aFrom, aTo, e);
-      float burst = sin(3.14159 * e);
+      float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro);
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
       p.xz = mat2(c, -s, s, c) * p.xz;
-      p.z += uIntro * burst * (0.3 + aRnd.x * 2.0);      // opening: the logo flies through the camera as it breaks up
       p += burst * vec3((aRnd.w - 0.35) * 3.2, sin(aRnd.y * 6.283 + uTime) * 0.5 + (aRnd.z - 0.5) * 1.2, (aRnd.y - 0.5) * 2.0);
       // a few loose particles orbit the object as a dust ring
       float loose = step(0.965, aRnd.w);
@@ -276,9 +276,9 @@ function opening(img) {
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', view.ty.toFixed(1) + 'px');
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 1500, dur: 3400, on: true }; loader.classList.add('go');
-    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 3900);
-  }, Math.max(350, 1100 - (performance.now() - born)));
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 420, dur: 1700, on: true }; loader.classList.add('go');
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 1750);
+  }, Math.max(150, 750 - (performance.now() - born)));
 }
 U.uT.value = 0; frame();
 { const img = new Image(); let fired = false; const once = ok => { if (fired) return; fired = true; opening(ok ? img : null); }; img.onload = () => once(true); img.onerror = () => once(false); setTimeout(() => once(false), 4000); img.src = '../assets/pmi-logo.png'; }
