@@ -502,16 +502,18 @@ function experience() {
 
 /* ---------- Careers: the crew in front of the job trailer ---------- */
 function careers() {
-  const m = new Model(), g = -1.5, ty = g + 0.25, TW = 2.6, TH = 0.95, TD = 0.85, tz = -1.0;
-  m.add(box(TW, TH, TD), { p: [0, ty + TH / 2, tz], e: 4, w: 0.6 }).add(box(TW + 0.06, 0.04, TD + 0.06), { p: [0, ty + TH + 0.02, tz], e: 2.5 });
-  [-1.1, -0.4, 0.4, 1.1].forEach(x => m.add(box(0.14, 0.25, 0.14), { p: [x, g + 0.125, tz], e: 2 }));
-  const fz = tz + TD / 2 + 0.004, rect = (x, y, w, h) => m.poly([[x - w / 2, y - h / 2, fz], [x + w / 2, y - h / 2, fz], [x + w / 2, y + h / 2, fz], [x - w / 2, y + h / 2, fz]], 2, true);
-  [-0.95, -0.45, 0.55, 1.05].forEach(x => { rect(x, ty + 0.6, 0.34, 0.26); m.line([x, ty + 0.47, fz], [x, ty + 0.73, fz], 0.8); });
-  rect(0.05, ty + 0.4, 0.26, 0.66); m.add(box(0.5, 0.03, 0.3), { p: [0.05, ty + 0.0, fz + 0.18], e: 2 }); [0.08, 0.16].forEach((y, k) => m.add(box(0.4, 0.025, 0.12), { p: [0.05, g + y, fz + 0.38 + k * -0.1], e: 2 }));
-  m.add(box(0.7, 0.18, 0.02), { p: [-0.7, ty + 0.88 + 0.12, fz], e: 3, w: 2, t: 1 });                                     // company sign
-  // crew in a shallow arc (one welder, hood down), gang box
-  [[-1.4, 0.35, 0.35], [-0.7, 0.62, 0.15], [0, 0.72, 0], [0.7, 0.62, -0.15], [1.4, 0.35, -0.35]].forEach(([x, z, ry], k) => person(m, [x, g, z], ry, 0.36, k === 3));
-  m.add(box(0.6, 0.32, 0.36), { p: [1.85, g + 0.16, 0.9], e: 3, w: 1 }).add(box(0.62, 0.04, 0.38), { p: [1.85, g + 0.34, 0.9], e: 2 });
+  // a foreman welcomes a new hire with a handshake (new hire in red, hard hat in his other hand), crew lined up behind, JOIN THE TEAM banner
+  const m = new Model(), g = -1.5, bz = -1.25, by = g + 2.3, BW = 3.5, BH = 0.78;
+  [-1.6, 1.6].forEach(x => { rod(m, [x, g, bz], [x, by + BH / 2, bz], 0.04, { w: 2 }); m.add(box(0.22, 0.04, 0.22), { p: [x, g + 0.02, bz], e: 2 }); });
+  m.add(box(BW, BH, 0.04), { p: [0, by, bz], e: 4, w: 0.1 });
+  m.poly([[-BW / 2 + 0.05, by - BH / 2 + 0.05, bz + 0.03], [BW / 2 - 0.05, by - BH / 2 + 0.05, bz + 0.03], [BW / 2 - 0.05, by + BH / 2 - 0.05, bz + 0.03], [-BW / 2 + 0.05, by + BH / 2 - 0.05, bz + 0.03]], 5, true, 1);
+  text(m, 'JOIN THE TEAM', 0, by - 0.01, bz + 0.035, 0.4, 1, 1.25);
+  const legs = { hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.13, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.13, 0.06, 0], chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], shR: [0.2, 1.42, 0], head: [0, 1.62, 0.02], muffs: false };
+  const down = { elL: [-0.23, 1.14, 0.02], hdL: [-0.18, 0.92, 0.06] }, shake = { elR: [0.17, 1.2, 0.2], hdR: [0.02, 1.06, 0.43] };
+  worker(m, [-0.43, g, 0.55], PI / 2, { ...legs, ...down, ...shake, suit: 0 });                                   // foreman
+  worker(m, [0.43, g, 0.55], -PI / 2, { ...legs, ...shake, elL: [-0.25, 1.15, 0.06], hdL: [-0.24, 0.95, 0.2], suit: 1, hat: 'none', glasses: false });   // new hire
+  m.push([0.43, g, 0.55], [0, -PI / 2, 0]); m.add(dome(0.125), { p: [-0.26, 0.86, 0.22], s: [1, 0.9, 1.12], w: 3 }).add(ring(0.118, 0.15), { p: [-0.26, 0.86, 0.24], r: UP, s: [1, 1.28, 1], w: 3 }); m.pop();   // his new hard hat
+  [[-1.55, -0.3, 0.3], [-0.85, -0.5, 0.12], [0.85, -0.5, -0.12], [1.55, -0.3, -0.3]].forEach(([x, z, ry]) => worker(m, [x, g, z], ry, { ...legs, ...down, elR: [0.23, 1.14, 0.02], hdR: [0.18, 0.92, 0.06], suit: 0 }));
   return { m, hot: { enter: [2.2, 0.6, 0], a: [0, 0.5, 0.7], b: [-1.2, 0.9, -1.0], c: [1.9, -0.6, 0.9] } };
 }
 
