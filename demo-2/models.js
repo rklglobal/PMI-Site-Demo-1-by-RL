@@ -7,13 +7,14 @@ const PI = Math.PI, R = Math.random;
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3();
 
 export class Model {
-  constructor() { this.T = []; this.TW = []; this.TT = []; this.S = []; this.SW = []; this.ST = []; this.stack = [new THREE.Matrix4()]; }
+  constructor() { this.wm = 1; this.T = []; this.TW = []; this.TT = []; this.S = []; this.SW = []; this.ST = []; this.stack = [new THREE.Matrix4()]; }
   push(p = [0, 0, 0], r = [0, 0, 0], s = 1) { const m = new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...r)), new THREE.Vector3(s, s, s)); this.stack.push(this.stack[this.stack.length - 1].clone().multiply(m)); return this; }
   pop() { this.stack.pop(); return this; }
   add(geo, { p = [0, 0, 0], r = [0, 0, 0], s = 1, w = 1, t = 0, e = 0, ea = 25 } = {}) {
     const sc = Array.isArray(s) ? s : [s, s, s];
     const m = this.stack[this.stack.length - 1].clone().multiply(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...r)), new THREE.Vector3(...sc)));
     if (w > 0) {
+      w *= this.wm;
       const g = geo.index ? geo.toNonIndexed() : geo, P = g.attributes.position;
       for (let i = 0; i < P.count; i += 3) {
         _a.fromBufferAttribute(P, i).applyMatrix4(m); _b.fromBufferAttribute(P, i + 1).applyMatrix4(m); _c.fromBufferAttribute(P, i + 2).applyMatrix4(m);
@@ -24,7 +25,7 @@ export class Model {
     if (e > 0) { const P = new THREE.EdgesGeometry(geo, ea).attributes.position; for (let i = 0; i < P.count; i += 2) { _a.fromBufferAttribute(P, i).applyMatrix4(m); _b.fromBufferAttribute(P, i + 1).applyMatrix4(m); this._seg(_a, _b, e, t); } }
     return this;
   }
-  _seg(a, b, w, t) { this.S.push(a.x, a.y, a.z, b.x, b.y, b.z); this.SW.push(a.distanceTo(b) * 0.035 * w); this.ST.push(t); }
+  _seg(a, b, w, t) { this.S.push(a.x, a.y, a.z, b.x, b.y, b.z); this.SW.push(a.distanceTo(b) * 0.035 * w * this.wm); this.ST.push(t); }
   line(a, b, w = 1, t = 0) { const m = this.stack[this.stack.length - 1]; this._seg(_a.set(...a).applyMatrix4(m), _b.set(...b).applyMatrix4(m), w, t); return this; }
   poly(pts, w = 1, closed = false, t = 0) { for (let i = 1; i < pts.length; i++) this.line(pts[i - 1], pts[i], w, t); if (closed) this.line(pts[pts.length - 1], pts[0], w, t); return this; }
   ground() {
@@ -334,24 +335,66 @@ function pipeline() {
 
 /* ---------- 6 · Facility services: building, guard gate, grounds ---------- */
 function facility() {
-  const m = new Model(), g = -1.5, W = 2.3, H = 0.85, D = 1.15, bx = -0.35;
-  m.add(box(W, H, D), { p: [bx, g + H / 2, 0], e: 3.5, w: 0.55 }).add(box(W + 0.08, 0.05, D + 0.08), { p: [bx, g + H + 0.025, 0], e: 3, w: 0.3 });
-  const fz = D / 2 + 0.003, rect = (x, y, w, h, z, wt = 1.8) => m.poly([[x - w / 2, y - h / 2, z], [x + w / 2, y - h / 2, z], [x + w / 2, y + h / 2, z], [x - w / 2, y + h / 2, z]], wt, true);
-  for (let i = 0; i < 7; i++) { const x = bx - W / 2 + 0.22 + i * 0.31; if (i === 3) { rect(x, g + 0.26, 0.24, 0.5, fz, 2.2); m.line([x, g + 0.02, fz], [x, g + 0.5, fz], 1.2); m.add(box(0.4, 0.02, 0.22), { p: [x, g + 0.56, fz + 0.1], e: 2 }); continue; } [0.24, 0.62].forEach(y => { rect(x, g + y, 0.2, 0.2, fz); m.line([x, g + y - 0.1, fz], [x, g + y + 0.1, fz], 0.6); }); }
-  for (let i = 0; i < 3; i++) [0.24, 0.62].forEach(y => { const z = -0.32 + i * 0.32; m.poly([[bx + W / 2 + 0.003, g + y - 0.1, z - 0.1], [bx + W / 2 + 0.003, g + y - 0.1, z + 0.1], [bx + W / 2 + 0.003, g + y + 0.1, z + 0.1], [bx + W / 2 + 0.003, g + y + 0.1, z - 0.1]], 1.8, true); });
-  [[bx - 0.6, -0.15], [bx + 0.35, 0.1]].forEach(([x, z]) => { m.add(box(0.42, 0.2, 0.34), { p: [x, g + H + 0.15, z], e: 2.5 }); m.add(tor(0.1, 0.008), { p: [x, g + H + 0.252, z], r: UP, w: 2.5 }); m.line([x - 0.1, g + H + 0.252, z], [x + 0.1, g + H + 0.252, z]).line([x, g + H + 0.252, z - 0.1], [x, g + H + 0.252, z + 0.1]); });
-  rod(m, [bx + 0.9, g + H + 0.05, -0.3], [bx + 0.9, g + H + 0.4, -0.3], 0.03, { w: 2 });
-  // guard booth and barrier arm
-  m.add(box(0.36, 0.5, 0.36), { p: [1.55, g + 0.25, 0.95], e: 3, w: 0.8 }).add(box(0.5, 0.035, 0.5), { p: [1.55, g + 0.52, 0.95], e: 2.5 }); rect(1.55, g + 0.34, 0.26, 0.18, 0.95 + 0.183);
-  m.add(box(0.07, 0.24, 0.07), { p: [1.2, g + 0.12, 1.3], e: 2 }); rod(m, [1.2, g + 0.22, 1.3], [0.05, g + 0.5, 1.3], 0.014, { w: 3 }); for (let k = 1; k < 6; k++) m.add(cyl(0.02, 0.05, 6), { p: [1.2 - k * 0.19, g + 0.22 + k * 0.047, 1.3], r: [0, 0, 1.33], w: 3 });
-  person(m, [1.3, g, 0.95], -PI / 2, 0.3);
-  // grounds: walkway, lawn, trees, hedges, light pole, flag
-  m.add(new THREE.PlaneGeometry(0.3, 0.8), { p: [bx + 0.08, g + 0.004, D / 2 + 0.4], r: UP, w: 0.6, e: 1.5 }).add(new THREE.CircleGeometry(2.05, 40), { p: [0.1, g + 0.001, 0.25], r: UP, w: 0.09 });
-  [[-1.95, -0.2, 0.32], [-1.85, 0.75, 0.22], [1.25, -0.7, 0.34], [1.85, -0.25, 0.24]].forEach(([x, z, cr]) => { rod(m, [x, g, z], [x, g + cr * 1.7, z], 0.03, { w: 1.6 }); m.add(new THREE.IcosahedronGeometry(cr, 2), { p: [x, g + cr * 2.2, z], s: [1, 1.15, 1], w: 0.55 }).add(new THREE.IcosahedronGeometry(cr * 0.7, 1), { p: [x + cr * 0.4, g + cr * 1.8, z + cr * 0.2], w: 0.55 }); });
-  for (let k = 0; k < 5; k++) if (k !== 2) m.add(sph(0.09), { p: [bx - 0.75 + k * 0.38, g + 0.07, D / 2 + 0.16], s: [1.7, 0.9, 1], w: 1.2 });
-  rod(m, [0.75, g, 1.0], [0.75, g + 1.25, 1.0], 0.016, { w: 2 }); m.line([0.75, g + 1.25, 1.0], [0.5, g + 1.28, 1.0], 2).add(box(0.14, 0.03, 0.07), { p: [0.5, g + 1.27, 1.0], e: 2 });
-  rod(m, [-1.2, g, 0.72], [-1.2, g + 1.5, 0.72], 0.012, { w: 2 }); m.add(new THREE.PlaneGeometry(0.34, 0.2, 6, 2), { p: [-1.02, g + 1.38, 0.72], w: 2, e: 1.5 });
-  return { m, hot: { enter: [2.2, 0.6, 0], a: [-0.4, 0.75, 0], b: [2.2, -0.6, 1.0], c: [-2.2, -0.2, 0.9] } };
+  const m = new Model(), g = -1.5, FH = 0.6, BW = 2.8, BD = 1.1, bx = -0.55, bz = -0.95, fz = bz + BD / 2 + 0.004;
+  // two-storey office building: curtain wall with mullions and spandrel bands, glass lobby atrium, canopy, parapet, rooftop units
+  m.add(box(BW, 2 * FH, BD), { p: [bx, g + FH, bz], e: 3.5, w: 0.22 });
+  m.add(box(BW + 0.05, 0.08, BD + 0.05), { p: [bx, g + 2 * FH + 0.04, bz], e: 2.5, w: 0.4 });
+  [FH, 2 * FH - 0.04].forEach(y => m.add(box(BW + 0.01, 0.07, 0.02), { p: [bx, g + y, fz], e: 2, w: 1 }));
+  for (let x = bx - BW / 2 + 0.2; x < bx + BW / 2 - 0.1; x += 0.2) { if (Math.abs(x - bx) < 0.42) continue; m.line([x, g + 0.02, fz + 0.005], [x, g + 2 * FH, fz + 0.005], 1.3); }
+  for (let z = bz - BD / 2 + 0.2; z < bz + BD / 2; z += 0.2) [-1, 1].forEach(sx => m.line([bx + sx * (BW / 2 + 0.004), g, z], [bx + sx * (BW / 2 + 0.004), g + 2 * FH, z], 1));
+  const ax = bx, aw = 0.8, ah = 2 * FH + 0.35, azf = fz + 0.16;
+  m.add(box(aw, ah, 0.32), { p: [ax, g + ah / 2, fz], e: 4, w: 0.3 });                                          // atrium
+  for (let k = 1; k < 8; k++) m.line([ax - aw / 2 + k * aw / 8, g + 0.38, azf + 0.002], [ax - aw / 2 + k * aw / 8, g + ah, azf + 0.002], 1.4);
+  for (let y = 0.38; y < ah; y += 0.22) m.line([ax - aw / 2, g + y, azf + 0.002], [ax + aw / 2, g + y, azf + 0.002], 0.9);
+  m.add(box(1.1, 0.04, 0.5), { p: [ax, g + 0.38, azf + 0.22], e: 3, w: 1.2 }); [-0.45, 0.45].forEach(o => rod(m, [ax + o, g, azf + 0.42], [ax + o, g + 0.36, azf + 0.42], 0.014, { w: 2.5 }));   // entrance canopy on columns
+  m.poly([[ax - 0.18, g, azf + 0.004], [ax - 0.18, g + 0.3, azf + 0.004], [ax + 0.18, g + 0.3, azf + 0.004], [ax + 0.18, g, azf + 0.004]], 2.2); m.line([ax, g, azf + 0.004], [ax, g + 0.3, azf + 0.004], 1.5);   // doors
+  [[bx - 0.9, bz - 0.1], [bx + 0.75, bz + 0.15]].forEach(([x, z]) => { m.add(box(0.42, 0.2, 0.32), { p: [x, g + 2 * FH + 0.18, z], e: 2.5, w: 0.6 }); m.add(tor(0.1, 0.008), { p: [x, g + 2 * FH + 0.282, z], r: UP, w: 2.5 }); });
+  m.add(box(0.34, 0.26, 0.3), { p: [bx + 1.1, g + 2 * FH + 0.21, bz - 0.25], e: 2.5, w: 0.5 });
+  // grounds: walk, lawn with mowing stripes (half done), hedges, trees, flagpoles, monument sign
+  m.add(new THREE.PlaneGeometry(0.42, 1.45), { p: [ax, g + 0.003, azf + 0.95], r: UP, w: 0.35, e: 1.5 });
+  const L0 = -2.35, L1 = ax - 0.3, Z0 = fz + 0.25, Z1 = 1.65;
+  m.add(new THREE.PlaneGeometry(L1 - L0, Z1 - Z0), { p: [(L0 + L1) / 2, g + 0.001, (Z0 + Z1) / 2], r: UP, w: 0.05 });
+  for (let z = Z0 + 0.06; z < Z1; z += 0.12) m.line([L0, g + 0.004, z], [z < 1.05 ? L1 : -1.45, g + 0.004, z], 0.5);
+  m.add(new THREE.PlaneGeometry(1.25, Z1 - Z0), { p: [ax + 0.95, g + 0.001, (Z0 + Z1) / 2], r: UP, w: 0.05 });
+  for (let k = 0; k < 9; k++) { const x = bx - BW / 2 + 0.1 + k * 0.3; if (Math.abs(x - ax) < 0.5) continue; m.add(sph(0.08), { p: [x, g + 0.06, fz + 0.12], s: [1.9, 0.85, 1], w: 1 }); }
+  const tree = (x, z, cr) => { rod(m, [x, g, z], [x, g + cr * 1.6, z], 0.025, { w: 1.6 }); m.add(new THREE.IcosahedronGeometry(cr, 2), { p: [x, g + cr * 2.2, z], s: [1, 1.15, 1], w: 0.45 }).add(new THREE.IcosahedronGeometry(cr * 0.55, 1), { p: [x, g + cr * 2.2, z], w: 0.6 }); };
+  [[-2.25, -0.1, 0.3], [-2.2, 1.35, 0.24], [ax + 1.55, 1.45, 0.22], [bx + BW / 2 + 0.3, bz - 0.35, 0.28]].forEach(([x, z, c]) => tree(x, z, c));
+  [-0.3, 0, 0.3].forEach((o, k) => { rod(m, [ax + 0.55 + o, g, 1.05], [ax + 0.55 + o, g + 1.2 - Math.abs(o) * 0.3, 1.05], 0.008, { w: 2.5 }); m.add(new THREE.PlaneGeometry(0.22, 0.13, 4, 2), { p: [ax + 0.66 + o, g + 1.12 - Math.abs(o) * 0.3, 1.05], w: 2, e: 1, t: k === 1 ? 1 : 0 }); });
+  m.add(box(0.62, 0.2, 0.1), { p: [ax + 0.75, g + 0.1, 1.6], e: 3, w: 1 }).add(box(0.5, 0.07, 0.012), { p: [ax + 0.75, g + 0.13, 1.656], w: 3, t: 1 });
+  // parking lot and drive with gate booth
+  const P0 = 1.0, P1 = 2.35, PZ0 = -1.5, PZ1 = 0.25;
+  m.add(new THREE.PlaneGeometry(P1 - P0, PZ1 - PZ0), { p: [(P0 + P1) / 2, g + 0.002, (PZ0 + PZ1) / 2], r: UP, w: 0.12 });
+  for (let k = 0; k <= 6; k++) { const z = PZ0 + 0.1 + k * 0.26; m.line([P0, g + 0.005, z], [P0 + 0.5, g + 0.005, z], 1.2); m.line([P1 - 0.5, g + 0.005, z], [P1, g + 0.005, z], 1.2); }
+  m.add(new THREE.PlaneGeometry(0.5, 1.45), { p: [1.7, g + 0.002, 0.95], r: UP, w: 0.12 });
+  const car = (x, z, ry) => { m.push([x, g, z], [0, ry, 0]); m.add(box(0.4, 0.1, 0.18), { p: [0, 0.08, 0], e: 3, w: 1.1 }).add(box(0.22, 0.08, 0.16), { p: [-0.02, 0.17, 0], e: 3, w: 1.1 }); [[-0.13, 1], [0.13, 1], [-0.13, -1], [0.13, -1]].forEach(([a, b]) => m.add(tor(0.035, 0.014), { p: [a, 0.04, b * 0.09], w: 2 })); m.pop(); };
+  car(P0 + 0.25, PZ0 + 0.23, 0); car(P0 + 0.25, PZ0 + 0.75, 0); car(P1 - 0.25, PZ0 + 0.49, 0); car(P1 - 0.25, PZ0 + 1.27, 0);
+  [[P0 + 0.68, -1.1], [P0 + 0.68, -0.1]].forEach(([x, z]) => { rod(m, [x, g, z], [x, g + 0.75, z], 0.01, { w: 2 }); m.add(box(0.14, 0.03, 0.06), { p: [x + 0.05, g + 0.76, z], e: 2 }); });
+  m.add(box(0.3, 0.42, 0.3), { p: [2.2, g + 0.21, 1.2], e: 3, w: 0.6 }).add(box(0.4, 0.03, 0.4), { p: [2.2, g + 0.44, 1.2], e: 2.5 });
+  m.poly([[2.051, g + 0.2, 1.1], [2.051, g + 0.34, 1.1], [2.051, g + 0.34, 1.3], [2.051, g + 0.2, 1.3]], 2, true);
+  m.add(box(0.06, 0.16, 0.06), { p: [1.98, g + 0.08, 1.5], e: 2 }); for (let k = 0; k < 6; k++) rod(m, [1.98 - k * 0.09, g + 0.15, 1.5], [1.98 - (k + 1) * 0.09, g + 0.15, 1.5], 0.009, { w: 3, t: k % 2 });   // barrier arm, striped
+  // people, drawn in a person-scale frame (1 unit = a 5'9" worker) with extra particle weight so they read at this scale
+  const S = 0.2, crew = (x, z, ry, J) => { m.push([x, g, z], [0, 0, 0], S); m.wm = 22; worker(m, [0, 0, 0], ry, J); m.wm = 1; m.pop(); };
+  // armed guard at the booth: cap, duty belt, sidearm, radio
+  crew(1.95, 1.18, -1.3, { suit: 0, hat: 'cap', muffs: false, glasses: false, belt: true, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.12, 0.48, 0.02], footL: [-0.14, 0.06, 0], kneeR: [0.12, 0.48, 0.02], footR: [0.14, 0.06, 0],
+    chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], elL: [-0.25, 1.15, 0.04], hdL: [-0.17, 0.98, 0.1], shR: [0.2, 1.42, 0], elR: [0.25, 1.15, 0.03], hdR: [0.2, 0.98, 0.08], head: [0, 1.62, 0.02] });
+  // janitor pushing a cart with mop bucket at the entrance
+  crew(ax + 0.42, azf + 0.75, -PI / 2, { suit: 0, hat: 'none', muffs: false, glasses: false, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.5, 0.12], footL: [-0.12, 0.06, 0.2], kneeR: [0.11, 0.48, -0.06], footR: [0.12, 0.06, -0.2],
+    chest: [0, 1.2, 0.05], lean: [0.15, 0, 0], shL: [-0.2, 1.42, 0.06], elL: [-0.22, 1.2, 0.3], hdL: [-0.17, 1.05, 0.5], shR: [0.2, 1.42, 0.06], elR: [0.22, 1.2, 0.3], hdR: [0.17, 1.05, 0.5], head: [0, 1.62, 0.08] });
+  m.push([ax + 0.42 - 0.2 * S * 4.2, g, azf + 0.75], [0, -PI / 2, 0], S); m.wm = 22;
+  m.add(box(0.5, 0.55, 0.9), { p: [0, 0.4, 1.1], e: 3, w: 1.2 }); m.add(cyl(0.2, 0.3, 14), { p: [0, 0.3, 1.85], w: 1.5, t: 2 }); rod(m, [0.05, 0.2, 1.85], [0.12, 1.3, 1.95], 0.02, { w: 3 }); rod(m, [-0.25, 1.05, 0.6], [0.25, 1.05, 0.6], 0.02, { w: 3 });
+  [[-0.22, 0.75], [0.22, 0.75], [-0.22, 1.5], [0.22, 1.5]].forEach(([a, b]) => m.add(tor(0.06, 0.025), { p: [a, 0.07, b], r: [0, PI / 2, 0], w: 2 }));
+  m.wm = 1; m.pop();
+  // groundskeeper on a zero-turn mower on the half-cut lawn: deck, big drive wheels, casters, seat, roll bar; cap, glasses, ear muffs
+  const mx = -1.62, mz = 1.13; m.push([mx, g, mz], [0, PI / 2, 0], S); m.wm = 22;
+  m.add(box(1.4, 0.18, 1.1), { p: [0, 0.2, 0.35], e: 3, w: 1.2 });
+  m.add(box(1.0, 0.35, 0.85), { p: [0, 0.55, -0.35], e: 3, w: 1.2 }); m.add(box(0.55, 0.12, 0.5), { p: [0, 0.78, -0.3], e: 2.5 }).add(box(0.55, 0.5, 0.1), { p: [0, 1.05, -0.58], e: 2.5 });
+  [-1, 1].forEach(sx => { m.add(tor(0.27, 0.11), { p: [sx * 0.6, 0.36, -0.5], r: [0, PI / 2, 0], w: 2.2 }); m.add(tor(0.1, 0.05), { p: [sx * 0.55, 0.13, 0.85], r: [0, PI / 2, 0], w: 2.2 }); rod(m, [sx * 0.3, 0.9, 0.0], [sx * 0.3, 0.9, 0.35], 0.03, { w: 3 }); });
+  m.poly([[-0.55, 0.6, -0.75], [-0.55, 1.75, -0.75], [0.55, 1.75, -0.75], [0.55, 0.6, -0.75]], 3);
+  m.wm = 1; m.pop();
+  crew(mx, mz, PI / 2, { suit: 0, hat: 'cap', hipL: [-0.12, 0.85, -0.3], hipR: [0.12, 0.85, -0.3], kneeL: [-0.15, 0.95, 0.12], footL: [-0.15, 0.4, 0.28], kneeR: [0.15, 0.95, 0.12], footR: [0.15, 0.4, 0.28],
+    chest: [0, 1.15, -0.28], shL: [-0.2, 1.38, -0.25], elL: [-0.3, 1.08, -0.05], hdL: [-0.3, 0.95, 0.12], shR: [0.2, 1.38, -0.25], elR: [0.3, 1.08, -0.05], hdR: [0.3, 0.95, 0.12], head: [0, 1.58, -0.22] });
+  for (let k = 0; k < 10; k++) { const a = R() * PI; m.line([mx + 0.22, g + 0.04, mz + (R() - 0.5) * 0.18], [mx + 0.3 + R() * 0.12, g + 0.02 + R() * 0.05, mz + (R() - 0.5) * 0.3], 0.25); }   // clippings out the chute
+  return { m, hot: { enter: [2.3, 0.8, 0], a: [-1.6, 0.4, 1.2], b: [1.9, 0.2, 1.3], c: [-0.6, 1.5, -0.6] } };
 }
 
 /* ---------- 7 · Locations: Gulf Coast map ---------- */
@@ -366,14 +409,18 @@ function worker(m, base, ry, J) {
   [[J.shL, J.elL, J.hdL], [J.shR, J.elR, J.hdR]].forEach(([a, b, c]) => { limb(a, b, 0.045); limb(b, c, 0.04); m.add(sph(0.045), { p: c, w: 2.5 }); });
   // reflective bands on the coveralls
   [[J.elL, J.hdL], [J.elR, J.hdR], [J.kneeL, J.footL], [J.kneeR, J.footR]].forEach(([a, b]) => { const q = a.map((v, k) => v + (b[k] - v) * 0.45); m.add(sph(0.055), { p: q, s: [1, 0.35, 1], w: 3 }); });
+  if (J.belt) { m.add(tor(0.16, 0.022), { p: [0, 0.96, 0], r: UP, s: [1, 0.75, 1], w: 4 }); m.add(box(0.06, 0.16, 0.08), { p: [0.19, 0.88, 0.02], e: 3, w: 5 }).add(box(0.05, 0.06, 0.09), { p: [0.19, 0.98, 0.04], r: [0.3, 0, 0], w: 5 }); m.add(box(0.05, 0.08, 0.03), { p: [-0.16, 1.4, 0.1], e: 2, w: 4 }); }   // duty belt, holstered sidearm, shoulder radio
   const h = J.head, hr = 0.105;
   m.add(sph(hr), { p: h, w: 2.4 });
   m.push(h, J.tilt || [0, 0, 0]);
-  m.add(dome(hr * 1.18), { p: [0, 0.035, 0], s: [1, 0.9, 1.12], w: 3 });                                           // hard hat shell
-  m.add(new THREE.TorusGeometry(hr * 1.12, 0.012, 6, 24, PI), { p: [0, 0.035, 0], r: [0, PI / 2, 0], s: [1, 0.92, 1.12], w: 3.5 });   // ridge
-  m.add(ring(hr * 1.12, hr * 1.42), { p: [0, 0.035, 0.03], r: UP, s: [1, 1.28, 1], w: 3 });                            // brim with front peak
-  m.add(box(0.17, 0.035, 0.012), { p: [0, -0.005, hr * 0.98], e: 3, w: 3 });                                         // safety glasses
-  [-1, 1].forEach(sx => m.add(cyl(0.045, 0.045, 14), { p: [sx * hr * 1.02, -0.02, 0], r: AX, w: 4, t: 2 }));           // ear muffs
+  const hat = J.hat || 'hard';
+  if (hat === 'hard') {
+    m.add(dome(hr * 1.18), { p: [0, 0.035, 0], s: [1, 0.9, 1.12], w: 3 });                                           // hard hat shell
+    m.add(new THREE.TorusGeometry(hr * 1.12, 0.012, 6, 24, PI), { p: [0, 0.035, 0], r: [0, PI / 2, 0], s: [1, 0.92, 1.12], w: 3.5 });   // ridge
+    m.add(ring(hr * 1.12, hr * 1.42), { p: [0, 0.035, 0.03], r: UP, s: [1, 1.28, 1], w: 3 });                            // brim with front peak
+  } else if (hat === 'cap') { m.add(dome(hr * 1.08), { p: [0, 0.02, 0], s: [1, 0.75, 1.05], w: 3 }).add(new THREE.CircleGeometry(hr * 0.7, 16, 0, PI), { p: [0, 0.02, hr * 0.9], r: [-PI / 2 + 0.12, 0, 0], w: 3.5 }); }
+  if (J.glasses !== false) m.add(box(0.17, 0.035, 0.012), { p: [0, -0.005, hr * 0.98], e: 3, w: 3 });                 // safety glasses
+  if (J.muffs !== false) [-1, 1].forEach(sx => m.add(cyl(0.045, 0.045, 14), { p: [sx * hr * 1.02, -0.02, 0], r: AX, w: 4, t: 2 }));   // ear muffs
   m.pop();
   return m.pop();
 }
