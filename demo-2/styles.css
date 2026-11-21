@@ -229,3 +229,14 @@ body.detail .hint{opacity:0!important}
 .loc .cta{height:34px;margin:0;padding:0 14px;font-size:.62rem}
 .loc-x{position:absolute;right:16px;top:8px;z-index:1;width:26px;height:26px;background:var(--ink);color:#fff;font-size:1rem;line-height:1}
 @keyframes lzoom{from{transform:scale(1.25)}to{transform:scale(1)}}
+
+/* Locations: the state list is a set of zoom buttons */
+.copy li:has(.st){padding:0}
+.copy li:has(.st)::before{display:none}
+.copy .st{pointer-events:auto;display:flex;align-items:center;gap:.9rem;width:100%;padding:.6rem 0;font:inherit;font-weight:500;color:inherit;text-align:left;cursor:pointer}
+.copy .st::before{content:"";width:8px;height:8px;background:var(--red);transform:rotate(45deg);flex:none;transition:transform .3s}
+.copy .st b{margin-left:auto;font-size:.6rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--red);opacity:.75}
+.copy .st:hover b,.copy .st.on b{opacity:1}
+.copy .st.on{color:var(--red)}
+.copy .st.on::before{transform:rotate(45deg) scale(1.4)}
+body.zoomed .pin span{display:block!important;opacity:1}

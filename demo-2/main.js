@@ -54,7 +54,7 @@ const TOPICS = [
     { label: 'Facility services', icon: IC.list, html: svc('06', 'Facility Services', IC.fac, ['Routine Facility Maintenance', 'Janitorial and Site Services', 'Grounds and Exterior Maintenance', 'Security Services'], ['24/7', 'site needs handled by one contractor']).replace('<b>24/7</b><span>site needs handled by one contractor</span>', '') },
     { label: 'Our values', icon: IC.star, html: head('Core values', 'People. Grit. Integrity.') + diagram(IC.star, ['People: a people-first culture', 'Grit: dependable results', 'Integrity: accountability and follow-through']) + `<p>PMI strives to be our customers’ greatest asset by providing exceptional service through unrivaled responsiveness, reliability, and accountability, while maintaining a safety conscience workforce.</p>` },
   ] },
-  { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], name: 'Locations', rot: 0, flat: true, hot: [
+  { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], states: ['TX', 'LA', 'AL', 'JM'], name: 'Locations', rot: 0, flat: true, hot: [
     { label: 'All locations', icon: IC.loc, html: head('Locations', 'Gulf Coast and beyond') + diagram(IC.loc, ['Corporate Office: Port Lavaca, Texas', 'Texas: Corpus Christi · Victoria · Freeport · Deer Park · Houston', 'Louisiana: Lake Charles · Baton Rouge', 'Alabama: Mobile', 'International: Clarendon, Jamaica']) },
     { label: 'Contact PMI', icon: IC.mail, html: head('Let’s discuss', 'Your next project') + `<p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>` + list(['888.744.9699', 'bids@palaciosmarineindustrial.com', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>` },
   ] },
@@ -166,13 +166,14 @@ function layout() { area(); closeLoc(); hintText();      // (re)build hotspots f
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
   else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
-  if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); const ph = { el, at: new THREE.Vector3(...s.city(lo, la)) }; pinEls.push(ph); wire(el.querySelector('svg')).addEventListener('click', e => { e.stopPropagation(); openLoc(k, ph); }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
+  if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); const ph = { el, at: new THREE.Vector3(...s.city(lo, la)) }; pinEls.push(ph); wire(el.querySelector('svg')).addEventListener('click', e => { e.stopPropagation(); if (!focus || focus.code !== CITY_ST[k]) setFocus(CITY_ST[k]); else openLoc(k, ph); }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
   pill.querySelector('span').textContent = mode === 'over' ? (t.cta || 'Explore ' + t.name) : 'Close';
   pill.classList.toggle('x', mode === 'detail');
   document.body.classList.toggle('detail', mode === 'detail');
 }
 // location window: tap a pin for a small card about that site
-const LOCS = [['Texas', 'refinery-red', 'Corporate Office<br>2392 State Highway 35 N, Port Lavaca, TX 77979<br>888.744.9699'], ['Texas', 'ind-refining'], ['Texas', 'ind-petrochemical'], ['Texas', 'hero-columns'], ['Texas', 'ind-petrochemical'], ['Texas', 'ind-refining'], ['Louisiana', 'ind-petrochemical'], ['Louisiana', 'ind-refining'], ['Alabama', 'hero-columns'], ['International', 'refinery-red']];
+const LOCS = [['Texas', 'refinery-red', 'Corporate Office<br>2392 State Highway 35 N, Port Lavaca, TX 77979<br>888.744.9699'], ['Texas', 'ind-refining'], ['Texas', 'ind-power'], ['Texas', 'ind-petrochemical'], ['Texas', 'ind-refining'], ['Texas', 'ind-midstream'], ['Louisiana', 'ind-petrochemical'], ['Louisiana', 'ind-refining'], ['Alabama', 'ind-petrochemical'], ['International', 'ind-power']];
+const CITY_ST = ['TX', 'TX', 'TX', 'TX', 'TX', 'TX', 'LA', 'LA', 'AL', 'JM'];
 const locEl = document.createElement('div'); locEl.className = 'loc'; document.body.appendChild(locEl); let locPin = null;
 function openLoc(k, ph) {
   if (locPin === ph) { closeLoc(); return; }
@@ -193,7 +194,7 @@ function go(i) {
   const same = i === cur; lock = performance.now() + 900; if (!same) focus = null; cur = i; mode = 'over'; closeCard(true);
   if (!same) { snd.morph(); setTarget(SH[i], 2.5); if (++moves > 3) hint.classList.add('seen'); }
   title.textContent = TOPICS[i].name;
-  if (!same) { copy.classList.add('swap'); setTimeout(() => { if (cur !== i) return; const t = TOPICS[i]; copy.querySelector('.eyebrow').innerHTML = t.eyebrow; copy.querySelector('h1').innerHTML = t.title; copy.querySelector('.lead').textContent = t.lead || ''; copy.querySelector('ul').innerHTML = (t.items || []).map(x => `<li>${x}</li>`).join(''); copy.classList.remove('swap'); }, 650); }
+  if (!same) { copy.classList.add('swap'); setTimeout(() => { if (cur !== i) return; const t = TOPICS[i]; copy.querySelector('.eyebrow').innerHTML = t.eyebrow; copy.querySelector('h1').innerHTML = t.title; copy.querySelector('.lead').textContent = t.lead || ''; copy.querySelector('ul').innerHTML = (t.items || []).map((x, n) => t.states ? `<li><button class="st" data-s="${t.states[n]}">${x}<b>Zoom in</b></button></li>` : `<li>${x}</li>`).join(''); stateBtns(); copy.classList.remove('swap'); }, 650); }
   [...rail.children].forEach((b, k) => b.classList.toggle('on', k === i)); [...$('.all-grid').children].forEach((b, k) => b.classList.toggle('on', k === i));
   layout(); setTimeout(() => { if (cur === i && mode === 'over') showHots(); }, same ? 0 : 1700);
 }
@@ -216,10 +217,11 @@ let lastWheel = 0, ty = null;
 // ---- map zoom: tap a state to move in on its sites; any swipe / scroll / arrow zooms back out
 const FO0 = { x: 0, y: 0, k: 1 }, FOCUS = { TX: [-96.25, 28.8, 3.0, 'Texas'], LA: [-92.2, 30.3, 3.0, 'Louisiana'], AL: [-88.04, 30.69, 3.2, 'Alabama'], JM: [-77.3, 18.1, 2.3, 'Jamaica'] };
 let focus = null, fz = 1; const ray = new THREE.Raycaster(), inv = new THREE.Matrix4();
-function hintText() { const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? (touch ? 'Swipe to zoom back out' : 'Scroll to zoom back out') : map ? 'Tap a state to zoom in' : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
+function hintText() { document.body.classList.toggle('zoomed', !!focus); const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? (touch ? 'Swipe to zoom back out' : 'Scroll to zoom back out') : map ? 'Tap a state or a pin to zoom in' : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
+function stateBtns() { copy.querySelectorAll('.st').forEach(b => { b.classList.toggle('on', !!focus && focus.code === b.dataset.s); b.querySelector('b').textContent = focus && focus.code === b.dataset.s ? 'Show all' : 'Zoom in'; if (!b.wired) { b.wired = 1; wire(b).onclick = e => { e.stopPropagation(); setFocus(focus && focus.code === b.dataset.s ? null : b.dataset.s); }; } }); }
 function setFocus(code) {
-  const f = code && FOCUS[code]; if (!f) { if (focus) { focus = null; snd.close(); closeLoc(); hintText(); } return; }
-  const c = SH[cur].city(f[0], f[1]); focus = { x: c[0], y: c[1], k: innerWidth <= 900 ? f[2] : f[2] * 0.8, code }; closeLoc(); snd.open(); hintText();
+  const f = code && FOCUS[code]; if (!f) { if (focus) { focus = null; snd.close(); closeLoc(); hintText(); stateBtns(); } return; }
+  const c = SH[cur].city(f[0], f[1]); focus = { x: c[0], y: c[1], k: innerWidth <= 900 ? f[2] : f[2] * 0.8, code }; closeLoc(); snd.open(); hintText(); stateBtns();
 }
 const nav = d => { if (focus) { setFocus(null); lock = performance.now() + 500; return; } go(cur + d); };
 window.addEventListener('click', e => {
