@@ -2,7 +2,7 @@
 // Bed: chill lounge (electric-piano chords, round bass, soft kick and rim, sparse melody).
 // UI: soft airy ticks, short glides and low thumps (no pure-tone beeps).
 // To use a recorded track instead of the generated one, put the file in this folder and set its name here (e.g. 'music.mp3').
-const MUSIC_FILE = '';
+const MUSIC_FILE = 'music.mp3'; // "Rust & Neon" by Ross Landry
 export class Snd {
   constructor() { this.ctx = null; this.on = true; }
   start() {
@@ -23,7 +23,7 @@ export class Snd {
     this.ui = ctx.createGain(); this.ui.gain.value = 0.9; this.ui.connect(this.master); const us = ctx.createGain(); us.gain.value = 0.3; this.ui.connect(us).connect(this.rev);
     const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1; this.noise = nb;
     this.master.gain.setTargetAtTime(this.on ? 0.9 : 0, ctx.currentTime, 1.5);
-    if (MUSIC_FILE) { const a = this.track = new Audio(MUSIC_FILE); a.loop = true; a.preload = 'auto'; const tg = ctx.createGain(); tg.gain.value = 0.8; ctx.createMediaElementSource(a).connect(tg).connect(ctx.destination); this.trackGain = tg; a.play().catch(() => {}); }
+    if (MUSIC_FILE) { const a = this.track = new Audio(MUSIC_FILE); a.loop = true; a.preload = 'auto'; const tg = ctx.createGain(); tg.gain.value = 0; tg.gain.setTargetAtTime(this.on ? 0.8 : 0, ctx.currentTime, 1.2); ctx.createMediaElementSource(a).connect(tg).connect(ctx.destination); this.trackGain = tg; a.play().catch(() => {}); }
     else { this._drone(); this._seq(); }
   }
   set(on) { this.on = on; if (!this.ctx) return; if (on) this.ctx.resume(); if (this.track) { this.trackGain.gain.setTargetAtTime(on ? 0.8 : 0, this.ctx.currentTime, 0.2); if (on) this.track.play().catch(() => {}); } this.master.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, on ? 0.6 : 0.1); }
