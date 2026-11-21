@@ -368,7 +368,7 @@ function logoShape(img) {
   geo.attributes.aFrom.needsUpdate = true; geo.attributes.aT0.needsUpdate = true; return true;
 }
 function opening(img) {
-  area(); const ppu0 = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z), px = Math.min(innerWidth * 0.62, innerHeight * 0.34, 340);
+  area(); const ppu0 = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z), px = Math.min(innerWidth * 0.54, innerHeight * 0.3, 300);
   LW = px / (view.ts * ppu0);
   let ok = false; try { ok = img && logoShape(img); } catch (e) { ok = false; }
   view.s = view.ts; view.x = 0; view.y = 0; U.uIntro.value = ok ? 1 : 0;
