@@ -131,7 +131,12 @@ const mat = new THREE.ShaderMaterial({
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
       e = mix(e, 1.0 - pow(1.0 - t, 3.0), uIntro);      // opening: particles leave the logo at once (no slow start that would show a second, particle copy of the logo)
       vec3 p = mix(aFrom, aTo, e);
-      p.xy += uIntro * normalize(rad + 1e-4) * sin(3.14159 * e) * (0.25 + aRnd.y * 0.5);      // thrown outward by the wave before heading to the models
+      if (uIntro > 0.5) {      // opening: the logo's particles first gather into a pulsing, turning cloud of energy, then split off to each line of work
+        float th = aRnd.x * 6.2832 + uTime * 2.6, cr = (0.18 + aRnd.y * 0.95) * (1.0 + 0.2 * sin(uTime * 9.0 + aRnd.z * 40.0));
+        vec3 nrg = vec3(uC.xy + vec2(cos(th), sin(th)) * cr, (aRnd.z - 0.5) * 0.9);
+        float ia = smoothstep(0.0, 0.26, t), ib = smoothstep(0.44, 1.0, t); ib = ib * ib * (3.0 - 2.0 * ib);
+        p = mix(mix(aFrom, nrg, ia), aTo, ib);
+      }
       float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro);
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
@@ -380,8 +385,8 @@ function opening(img) {
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', '0px');
   { const lw = LW * view.ts * ppu, lh = img ? lw * img.naturalHeight / img.naturalWidth : lw; RPX = LC[2] * lw; loader.style.setProperty('--cx', (LC[0] * lw).toFixed(1) + 'px'); loader.style.setProperty('--cy', (LC[1] * lh).toFixed(1) + 'px'); loader.style.setProperty('--ox', ((LC[0] - 0.5) * lw).toFixed(1) + 'px'); loader.style.setProperty('--oy', ((LC[1] - 0.5) * lh).toFixed(1) + 'px'); }
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 60, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 60 + 620);      // straight into the wave; the view stays put until the whole logo has gone
-    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 1600);
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 60, dur: 2300, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 60 + 1150);      // straight into the wave; the view stays put until the whole logo has gone
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 2150);
   }, Math.max(150, 750 - (performance.now() - born)));
 }
 U.uT.value = 0; frame();

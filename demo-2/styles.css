@@ -25,10 +25,6 @@ svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 #loader.go b{opacity:0}
 #loader.go img{animation:none}
 #loader img{-webkit-mask-image:radial-gradient(circle at var(--cx,50%) var(--cy,60%),transparent calc(var(--r,-9px) - 3px),#000 calc(var(--r,-9px) + 3px));mask-image:radial-gradient(circle at var(--cx,50%) var(--cy,60%),transparent calc(var(--r,-9px) - 3px),#000 calc(var(--r,-9px) + 3px))}
-#loader i{position:absolute;left:calc(50% + var(--ox,0px));top:calc(50% + var(--ly,0px) + var(--oy,0px));width:calc(var(--r,0px) * 2);height:calc(var(--r,0px) * 2);transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--red);box-shadow:0 0 18px 2px rgba(227,30,36,.55),inset 0 0 18px 2px rgba(227,30,36,.35);opacity:0;pointer-events:none}
-#loader.go i{opacity:var(--o,0)}
-#loader i+i{width:calc(var(--r,0px) * 2.9);height:calc(var(--r,0px) * 2.9);border-width:1px;box-shadow:none}
-#loader.go i+i{opacity:calc(var(--o,0) * .45)}
 #loader.done{display:none}
 @keyframes lin{from{opacity:0;transform:translate(-50%,-50%) scale(.82)}to{opacity:1;transform:translate(-50%,-50%)}}
 @keyframes lcharge{0%{transform:translate(-50%,-50%) scale(1)}70%{transform:translate(-50%,-50%) scale(.95)}100%{transform:translate(-50%,-50%) scale(1)}}
