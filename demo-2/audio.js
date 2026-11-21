@@ -117,6 +117,6 @@ export class Snd {
   hover() { if (!this.ok()) return; this._air(3200, 6200, 0.05, 0.05, 6); }
   click() { if (!this.ok()) return; this._air(2200, 5600, 0.06, 0.06, 5); this._glide(520, 1040, 0.07, 0.04, 'sine', 4000); }
   open() { if (!this.ok()) return; this._air(700, 4200, 0.35, 0.045, 2); this._glide(440, 880, 0.22, 0.035, 'sine', 4000); this._glide(660, 1320, 0.26, 0.02, 'sine', 5000, 0.06); }
-  close() { if (!this.ok()) return; this._air(4200, 5200, 0.05, 0.05, 6); this._glide(1320, 1320, 0.09, 0.03, 'sine', 6000); this._glide(990, 990, 0.12, 0.025, 'sine', 6000, 0.07); }      // two short high ticks, no falling pitch
+  close() { if (!this.ok()) return; this._air(3600, 700, 0.28, 0.04, 2); this._glide(880, 440, 0.2, 0.03, 'sine', 4000); }
   morph() { if (!this.ok()) return; this._air(500, 5200, 0.9, 0.05, 1.4); this._air(6000, 1800, 0.5, 0.025, 2.5); this._glide(587, 880, 0.5, 0.022, 'sine', 5000, 0.15); this._glide(880, 1175, 0.6, 0.016, 'sine', 6000, 0.45); }
 }
