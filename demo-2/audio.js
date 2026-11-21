@@ -1,5 +1,5 @@
 // Demo 2 sound: industrial / futuristic bed and UI. Fully synthesized; no audio files.
-// Bed: cyberpunk industrial house (kick, reese bass, hats, clap, resonant arp, stabs, metal hits).
+// Bed: melodic / progressive house (pad chords, rolling bass, pluck arp, lead, shakers, hand percussion).
 // UI: soft airy ticks, short glides and low thumps (no pure-tone beeps).
 export class Snd {
   constructor() { this.ctx = null; this.on = true; }
@@ -8,7 +8,7 @@ export class Snd {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     const ctx = this.ctx = new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0;
-    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
     this.master.connect(comp).connect(ctx.destination); this.out = comp;
     const len = 3.5 * ctx.sampleRate, ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
@@ -27,64 +27,82 @@ export class Snd {
   ok() { return this.ctx && this.on && this.ctx.state === 'running'; }
   _hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
-  // Cyberpunk industrial house, 120 BPM: four-on-the-floor kick, gritty off-beat reese bass with sidechain pump,
-  // open hats, clap on 2 and 4, resonant arp with echo, dark stabs, metal hits, low drone.
+  // Melodic / progressive house bed, 122 BPM, D minor. Warm sidechained pad chords, rolling 16th bass,
+  // filtered pluck arp and a sparse lead through a dotted-eighth echo, soft shakers and hand percussion.
+  // 48-bar arrangement: intro (8) -> groove (16) -> breakdown without kick (8) -> peak with lead (16).
   _drone() {
     const ctx = this.ctx;
-    this.step = 60 / 120 / 4; this.echo.delayTime.value = this.step * 3;
+    this.step = 60 / 122 / 4; this.echo.delayTime.value = this.step * 3;
     this.pump = ctx.createGain(); this.pump.connect(this.bed);
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160; const g = ctx.createGain(); g.gain.value = 0.07; lp.connect(g).connect(this.pump);
-    [[26, -8], [26, 9], [38, 0]].forEach(([m, d]) => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = this._hz(m); o.detune.value = d; o.connect(lp); o.start(); });
-    // bass chain: filter -> soft clip for grit -> pump
-    this.bassLp = ctx.createBiquadFilter(); this.bassLp.type = 'lowpass'; this.bassLp.Q.value = 5; this.bassLp.frequency.value = 420;
-    const ws = ctx.createWaveShaper(), cv = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 256 - 1; cv[i] = Math.tanh(x * 3.2); } ws.curve = cv;
-    const bg = ctx.createGain(); bg.gain.value = 0.2; this.bassLp.connect(ws).connect(bg).connect(this.pump);
-    // arp chain: resonant low-pass on a slow sweep, into the echo
-    this.seqLp = ctx.createBiquadFilter(); this.seqLp.type = 'lowpass'; this.seqLp.Q.value = 9; this.seqLp.frequency.value = 1100;
-    const sl = ctx.createOscillator(); sl.frequency.value = 0.035; const sa = ctx.createGain(); sa.gain.value = 750; sl.connect(sa).connect(this.seqLp.frequency); sl.start();
-    const sg = ctx.createGain(); sg.gain.value = 0.42; this.seqLp.connect(sg); sg.connect(this.pump); sg.connect(this.echo);
+    // pad bus: slow breathing low-pass, a lot of reverb
+    this.padLp = ctx.createBiquadFilter(); this.padLp.type = 'lowpass'; this.padLp.Q.value = 0.8; this.padLp.frequency.value = 900;
+    const pl = ctx.createOscillator(); pl.frequency.value = 0.05; const pa = ctx.createGain(); pa.gain.value = 350; pl.connect(pa).connect(this.padLp.frequency); pl.start();
+    const pg = ctx.createGain(); pg.gain.value = 0.16; this.padLp.connect(pg); pg.connect(this.pump); const ps = ctx.createGain(); ps.gain.value = 0.5; pg.connect(ps).connect(this.rev);
+    // bass bus: round low-pass, light saturation, pumped
+    this.bassLp = ctx.createBiquadFilter(); this.bassLp.type = 'lowpass'; this.bassLp.Q.value = 3; this.bassLp.frequency.value = 300;
+    const ws = ctx.createWaveShaper(), cv = new Float32Array(512); for (let i = 0; i < 512; i++) { const x = i / 256 - 1; cv[i] = Math.tanh(x * 1.6); } ws.curve = cv;
+    const bg = ctx.createGain(); bg.gain.value = 0.3; this.bassLp.connect(ws).connect(bg).connect(this.pump);
+    // arp / lead bus: resonant low-pass on a slow sweep, into echo and reverb
+    this.seqLp = ctx.createBiquadFilter(); this.seqLp.type = 'lowpass'; this.seqLp.Q.value = 6; this.seqLp.frequency.value = 1300;
+    const sl = ctx.createOscillator(); sl.frequency.value = 0.03; const sa = ctx.createGain(); sa.gain.value = 800; sl.connect(sa).connect(this.seqLp.frequency); sl.start();
+    const sg = ctx.createGain(); sg.gain.value = 0.4; this.seqLp.connect(sg); sg.connect(this.pump); sg.connect(this.echo); const ss = ctx.createGain(); ss.gain.value = 0.35; sg.connect(ss).connect(this.rev);
   }
   _seq() {
-    const ctx = this.ctx, step = this.step, roots = [38, 38, 38, 38, 34, 34, 36, 36], arp = [0, 12, 7, 15, 12, 19, 15, 7, 0, 12, 10, 15, 12, 22, 19, 10];
+    const ctx = this.ctx, step = this.step;
+    const CH = [[38, [62, 65, 69, 72, 76]], [34, [58, 62, 65, 69, 72]], [31, [55, 58, 62, 65, 70]], [33, [57, 60, 64, 67, 72]]];   // Dm9, Bbmaj9, Gm7, Am7
+    const LEAD = [[[0, 74], [6, 72], [12, 69]], [[4, 65], [10, 69]], [[0, 70], [6, 69], [12, 65]], [[4, 62]], [[0, 67], [6, 70], [12, 74]], [[4, 72], [10, 70]], [[0, 69], [6, 72], [12, 76]], [[4, 72], [8, 69]]];
+    const ORDER = [0, 2, 1, 3, 4, 2, 3, 1, 0, 3, 2, 4];   // 12-step arp figure against the 16-step bar
     let n = 0, next = 0;
     setInterval(() => {
       if (ctx.state !== 'running') return;
       if (next < ctx.currentTime) next = ctx.currentTime + 0.05;
       while (next < ctx.currentTime + 0.3) {
-        const s = n % 16, bar = Math.floor(n / 16), t = next, root = roots[bar % 8];
-        if (s % 4 === 0) this._kick(t, 0.75);
-        if (s % 4 === 2) { this._bass(root - 12, t, step * 1.7); this._shot(t, 'highpass', 6500, 0.6, 0.14, 0.045); }       // off-beat bass + open hat
-        else if (s % 4 === 3 && bar % 2) this._bass(root, t, step * 0.8);
-        this._hat(t, s % 2 ? 0.012 : 0.02);
-        if (s === 4 || s === 12) this._clap(t);
-        if (bar >= 2) this._pluck(this._hz(root + 12 + arp[s]), t, s % 4 === 0 ? 0.075 : 0.05);
-        if (s === 0 && bar % 4 === 0) { this._stab(root, t); this._steam(t); }
-        if (s === 14 && bar % 2) this._clank(t, bar % 4 === 3 ? 1.6 : 1, 0.04);
-        if (s === 7 && bar % 4 === 2) this._clank(t, 2.3, 0.025);
+        const s = n % 16, bar = Math.floor(n / 16), b = bar % 48, t = next + (s % 2 ? step * 0.08 : 0);
+        const intro = b < 8, brk = b >= 24 && b < 32, peak = b >= 32, [root, notes] = CH[(bar >> 1) % 4];
+        if (s === 0 && bar % 2 === 0) this._pad(notes, t, step * 32, brk ? 1.5 : 1);
+        if (!brk) {
+          if (s % 4 === 0) this._kick(t, 0.7);
+          else this._bass(s === 14 && bar % 2 ? root + 12 : root, t, step * 0.92, intro ? 0.6 : 1);          // rolling bass between the kicks
+          if (s === 4 || s === 12) this._clap(t);
+          if (s % 4 === 2 && !intro) this._shot(t, 'highpass', 7000, 0.6, 0.12, 0.035);                       // open hat
+          if (s === 3 || s === 10) this._tom(t, 150, 0.1); if (s === 13 && bar % 2) this._tom(t, 205, 0.08);  // hand percussion
+        }
+        this._hat(t, (s % 4 === 2 ? 0.02 : s % 2 ? 0.008 : 0.012) * (brk ? 0.5 : 1));                         // shaker
+        if (!intro) this._pluck(this._hz(notes[ORDER[n % 12]] + (n % 12 > 7 ? 12 : 0)), t, brk ? 0.045 : s % 4 === 0 ? 0.06 : 0.04);
+        if (peak || (brk && b >= 28)) LEAD[bar % 8].forEach(([ls, m]) => { if (ls === s) this._lead(this._hz(m), t); });
+        if (b === 30 && s === 0) this._rise(t, step * 32);
+        if ((b === 8 || b === 32) && s === 0) this._shot(t, 'highpass', 5000, 0.5, 1.6, 0.05, this.rev);      // crash on the drop
         next += step; n++;
       }
     }, 50);
   }
-  _pluck(f, t, g) { const ctx = this.ctx, o = ctx.createOscillator(), e = ctx.createGain(); o.type = 'square'; o.frequency.value = f; e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(g, t + 0.004); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.13); o.connect(e).connect(this.seqLp); o.start(t); o.stop(t + 0.15); }
-  _bass(m, t, dur) {
-    const ctx = this.ctx, e = ctx.createGain(), f = this._hz(m); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.9, t + 0.01); e.gain.setValueAtTime(0.9, t + dur * 0.6); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    [[-14, 'sawtooth', 1], [13, 'sawtooth', 1], [0, 'square', 2]].forEach(([d, type, mul]) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f * mul; o.detune.value = d; o.connect(e); o.start(t); o.stop(t + dur + 0.02); });
-    e.connect(this.bassLp); this.bassLp.frequency.cancelScheduledValues(t); this.bassLp.frequency.setValueAtTime(900, t); this.bassLp.frequency.exponentialRampToValueAtTime(300, t + dur);
+  _pad(notes, t, dur, lvl) {
+    const ctx = this.ctx, e = ctx.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.2 * lvl, t + dur * 0.3); e.gain.setValueAtTime(0.2 * lvl, t + dur * 0.8); e.gain.linearRampToValueAtTime(0.0001, t + dur * 1.15);
+    notes.forEach((m, i) => [-9, 8].forEach(d => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = this._hz(m - (i === 0 ? 12 : 0)); o.detune.value = d + i; o.connect(e); o.start(t); o.stop(t + dur * 1.2); }));
+    e.connect(this.padLp);
+  }
+  _pluck(f, t, g) { const ctx = this.ctx, e = ctx.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(g, t + 0.005); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); [['sawtooth', 0, 0.6], ['triangle', 6, 1]].forEach(([type, d, lv]) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = type; o.frequency.value = f; o.detune.value = d; og.gain.value = lv; o.connect(og).connect(e); o.start(t); o.stop(t + 0.18); }); e.connect(this.seqLp); }
+  _lead(f, t) {
+    const ctx = this.ctx, e = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3200, t); lp.frequency.exponentialRampToValueAtTime(900, t + 0.5);
+    e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.05, t + 0.012); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+    [['triangle', 0], ['sine', 1200], ['sawtooth', -5]].forEach(([type, d], i) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = type; o.frequency.value = f; o.detune.value = d; og.gain.value = i === 2 ? 0.25 : i ? 0.3 : 1; o.connect(og).connect(lp); o.start(t); o.stop(t + 0.75); });
+    lp.connect(e); e.connect(this.pump); e.connect(this.echo); e.connect(this.rev);
+  }
+  _bass(m, t, dur, lvl) {
+    const ctx = this.ctx, e = ctx.createGain(), f = this._hz(m); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.8 * lvl, t + 0.006); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    [['sine', 1, 1], ['sawtooth', 1, 0.45], ['square', 2, 0.12]].forEach(([type, mul, lv]) => { const o = ctx.createOscillator(), og = ctx.createGain(); o.type = type; o.frequency.value = f * mul; og.gain.value = lv; o.connect(og).connect(e); o.start(t); o.stop(t + dur + 0.02); });
+    e.connect(this.bassLp); this.bassLp.frequency.cancelScheduledValues(t); this.bassLp.frequency.setValueAtTime(520, t); this.bassLp.frequency.exponentialRampToValueAtTime(220, t + dur);
   }
   _kick(t, g) {
-    const ctx = this.ctx, o = ctx.createOscillator(), e = ctx.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(44, t + 0.11); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.001, t + 0.32); o.connect(e).connect(this.bed); o.start(t); o.stop(t + 0.34);
-    this._shot(t, 'bandpass', 3200, 1, 0.012, 0.12);
-    this.pump.gain.cancelScheduledValues(t); this.pump.gain.setValueAtTime(0.25, t); this.pump.gain.linearRampToValueAtTime(1, t + 0.24);
+    const ctx = this.ctx, o = ctx.createOscillator(), e = ctx.createGain(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(46, t + 0.1); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.001, t + 0.3); o.connect(e).connect(this.bed); o.start(t); o.stop(t + 0.32);
+    this._shot(t, 'bandpass', 2600, 1, 0.01, 0.07);
+    this.pump.gain.cancelScheduledValues(t); this.pump.gain.setValueAtTime(0.3, t); this.pump.gain.linearRampToValueAtTime(1, t + 0.22);
   }
+  _tom(t, f, g) { const ctx = this.ctx, o = ctx.createOscillator(), e = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f * 1.5, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.05); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); o.connect(e); e.connect(this.bed); e.connect(this.rev); o.start(t); o.stop(t + 0.18); }
+  _rise(t, dur) { const ctx = this.ctx, s = ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.5; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(6000, t + dur); const e = ctx.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.05, t + dur * 0.95); e.gain.linearRampToValueAtTime(0.0001, t + dur); s.connect(f).connect(e); e.connect(this.bed); e.connect(this.rev); s.start(t); s.stop(t + dur + 0.05); }
   _shot(t, type, f, q, dur, g, dest) { const ctx = this.ctx, s = ctx.createBufferSource(); s.buffer = this.noise; const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; const e = ctx.createGain(); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(fl).connect(e).connect(dest || this.bed); s.start(t, Math.random()); s.stop(t + dur + 0.02); return fl; }
   _hat(t, g) { this._shot(t, 'highpass', 9000, 0.7, 0.03, g); }
   _clap(t) { [0, 0.011, 0.023].forEach(d => this._shot(t + d, 'bandpass', 1500, 1.4, 0.09, 0.09)); this._shot(t + 0.023, 'bandpass', 1500, 1, 0.22, 0.05, this.rev); }
-  _stab(root, t) {
-    const ctx = this.ctx, e = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(1800, t); lp.frequency.exponentialRampToValueAtTime(350, t + 0.9);
-    e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.045, t + 0.01); e.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
-    [12, 15, 19, 22].forEach(i => { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = this._hz(root + i); o.detune.value = (i % 2 ? 7 : -7); o.connect(lp); o.start(t); o.stop(t + 1.15); });
-    lp.connect(e); e.connect(this.pump); e.connect(this.rev);
-  }
   _clank(t, pitch, g) {
     const ctx = this.ctx, e = ctx.createGain(); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); e.connect(this.bed); e.connect(this.rev);
     [211, 583, 947, 1432].forEach((f, i) => { const o = ctx.createOscillator(); o.type = i ? 'sine' : 'triangle'; o.frequency.value = f * pitch; const og = ctx.createGain(); og.gain.value = 1 / (i + 1.5); o.connect(og).connect(e); o.start(t); o.stop(t + 0.52); });
