@@ -103,15 +103,11 @@ function person(m, p, ry = 0, s = 0.27, weld = false) {
   return m.pop();
 }
 function cloud(m, c, r, w, t = 1, sc = [1, 1, 1]) { return m.add(sph(r), { p: c, s: sc, w: w * 0.12, t }).add(sph(r * 0.4), { p: c, s: sc, w: w * 0.5, t }); }
-// welding arc: a hot core with a wide shower of orange / yellow sparks thrown out and falling away from the work (tint 3)
+// welding arc: a tiny bright orange / yellow spark at the joint (tint 3)
 function arc(m, c, dir = 1) {
-  m.add(sph(0.016), { p: c, w: 10, t: 3 });
-  for (let k = 0; k < 10; k++) { const a = k / 10 * PI * 2, l = k % 2 ? 0.035 : 0.06; m.line(c, [c[0] + Math.cos(a) * l * 1.4, c[1] + Math.sin(a) * l * 1.4, c[2]], 1, 3); }     // arc flash star
-  for (let k = 0; k < 30; k++) {                                                                                                                         // sparks thrown away from the welder
-    const a = R() * PI * 2, v = 0.16 + R() * 0.34, up = 0.02 + R() * 0.22, vx = Math.cos(a) * v, vz = -dir * (Math.abs(Math.sin(a)) * v * 0.7 + 0.04), u0 = 0.25 + R() * 0.3, pts = [];
-    for (let j = 0; j <= 4; j++) { const u = u0 + j / 4 * (0.25 + R() * 0.5); pts.push([c[0] + vx * u, c[1] + up * u - 0.6 * u * u, c[2] + vz * u]); }
-    m.poly(pts, 0.38, false, 3);
-  }
+  m.add(sph(0.009), { p: c, w: 5, t: 3 });
+  for (let k = 0; k < 8; k++) { const a = k / 8 * PI * 2 + 0.3, l = k % 2 ? 0.022 : 0.04; m.line(c, [c[0] + Math.cos(a) * l, c[1] + Math.sin(a) * l, c[2]], 0.35, 3); }     // small arc-flash star
+  for (let k = 0; k < 5; k++) { const a = R() * PI * 2, v = 0.05 + R() * 0.07; m.line([c[0] + Math.cos(a) * v * 0.5, c[1] - 0.01, c[2] - dir * 0.02], [c[0] + Math.cos(a) * v, c[1] - 0.03 - R() * 0.05, c[2] - dir * (0.03 + R() * 0.04)], 0.12, 3); }   // a few short sparks
 }
 function column(m, x, z, r, y0, h, plats) {
   m.push([x, 0, z]);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=13';
-import { buildAll, CITIES } from './models.js?v=13';
+import { Snd } from './audio.js?v=14';
+import { buildAll, CITIES } from './models.js?v=14';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -100,7 +100,7 @@ const mat = new THREE.ShaderMaterial({
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
       p.xz = mat2(c, -s, s, c) * p.xz;
-      p.z += uIntro * burst * (0.6 + aRnd.x * 6.5);      // opening: the logo flies through the camera as it breaks up
+      p.z += uIntro * burst * (0.3 + aRnd.x * 2.0);      // opening: the logo flies through the camera as it breaks up
       p += burst * vec3((aRnd.w - 0.35) * 3.2, sin(aRnd.y * 6.283 + uTime) * 0.5 + (aRnd.z - 0.5) * 1.2, (aRnd.y - 0.5) * 2.0);
       // a few loose particles orbit the object as a dust ring
       float loose = step(0.965, aRnd.w);
@@ -174,7 +174,7 @@ function layout() { area();      // (re)build hotspots for the current mode
 }
 const PL = [[13, -6], [-13, -8, 1], [-14, -30, 1], [14, -19], [-10, -64, 1], [-12, -47, 1], [-14, -44], [-8, -58], [14, -26], [14, -22]];   // label offsets per city so the Texas cluster stays readable
 const hint = $('.hint'), touch = matchMedia('(pointer:coarse)').matches; let moves = 0;
-hint.classList.toggle('touch', touch); hint.querySelector('span').innerHTML = touch ? '<b>Swipe up</b> for the next service' : '<b>Scroll</b> or press <b>↓</b> for the next service';
+hint.classList.toggle('touch', touch); hint.querySelector('span').textContent = touch ? 'Swipe up to explore' : 'Scroll to explore';
 function go(i) {
   if (mode === 'intro' || performance.now() < lock) return;
   i = (i + TOPICS.length) % TOPICS.length; if (i === cur && mode === 'over') return;
@@ -258,8 +258,8 @@ function frame() {
   hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 0));
   renderer.render(scene, camera);
 }
-// Opening: the PMI logo sits centred as particles under the crisp image, then flies through the camera, breaks up and
-// re-forms as the ring of disciplines before the welcome card appears.
+// Opening: the crisp PMI logo dissolves in place into the same logo made of particles, which then break apart and
+// re-form as the ring of discipline models before the welcome card appears.
 const loader = document.getElementById('loader'), LW = 1.7, born = performance.now();
 function logoShape(img) {
   const W = 220, H = Math.round(W * img.naturalHeight / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -276,8 +276,8 @@ function opening(img) {
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', view.ty.toFixed(1) + 'px');
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 620, dur: 3400, on: true }; loader.classList.add('go');
-    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 3000);
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 1500, dur: 3400, on: true }; loader.classList.add('go');
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 3900);
   }, Math.max(350, 1100 - (performance.now() - born)));
 }
 U.uT.value = 0; frame();
