@@ -355,27 +355,57 @@ function facility() {
 }
 
 /* ---------- 7 · Locations: Gulf Coast map ---------- */
-/* ---------- Safety: hard hat, cones, barricade, a hand raised to stop work ---------- */
-function safety() {
-  const m = new Model(), g = -1.5;
-  m.push([0, g, 0]);
-  m.add(dome(0.9), { p: [0, 0.34, 0], s: [1, 0.95, 1.12], w: 1.1 });                                                   // shell
-  m.add(new THREE.TorusGeometry(0.86, 0.06, 8, 40, PI), { p: [0, 0.34, 0], r: [0, PI / 2, 0], s: [1, 0.96, 1.13], w: 2.4 });   // crown ridge
-  m.add(new THREE.CylinderGeometry(0.98, 1.12, 0.05, 48, 1, true), { p: [0, 0.33, 0.1], s: [1, 1, 1.18], w: 2, e: 0 });      // brim with front peak
-  m.add(ring(0.9, 1.12), { p: [0, 0.355, 0.1], r: UP, s: [1, 1.18, 1], w: 1.6 });
-  m.add(new THREE.CircleGeometry(0.17, 24), { p: [0, 0.78, 0.88], r: [-0.45, 0, 0], w: 4, t: 1 });                      // red front emblem
-  m.add(tor(0.84, 0.012), { p: [0, 0.28, 0], r: UP, s: [1, 1.12, 1], w: 3 });                                           // suspension band
+/* ---------- Safety: worker in full PPE climbing a caged ladder, spotter at the base ---------- */
+// a worker built from joints: red coveralls (tint 1), hard hat with brim and ridge, safety glasses, blue ear muffs (tint 2)
+function worker(m, base, ry, J) {
+  m.push(base, [0, ry, 0]);
+  const limb = (a, b, r, t = 1, w = 2.4) => { rod(m, a, b, r, { w, t }); m.add(sph(r), { p: b, w: w * 0.6, t }); };
+  limb(J.hipL, J.kneeL, 0.06); limb(J.kneeL, J.footL, 0.05); limb(J.hipR, J.kneeR, 0.06); limb(J.kneeR, J.footR, 0.05);
+  [J.footL, J.footR].forEach(f => m.add(box(0.1, 0.07, 0.2), { p: [f[0], f[1] - 0.02, f[2] + (J.toe || 0.05)], w: 2.6 }));
+  m.add(new THREE.CapsuleGeometry(0.15, 0.32, 4, 12), { p: J.chest, r: J.lean || [0, 0, 0], s: [1, 1, 0.72], w: 2.4, t: 1 });
+  [[J.shL, J.elL, J.hdL], [J.shR, J.elR, J.hdR]].forEach(([a, b, c]) => { limb(a, b, 0.045); limb(b, c, 0.04); m.add(sph(0.045), { p: c, w: 2.5 }); });
+  // reflective bands on the coveralls
+  [[J.elL, J.hdL], [J.elR, J.hdR], [J.kneeL, J.footL], [J.kneeR, J.footR]].forEach(([a, b]) => { const q = a.map((v, k) => v + (b[k] - v) * 0.45); m.add(sph(0.055), { p: q, s: [1, 0.35, 1], w: 3 }); });
+  const h = J.head, hr = 0.105;
+  m.add(sph(hr), { p: h, w: 2.4 });
+  m.push(h, J.tilt || [0, 0, 0]);
+  m.add(dome(hr * 1.18), { p: [0, 0.035, 0], s: [1, 0.9, 1.12], w: 3 });                                           // hard hat shell
+  m.add(new THREE.TorusGeometry(hr * 1.12, 0.012, 6, 24, PI), { p: [0, 0.035, 0], r: [0, PI / 2, 0], s: [1, 0.92, 1.12], w: 3.5 });   // ridge
+  m.add(ring(hr * 1.12, hr * 1.42), { p: [0, 0.035, 0.03], r: UP, s: [1, 1.28, 1], w: 3 });                            // brim with front peak
+  m.add(box(0.17, 0.035, 0.012), { p: [0, -0.005, hr * 0.98], e: 3, w: 3 });                                         // safety glasses
+  [-1, 1].forEach(sx => m.add(cyl(0.045, 0.045, 14), { p: [sx * hr * 1.02, -0.02, 0], r: AX, w: 4, t: 2 }));           // ear muffs
   m.pop();
-  const cone = (x, z, sc) => { m.push([x, g, z], [0, 0, 0], sc); m.add(box(0.5, 0.04, 0.5), { p: [0, 0.02, 0], e: 3 }).add(new THREE.ConeGeometry(0.2, 0.75, 24, 1, true), { p: [0, 0.415, 0], w: 1.4 });
-    [[0.3, 0.1], [0.5, 0.08]].forEach(([y, hh]) => { const r0 = 0.2 * (1 - (y - 0.04 - hh / 2) / 0.75), r1 = 0.2 * (1 - (y - 0.04 + hh / 2) / 0.75); m.add(new THREE.CylinderGeometry(r1 + 0.004, r0 + 0.004, hh, 24, 1, true), { p: [0, y, 0], w: 3, t: 1 }); }); m.pop(); };
-  cone(-1.55, 0.7, 1); cone(1.6, 0.75, 1); cone(-1.95, -0.2, 0.85);
-  // barricade behind: A-frame legs, striped boards
-  [-0.95, 0.95].forEach(x => { rod(m, [x, g, -1.15], [x, g + 0.95, -1.3], 0.02, { w: 2 }); rod(m, [x, g, -1.45], [x, g + 0.95, -1.3], 0.02, { w: 2 }); });
-  [0.55, 0.85].forEach(y => { m.add(box(2.1, 0.15, 0.03), { p: [0, g + y, -1.3], e: 2.5, w: 0.8 }); for (let k = 0; k < 9; k++) { const x = -0.95 + k * 0.22; m.line([x, g + y - 0.07, -1.28], [x + 0.13, g + y + 0.07, -1.28], 2.6, 1); } });
-  // worker with a hand up: Stop Work Authority
-  person(m, [1.35, g, -0.2], -0.7, 0.32);
-  rod(m, [1.35 + 0.07, g + 0.42, -0.2 + 0.05], [1.35 + 0.02, g + 0.66, -0.2 + 0.14], 0.016, { w: 4 }); m.add(box(0.05, 0.07, 0.015), { p: [1.37, g + 0.7, -0.05], r: [0, -0.7, 0], w: 4, t: 1 });
-  return { m, hot: { enter: [2.2, 0.6, 0], a: [-1.6, 0.4, 0.6], b: [1.9, -0.4, 0.8], c: [0, 1.0, -1.2] } };
+  return m.pop();
+}
+function safety() {
+  const m = new Model(), g = -1.5, top = g + 3.6, R = 0.22;
+  // fixed ladder with safety cage up to a platform
+  [-R, R].forEach(x => rod(m, [x, g, 0], [x, top + 1.05, 0], 0.025, { w: 2.4 }));
+  for (let y = g + 0.3; y < top + 0.05; y += 0.3) rod(m, [-R, y, 0], [R, y, 0], 0.014, { w: 2 });
+  for (let y = g + 2.05; y <= top + 1.0; y += 0.5) m.add(new THREE.TorusGeometry(0.4, 0.016, 6, 40, PI * 1.62), { p: [0, y, 0.37], r: [PI / 2, 0, -PI * 0.31 + PI], w: 2.2 });
+  [-0.5, -0.2, 0.2, 0.5].forEach(a => { const x = Math.sin(a * 2.2) * 0.4, z = 0.37 + Math.cos(a * 2.2) * 0.4; rod(m, [x, g + 2.05, z], [x, top + 1.0, z], 0.01, { w: 1.6 }); });
+  // platform: grating, toe plate, top and mid rails, self-closing gate at the ladder
+  m.add(box(1.8, 0.04, 1.3), { p: [0, top, -0.65], e: 3, w: 0.5 }); for (let k = 1; k < 12; k++) m.line([-0.9 + k * 0.15, top + 0.021, -1.3], [-0.9 + k * 0.15, top + 0.021, 0], 0.5);
+  [[-0.9, -1.3], [0.9, -1.3], [0.9, 0], [-0.9, 0]].forEach(([x, z]) => { rod(m, [x, g, z], [x, top + 1.05, z], 0.03, { w: 2 }); m.add(box(0.16, 0.03, 0.16), { p: [x, g + 0.015, z], e: 2 }); });
+  const rail = (a, b) => [1.05, 0.53].forEach(o => rod(m, [a[0], top + o, a[1]], [b[0], top + o, b[1]], 0.016, { w: 2 }));
+  rail([-0.9, 0], [-0.9, -1.3]); rail([-0.9, -1.3], [0.9, -1.3]); rail([0.9, -1.3], [0.9, 0]); rail([-0.9, 0], [-R - 0.05, 0]); rail([R + 0.05, 0], [0.9, 0]);
+  [[-0.9, -1.3, 0.9, -1.3], [0.9, -1.3, 0.9, 0], [-0.9, 0, -0.9, -1.3]].forEach(([x0, z0, x1, z1]) => m.add(box(Math.abs(x1 - x0) || 0.01, 0.1, Math.abs(z1 - z0) || 0.01), { p: [(x0 + x1) / 2, top + 0.07, (z0 + z1) / 2], e: 2, w: 0.4 }));
+  rod(m, [-R + 0.02, top + 0.95, -0.05], [R - 0.02, top + 0.95, -0.25], 0.014, { w: 3 }); rod(m, [-R + 0.02, top + 0.5, -0.05], [R - 0.02, top + 0.5, -0.25], 0.014, { w: 3 });
+  // process piping behind the structure, on supports
+  [[g + 2.2, -1.75, 0.11], [g + 2.6, -1.75, 0.08]].forEach(([y, z, r]) => m.add(cyl(r, 4.2, 18), { p: [0, y, z], r: AX, w: 0.8 }));
+  m.add(cyl(0.09, 3.2, 18), { p: [1.6, g + 1.6, -1.3], w: 0.8 });
+  [-1.7, 1.2].forEach(x => { rod(m, [x, g, -1.75], [x, g + 2.75, -1.75], 0.035, { w: 2 }); m.add(box(0.18, 0.03, 0.18), { p: [x, g + 0.015, -1.75], e: 2 }); [g + 2.08, g + 2.51].forEach(y => m.add(box(0.06, 0.04, 0.42), { p: [x, y, -1.75], e: 2 })); });   // pipe supports
+  m.add(box(0.22, 0.03, 0.22), { p: [1.6, g + 0.015, -1.3], e: 2 });
+  // climber: three points of contact, hard hat, glasses, ear muffs, red coveralls
+  worker(m, [0, g + 0.45, 0.3], PI, { hipL: [-0.1, 0.95, 0], hipR: [0.1, 0.95, 0], kneeL: [-0.12, 1.2, 0.3], footL: [-0.12, 0.79, 0.3], kneeR: [0.11, 0.52, 0.12], footR: [0.11, 0.17, 0.28],
+    chest: [0, 1.22, 0.07], lean: [0.2, 0, 0], shL: [-0.19, 1.42, 0.1], elL: [-0.27, 1.38, 0.3], hdL: [-0.21, 1.58, 0.3], shR: [0.19, 1.42, 0.1], elR: [0.25, 1.7, 0.2], hdR: [0.19, 1.96, 0.3],
+    head: [0, 1.64, 0.06], tilt: [-0.25, 0.5, 0] });
+  // spotter at the base, looking up, clipboard
+  worker(m, [1.05, g, 0.95], -2.5, { hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.12, 0.06, 0],
+    chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], elL: [-0.24, 1.15, 0.1], hdL: [-0.08, 1.05, 0.25], shR: [0.2, 1.42, 0], elR: [0.24, 1.15, 0.05], hdR: [0.12, 1.02, 0.22],
+    head: [0, 1.62, 0.02], tilt: [-0.45, 0, 0] });
+  m.push([1.05, g, 0.95], [0, -2.5, 0]); m.add(box(0.24, 0.32, 0.015), { p: [0.02, 1.08, 0.27], r: [-0.9, 0, 0], e: 3, w: 2.5 }); m.pop();
+  return { m, hot: { enter: [2.2, 0.6, 0], a: [-0.5, 0.6, 0.6], b: [1.6, -0.8, 1.0], c: [0, 1.6, -0.8] } };
 }
 
 /* ---------- Quality: weld under inspection on a spool, code vessel with nameplate ---------- */
