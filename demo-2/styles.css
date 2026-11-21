@@ -302,3 +302,14 @@ body.dark .hot.tile:hover b{background:linear-gradient(140deg,#fff,#cfd3d8);colo
 body.dark #loader{background:#0b0c0e}
 body.dark .copy li{border-color:var(--line)}
 body.dark .dia text{fill:#eef0f2}body.dark .dia rect{stroke:rgba(255,255,255,.3)}
+
+.copy .st b:empty{width:9px;height:9px;opacity:.6;border-top:2px solid var(--red);border-right:2px solid var(--red);transform:rotate(45deg);margin-right:6px;transition:translate .25s var(--ease),opacity .25s}
+.copy .st:hover b:empty{translate:3px 0;opacity:1}
+@media (max-width:900px){
+  body.map .copy::before{content:"";position:absolute;z-index:-1;left:-6vw;right:-6vw;top:-36px;bottom:-200px;background:linear-gradient(to bottom,rgba(240,241,243,0),rgba(240,241,243,.92) 70px,#eef0f2 140px);pointer-events:none}
+  body.dark.map .copy::before{background:linear-gradient(to bottom,rgba(14,15,17,0),rgba(14,15,17,.92) 70px,#0e0f11 140px)}
+}
+@media (min-width:901px){
+  body.map .copy::before{content:"";position:absolute;z-index:-1;left:-6vw;top:-50vh;bottom:-50vh;right:-60px;background:linear-gradient(to right,rgba(240,241,243,.94) 70%,rgba(240,241,243,0));pointer-events:none}
+  body.dark.map .copy::before{background:linear-gradient(to right,rgba(14,15,17,.94) 70%,rgba(14,15,17,0))}
+}
