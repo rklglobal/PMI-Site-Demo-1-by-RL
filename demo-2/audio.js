@@ -118,5 +118,11 @@ export class Snd {
   click() { if (!this.ok()) return; this._air(2200, 5600, 0.06, 0.06, 5); this._glide(520, 1040, 0.07, 0.04, 'sine', 4000); }
   open() { if (!this.ok()) return; this._air(700, 4200, 0.35, 0.045, 2); this._glide(440, 880, 0.22, 0.035, 'sine', 4000); this._glide(660, 1320, 0.26, 0.02, 'sine', 5000, 0.06); }
   close() { if (!this.ok()) return; this._air(3600, 700, 0.28, 0.04, 2); this._glide(880, 440, 0.2, 0.03, 'sine', 4000); }
-  morph() { if (!this.ok()) return; this._air(500, 5200, 0.9, 0.05, 1.4); this._air(6000, 1800, 0.5, 0.025, 2.5); this._glide(587, 880, 0.5, 0.022, 'sine', 5000, 0.15); this._glide(880, 1175, 0.6, 0.016, 'sine', 6000, 0.45); }
+  // section change: one soft breath of air that swells and fades. No tones.
+  morph() {
+    if (!this.ok()) return; const ctx = this.ctx, t = ctx.currentTime, n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), e = ctx.createGain();
+    n.buffer = this.noise; f.type = 'bandpass'; f.Q.value = 0.7; f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(2600, t + 0.22); f.frequency.exponentialRampToValueAtTime(1100, t + 0.6);
+    e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(0.05, t + 0.2); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.62);
+    n.connect(f).connect(e).connect(this.ui); n.start(t, Math.random()); n.stop(t + 0.65);
+  }
 }
