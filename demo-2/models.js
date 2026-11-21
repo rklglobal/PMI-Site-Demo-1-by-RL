@@ -238,9 +238,39 @@ function softCraft() {
   [[-h, g, 0, g + 1.1], [0, g + 1.1, h, g + 2.2], [-h, g + 2.2, 0, top]].forEach(([x0, y0, x1, y1]) => { rod(m, [x0, y0, h], [x1, y1, h], 0.011, { w: 2 }); rod(m, [h, y0, -x0], [h, y1, -x1], 0.011, { w: 2 }); });
   [-0.09, 0.09].forEach(o => m.line([-h - 0.03, g, 0.35 + o], [-h - 0.03, g + 2.5, 0.35 + o], 1.6)); for (let y = g + 0.1; y < g + 2.5; y += 0.1) m.line([-h - 0.03, y, 0.26], [-h - 0.03, y, 0.44], 0.7);
   // insulator fitting cladding, painter spraying the lower shell
-  person(m, [0.25, g + 1.135, h - 0.16], PI, 0.3); person(m, [-0.3, g + 2.235, h - 0.16], PI * 0.9, 0.3);
-  rod(m, [0.2, g + 1.48, h - 0.25], [0.12, g + 1.5, r + 0.2], 0.01, { w: 3 }); m.add(new THREE.ConeGeometry(0.16, 0.2, 14, 3, true), { p: [0.1, g + 1.5, r + 0.1], r: [-PI / 2, 0, 0], w: 1.2, t: 0 });
+  person(m, [-0.3, g + 2.235, h - 0.16], PI * 0.9, 0.3);
   m.add(new THREE.CylinderGeometry(r + 0.075, r + 0.075, 0.42, 20, 1, true, -0.9, 1.5), { p: [0, 0.75, 0], w: 3, e: 3 });
+  // abrasive blaster on the first deck, front face: red hood and cape (so he reads against the dark shell), nozzle aimed down at the shell; blasted band shows red
+  const bx = 0.22, by = g + 1.135, bz = h - 0.12;
+  m.push([bx, by, bz], [0, PI, 0], 0.3);
+  [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 5 }));
+  m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 5 });
+  rod(m, [-0.24, 1.3, 0], [-0.06, 1.05, 0.36], 0.05, { w: 5 }); rod(m, [0.24, 1.3, 0], [0.06, 1.12, 0.3], 0.05, { w: 5 });
+  m.add(new THREE.CylinderGeometry(0.13, 0.25, 0.34, 16, 1, true), { p: [0, 1.42, 0], w: 6, t: 1 }).add(dome(0.14), { p: [0, 1.56, 0], w: 6, t: 1 }).add(box(0.2, 0.1, 0.04), { p: [0, 1.57, 0.12], e: 3, w: 1 });   // blast hood with cape, visor
+  m.add(new THREE.CylinderGeometry(0.045, 0.03, 0.42, 12, 1, false), { p: [0, 0.96, 0.52], r: [PI / 2 + 0.55, 0, 0], w: 7, e: 3 });     // venturi nozzle
+  m.pop();
+  const tip = [bx, by + 0.25, bz - 0.165], hit = [bx, by + 0.12, r + 0.07];
+  for (let k = 0; k < 14; k++) { const a = k / 14 * PI * 2, sp = 0.05; m.line(tip, [hit[0] + Math.cos(a) * sp, hit[1] + Math.sin(a) * sp, hit[2]], 0.5); }   // abrasive stream
+  cloud(m, [hit[0], hit[1] - 0.04, hit[2] + 0.05], 0.12, 1.6, 0, [1.2, 1.1, 0.8]);                                              // rebound dust
+  m.add(new THREE.CylinderGeometry(r + 0.065, r + 0.065, 0.3, 24, 1, true, Math.atan2(bx, r) - 0.45, 0.9), { p: [0, by + 0.1, 0], w: 0.7, t: 1 });   // blasted band
+  // blast hose from the nozzle over the rail and down to the pot; air hose from the compressor to the pot
+  const pot = [0.55, g, h + 0.5], cmp = [-0.35, g, h + 0.62];
+  m.add(pipeGeo([[bx + 0.03, by + 0.3, bz + 0.02], [bx + 0.1, by + 0.46, h + 0.06], [bx + 0.18, by + 0.2, h + 0.2], [bx + 0.25, g + 0.05, h + 0.24], [pot[0] - 0.05, g + 0.015, pot[2] - 0.3], [pot[0], g + 0.07, pot[2] - 0.06]], 0.014, 0.08), { w: 7 });
+  m.add(pipeGeo([[cmp[0] + 0.32, g + 0.12, cmp[2] + 0.1], [cmp[0] + 0.45, g + 0.015, cmp[2] + 0.12], [pot[0] - 0.3, g + 0.015, pot[2] + 0.12], [pot[0] - 0.12, g + 0.48, pot[2] + 0.1]], 0.016, 0.08), { w: 6 });
+  // blast pot: vertical vessel on three legs, dished top with fill cup, cone bottom into the metering valve
+  m.push(pot);
+  m.add(cyl(0.14, 0.32, 24), { p: [0, 0.4, 0], e: 2 }).add(dome(0.14), { p: [0, 0.56, 0], s: [1, 0.45, 1] }).add(new THREE.ConeGeometry(0.14, 0.14, 24, 1, true), { p: [0, 0.17, 0], r: [PI, 0, 0] });
+  m.add(cyl(0.05, 0.05, 16), { p: [0, 0.64, 0], e: 2 }).add(tor(0.08, 0.008), { p: [0, 0.63, 0], r: UP, w: 2 });
+  [0, 2.1, 4.2].forEach(a => rod(m, [Math.cos(a) * 0.12, 0.3, Math.sin(a) * 0.12], [Math.cos(a) * 0.17, 0, Math.sin(a) * 0.17], 0.01, { w: 2 }));
+  m.add(box(0.07, 0.06, 0.07), { p: [0, 0.07, 0], e: 2 }).add(cyl(0.035, 0.12, 12), { p: [0.1, 0.48, -0.12], e: 1.5 });   // metering valve, moisture separator
+  m.pop();
+  // tow-behind air compressor: canopy, wheels, tow bar
+  m.push(cmp, [0, PI / 2, 0]);
+  m.add(box(0.36, 0.3, 0.62), { p: [0, 0.27, 0], e: 3, w: 1.4 }).add(box(0.37, 0.04, 0.63), { p: [0, 0.43, 0], e: 2 });
+  for (let k = -2; k <= 2; k++) m.line([0.181, 0.2, k * 0.09], [0.181, 0.36, k * 0.09], 0.6);
+  [-1, 1].forEach(sx => m.add(tor(0.09, 0.03), { p: [sx * 0.21, 0.09, 0], r: [0, PI / 2, 0], w: 2 }));
+  rod(m, [0, 0.14, -0.31], [0, 0.1, -0.62], 0.012, { w: 2.5 }); m.add(tor(0.03, 0.008), { p: [0, 0.1, -0.64], r: UP, w: 2 }); rod(m, [0, 0.1, -0.55], [0, 0, -0.55], 0.01, { w: 2 });
+  m.pop();
   return { m, hot: { enter: [2.0, 0.3, 0], a: [1.7, 1.2, 0.4], b: [-1.8, 0.2, 0.6], c: [1.6, -1.0, 0.9] } };
 }
 
