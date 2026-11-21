@@ -424,35 +424,30 @@ function worker(m, base, ry, J) {
   m.pop();
   return m.pop();
 }
+// text drawn into particles: render to a canvas, turn each row of lit pixels into a short line segment
+function text(m, str, cx, cy, z, h, t = 0, w = 1, font = '900 100px Impact, "Arial Black", sans-serif') {
+  const c = document.createElement('canvas'), x = c.getContext('2d'); x.font = font; const tw = Math.ceil(x.measureText(str).width) + 8; c.width = tw; c.height = 120;
+  x.font = font; x.fillStyle = '#000'; x.textBaseline = 'middle'; x.fillText(str, 4, 62); const d = x.getImageData(0, 0, tw, 120).data, k = h / 100;
+  for (let yy = 0; yy < 120; yy += 2) { let run = -1; for (let xx = 0; xx <= tw; xx++) { const on = xx < tw && d[(yy * tw + xx) * 4 + 3] > 128; if (on && run < 0) run = xx; if (!on && run >= 0) { m.line([cx + (run - tw / 2) * k, cy + (62 - yy) * k, z], [cx + (xx - tw / 2) * k, cy + (62 - yy) * k, z], w, t); run = -1; } } }
+}
+/* ---------- Safety: pre-job toolbox talk at the SAFETY FIRST board ---------- */
 function safety() {
-  const m = new Model(), g = -1.5, top = g + 3.6, R = 0.22;
-  // fixed ladder with safety cage up to a platform
-  [-R, R].forEach(x => rod(m, [x, g, 0], [x, top + 1.05, 0], 0.025, { w: 2.4 }));
-  for (let y = g + 0.3; y < top + 0.05; y += 0.3) rod(m, [-R, y, 0], [R, y, 0], 0.014, { w: 2 });
-  for (let y = g + 2.05; y <= top + 1.0; y += 0.5) m.add(new THREE.TorusGeometry(0.4, 0.016, 6, 40, PI * 1.62), { p: [0, y, 0.37], r: [PI / 2, 0, -PI * 0.31 + PI], w: 2.2 });
-  [-0.5, -0.2, 0.2, 0.5].forEach(a => { const x = Math.sin(a * 2.2) * 0.4, z = 0.37 + Math.cos(a * 2.2) * 0.4; rod(m, [x, g + 2.05, z], [x, top + 1.0, z], 0.01, { w: 1.6 }); });
-  // platform: grating, toe plate, top and mid rails, self-closing gate at the ladder
-  m.add(box(1.8, 0.04, 1.3), { p: [0, top, -0.65], e: 3, w: 0.5 }); for (let k = 1; k < 12; k++) m.line([-0.9 + k * 0.15, top + 0.021, -1.3], [-0.9 + k * 0.15, top + 0.021, 0], 0.5);
-  [[-0.9, -1.3], [0.9, -1.3], [0.9, 0], [-0.9, 0]].forEach(([x, z]) => { rod(m, [x, g, z], [x, top + 1.05, z], 0.03, { w: 2 }); m.add(box(0.16, 0.03, 0.16), { p: [x, g + 0.015, z], e: 2 }); });
-  const rail = (a, b) => [1.05, 0.53].forEach(o => rod(m, [a[0], top + o, a[1]], [b[0], top + o, b[1]], 0.016, { w: 2 }));
-  rail([-0.9, 0], [-0.9, -1.3]); rail([-0.9, -1.3], [0.9, -1.3]); rail([0.9, -1.3], [0.9, 0]); rail([-0.9, 0], [-R - 0.05, 0]); rail([R + 0.05, 0], [0.9, 0]);
-  [[-0.9, -1.3, 0.9, -1.3], [0.9, -1.3, 0.9, 0], [-0.9, 0, -0.9, -1.3]].forEach(([x0, z0, x1, z1]) => m.add(box(Math.abs(x1 - x0) || 0.01, 0.1, Math.abs(z1 - z0) || 0.01), { p: [(x0 + x1) / 2, top + 0.07, (z0 + z1) / 2], e: 2, w: 0.4 }));
-  rod(m, [-R + 0.02, top + 0.95, -0.05], [R - 0.02, top + 0.95, -0.25], 0.014, { w: 3 }); rod(m, [-R + 0.02, top + 0.5, -0.05], [R - 0.02, top + 0.5, -0.25], 0.014, { w: 3 });
-  // process piping behind the structure, on supports
-  [[g + 2.2, -1.75, 0.11], [g + 2.6, -1.75, 0.08]].forEach(([y, z, r]) => m.add(cyl(r, 4.2, 18), { p: [0, y, z], r: AX, w: 0.8 }));
-  m.add(cyl(0.09, 3.2, 18), { p: [1.6, g + 1.6, -1.3], w: 0.8 });
-  [-1.7, 1.2].forEach(x => { rod(m, [x, g, -1.75], [x, g + 2.75, -1.75], 0.035, { w: 2 }); m.add(box(0.18, 0.03, 0.18), { p: [x, g + 0.015, -1.75], e: 2 }); [g + 2.08, g + 2.51].forEach(y => m.add(box(0.06, 0.04, 0.42), { p: [x, y, -1.75], e: 2 })); });   // pipe supports
-  m.add(box(0.22, 0.03, 0.22), { p: [1.6, g + 0.015, -1.3], e: 2 });
-  // climber: three points of contact, hard hat, glasses, ear muffs, red coveralls
-  worker(m, [0, g + 0.45, 0.3], PI, { hipL: [-0.1, 0.95, 0], hipR: [0.1, 0.95, 0], kneeL: [-0.12, 1.2, 0.3], footL: [-0.12, 0.79, 0.3], kneeR: [0.11, 0.52, 0.12], footR: [0.11, 0.17, 0.28],
-    chest: [0, 1.22, 0.07], lean: [0.2, 0, 0], shL: [-0.19, 1.42, 0.1], elL: [-0.27, 1.38, 0.3], hdL: [-0.21, 1.58, 0.3], shR: [0.19, 1.42, 0.1], elR: [0.25, 1.7, 0.2], hdR: [0.19, 1.96, 0.3],
-    head: [0, 1.64, 0.06], tilt: [-0.25, 0.5, 0] });
-  // spotter at the base, looking up, clipboard
-  worker(m, [1.05, g, 0.95], -2.5, { hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.12, 0.06, 0],
-    chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], elL: [-0.24, 1.15, 0.1], hdL: [-0.08, 1.05, 0.25], shR: [0.2, 1.42, 0], elR: [0.24, 1.15, 0.05], hdR: [0.12, 1.02, 0.22],
-    head: [0, 1.62, 0.02], tilt: [-0.45, 0, 0] });
-  m.push([1.05, g, 0.95], [0, -2.5, 0]); m.add(box(0.24, 0.32, 0.015), { p: [0.02, 1.08, 0.27], r: [-0.9, 0, 0], e: 3, w: 2.5 }); m.pop();
-  return { m, hot: { enter: [2.2, 0.6, 0], a: [-0.5, 0.6, 0.6], b: [1.6, -0.8, 1.0], c: [0, 1.6, -0.8] } };
+  const m = new Model(), g = -1.5, bz = -1.3, by = g + 1.45, BW = 3.2, BH = 1.3;
+  // site board on two posts, red border, two-line sign
+  [-1.35, 1.35].forEach(x => { rod(m, [x, g, bz - 0.04], [x, by + BH / 2, bz - 0.04], 0.045, { w: 2 }); m.add(box(0.22, 0.04, 0.22), { p: [x, g + 0.02, bz - 0.04], e: 2 }); });
+  m.add(box(BW, BH, 0.05), { p: [0, by, bz - 0.06], e: 4, w: 0.12 });
+  m.poly([[-BW / 2 + 0.06, by - BH / 2 + 0.06, bz - 0.03], [BW / 2 - 0.06, by - BH / 2 + 0.06, bz - 0.03], [BW / 2 - 0.06, by + BH / 2 - 0.06, bz - 0.03], [-BW / 2 + 0.06, by + BH / 2 - 0.06, bz - 0.03]], 5, true, 1);
+  text(m, 'SAFETY', 0, by + 0.26, bz - 0.025, 0.62, 1, 1.25);
+  text(m, 'FIRST', 0, by - 0.33, bz - 0.025, 0.5, 0, 1.25);
+  // foreman beside the board pointing at it, crew of five in a half circle listening: hard hats, glasses
+  const plain = { suit: 0, muffs: false };
+  worker(m, [1.95, g, bz + 0.35], -0.5, { ...plain, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.12, 0.48, 0.02], footL: [-0.14, 0.06, 0], kneeR: [0.12, 0.48, 0.02], footR: [0.14, 0.06, 0],
+    chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], elL: [-0.45, 1.6, -0.1], hdL: [-0.68, 1.78, -0.2], shR: [0.2, 1.42, 0], elR: [0.25, 1.15, 0.05], hdR: [0.2, 1.0, 0.15], head: [0, 1.62, 0.02], tilt: [0, -0.5, 0] });
+  m.push([1.95, g, bz + 0.35], [0, -0.5, 0]); m.add(box(0.22, 0.3, 0.015), { p: [0.22, 1.02, 0.2], r: [-0.8, 0, 0], e: 3, w: 2.5 }); m.pop();   // JSA on a clipboard
+  const stand = (x, z, ry, tilt) => worker(m, [x, g, z], ry, { ...plain, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.13, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.13, 0.06, 0],
+    chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], elL: [-0.23, 1.14, 0.02], hdL: [-0.18, 0.92, 0.06], shR: [0.2, 1.42, 0], elR: [0.23, 1.14, 0.02], hdR: [0.18, 0.92, 0.06], head: [0, 1.62, 0.02], tilt: tilt || [-0.12, 0, 0] });
+  [[-1.75, 0.15, PI - 0.7], [-0.9, 0.75, PI - 0.3], [0, 0.95, PI], [0.9, 0.75, PI + 0.3], [1.65, 0.2, PI + 0.65]].forEach(([x, z, ry]) => stand(x, z, ry));
+  return { m, hot: { enter: [2.3, 0.7, 0], a: [-1.9, 0.5, 0.6], b: [2.2, -0.4, 0.4], c: [0, 1.4, -1.2] } };
 }
 
 /* ---------- Quality: weld under inspection on a spool, code vessel with nameplate ---------- */
