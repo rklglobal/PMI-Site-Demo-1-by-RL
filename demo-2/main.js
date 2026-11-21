@@ -341,7 +341,7 @@ function frame() {
   if (tick++ % 12 === 0) area();
   // the model stays at the origin, dead on the optical axis, and turns about its vertical axis like a turntable;
   // the lens is shifted to place it in the free area, so the pivot never skews
-  view.x += (view.tx - view.x) * 0.06; view.y += (view.ty - view.y) * 0.06; view.s += (view.ts - view.s) * 0.06;
+  if (!holdView) { view.x += (view.tx - view.x) * 0.06; view.y += (view.ty - view.y) * 0.06; view.s += (view.ts - view.s) * 0.06; }
   camera.setViewOffset(innerWidth, innerHeight, -view.x, -view.y, innerWidth, innerHeight);
   const fly = mode === 'over' && !flat;
   zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
@@ -357,7 +357,7 @@ function frame() {
 }
 // Opening: the crisp PMI logo dissolves in place into the same logo made of particles, which then break apart and
 // re-form as the ring of discipline models before the welcome card appears.
-const loader = document.getElementById('loader'), LW = 1.7, born = performance.now();
+const loader = document.getElementById('loader'), born = performance.now(); let LW = 1.7, holdView = true;
 function logoShape(img) {
   const W = 220, H = Math.round(W * img.naturalHeight / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, W, H); const d = x.getImageData(0, 0, W, H).data, px = [];
@@ -368,12 +368,14 @@ function logoShape(img) {
   geo.attributes.aFrom.needsUpdate = true; geo.attributes.aT0.needsUpdate = true; return true;
 }
 function opening(img) {
+  area(); const ppu0 = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z), px = Math.min(innerWidth * 0.62, innerHeight * 0.34, 340);
+  LW = px / (view.ts * ppu0);
   let ok = false; try { ok = img && logoShape(img); } catch (e) { ok = false; }
-  area(); view.s = view.ts; view.x = view.tx; view.y = view.ty; U.uIntro.value = ok ? 1 : 0;
+  view.s = view.ts; view.x = 0; view.y = 0; U.uIntro.value = ok ? 1 : 0;
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
-  loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', view.ty.toFixed(1) + 'px');
+  loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', '0px');
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 420, dur: 1700, on: true }; loader.classList.add('go');
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 420, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 420);
     setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 1750);
   }, Math.max(150, 750 - (performance.now() - born)));
 }

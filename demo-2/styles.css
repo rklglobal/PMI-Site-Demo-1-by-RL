@@ -18,8 +18,8 @@ svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 #scene{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 #loader{position:fixed;inset:0;z-index:50;background:#fff;transition:background .3s}
-#loader img{position:absolute;left:50%;top:50%;width:var(--lw,170px);margin-top:var(--ly,0px);transform:translate(-50%,-50%);animation:lin .7s var(--ease) both}
-#loader b{position:absolute;left:50%;top:calc(50% + var(--ly,0px) + var(--lw,170px) * .33 + 26px);width:120px;height:2px;margin-left:-60px;background:var(--line);overflow:hidden;transition:opacity .3s}
+#loader img{position:absolute;left:50%;top:50%;width:var(--lw,min(62vw,34vh,340px));margin-top:var(--ly,0px);transform:translate(-50%,-50%);animation:lin .7s var(--ease) both}
+#loader b{position:absolute;left:50%;top:calc(50% + var(--ly,0px) + var(--lw,min(62vw,34vh,340px)) * .33 + 26px);width:120px;height:2px;margin-left:-60px;background:var(--line);overflow:hidden;transition:opacity .3s}
 #loader b::after{content:"";position:absolute;inset:0;width:45%;background:var(--red);animation:lbar 1.1s ease-in-out infinite}
 #loader.go{background:rgba(255,255,255,0);pointer-events:none}
 #loader.go b{opacity:0}
