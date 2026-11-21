@@ -118,18 +118,20 @@ geo.setAttribute('aTo', new THREE.BufferAttribute(RING.slice(), 3));
 geo.setAttribute('aT0', new THREE.BufferAttribute(new Float32Array(N), 1));
 geo.setAttribute('aT1', new THREE.BufferAttribute(RT.slice(), 1));
 geo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
-const U = { uInk: { value: new THREE.Vector3(0.07, 0.075, 0.09) }, uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 } };
+const U = { uInk: { value: new THREE.Vector3(0.07, 0.075, 0.09) }, uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 }, uC: { value: new THREE.Vector3(0, 0, 1) } };
 const mat = new THREE.ShaderMaterial({
   uniforms: U, transparent: true, depthWrite: false,
   vertexShader: `
     attribute vec3 aFrom, aTo; attribute vec4 aRnd; attribute float aT0, aT1;
-    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
+    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec3 uC; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
     void main(){
-      float dl = mix(aRnd.x, clamp(aFrom.x / 1.7 + 0.5, 0.0, 1.0) * 0.9 + aRnd.x * 0.1, uIntro);      // opening: a clean left-to-right wipe
-      float t = clamp(uT * 1.8 - dl * 0.8, 0.0, 1.0);
+      // opening: the logo breaks up from the exact centre of the triangle outward, like a shockwave (uC = centre x, y and outer radius)
+      vec2 rad = aFrom.xy - uC.xy; float dl = mix(aRnd.x, clamp(length(rad) / uC.z, 0.0, 1.0) * 0.9 + aRnd.x * 0.1, uIntro), dls = mix(0.8, 0.45, uIntro);
+      float t = clamp(uT * (1.0 + dls) - dl * dls, 0.0, 1.0);
       float e = t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
       e = mix(e, 1.0 - pow(1.0 - t, 3.0), uIntro);      // opening: particles leave the logo at once (no slow start that would show a second, particle copy of the logo)
       vec3 p = mix(aFrom, aTo, e);
+      p.xy += uIntro * normalize(rad + 1e-4) * sin(3.14159 * e) * (0.45 + aRnd.y * 0.9);      // thrown outward by the wave before heading to the models
       float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro);
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
@@ -334,7 +336,7 @@ function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
   U.uTime.value = DU.uTime.value = el;
-  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (U.uIntro.value) loader.style.setProperty('--w', (Math.min(1.1, Math.max(0, (k - 0.012) / 0.4)) * 100).toFixed(1) + '%'); if (k >= 1) { morph.on = false; U.uIntro.value = 0; } }
+  let k = 1; if (morph.on) { k = Math.min(1, (now - morph.t0) / morph.dur); U.uT.value = k; if (U.uIntro.value) { const f = Math.max(0, k) / 0.279; loader.style.setProperty('--r', (f * RPX - 3).toFixed(1) + 'px'); loader.style.setProperty('--o', Math.max(0, 1 - f / 2.4).toFixed(3)); } if (k >= 1) { morph.on = false; U.uIntro.value = 0; } }
   rush += Math.sin(Math.PI * Math.max(0, k)) * dt * 0.9; DU.uRush.value = rush;
   mouse.x += (mouse.tx - mouse.x) * 0.04; mouse.y += (mouse.ty - mouse.y) * 0.04;
   const t = TOPICS[Math.max(0, cur)], detail = mode === 'detail', flat = mode !== 'intro' && t.flat, narrow = innerWidth <= 900;
@@ -357,7 +359,7 @@ function frame() {
 }
 // Opening: the crisp PMI logo dissolves in place into the same logo made of particles, which then break apart and
 // re-form as the ring of discipline models before the welcome card appears.
-const loader = document.getElementById('loader'), born = performance.now(); let LW = 1.7, holdView = true;
+const loader = document.getElementById('loader'), born = performance.now(); let LW = 1.7, holdView = true, LC = [0, 0, 1], RPX = 100;
 function logoShape(img) {
   const W = 220, H = Math.round(W * img.naturalHeight / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, W, H); const d = x.getImageData(0, 0, W, H).data, px = [];
@@ -365,6 +367,8 @@ function logoShape(img) {
   if (px.length < 200) return false;
   const from = geo.attributes.aFrom.array, t0 = geo.attributes.aT0.array, n = px.length / 2;
   for (let i = 0; i < N; i++) { const k = (R() * n) | 0, p = px[k * 2]; from[i * 3] = ((p % W + R()) / W - 0.5) * LW; from[i * 3 + 1] = (0.5 - (((p / W) | 0) + R()) / H) * LW * H / W; from[i * 3 + 2] = (R() - 0.5) * 0.02; t0[i] = px[k * 2 + 1]; }
+  let cx = 0, cy = 0, rm = 0; for (let k = 0; k < n; k++) { const p = px[k * 2]; cx += p % W; cy += (p / W) | 0; } cx /= n; cy /= n; for (let k = 0; k < n; k++) { const p = px[k * 2]; rm = Math.max(rm, Math.hypot(p % W - cx, ((p / W) | 0) - cy)); }
+  LC = [cx / W, cy / H, rm / W]; U.uC.value.set((cx / W - 0.5) * LW, (0.5 - cy / H) * LW * H / W, rm / W * LW);      // centre of the triangle and its outer radius
   geo.attributes.aFrom.needsUpdate = true; geo.attributes.aT0.needsUpdate = true; return true;
 }
 function opening(img) {
@@ -374,9 +378,10 @@ function opening(img) {
   view.s = view.ts; view.x = 0; view.y = 0; U.uIntro.value = ok ? 1 : 0;
   const ppu = (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   loader.style.setProperty('--lw', (LW * view.ts * ppu).toFixed(1) + 'px'); loader.style.setProperty('--ly', '0px');
+  { const lw = LW * view.ts * ppu, lh = img ? lw * img.naturalHeight / img.naturalWidth : lw; RPX = LC[2] * lw; loader.style.setProperty('--cx', (LC[0] * lw).toFixed(1) + 'px'); loader.style.setProperty('--cy', (LC[1] * lh).toFixed(1) + 'px'); loader.style.setProperty('--ox', ((LC[0] - 0.5) * lw).toFixed(1) + 'px'); loader.style.setProperty('--oy', ((LC[1] - 0.5) * lh).toFixed(1) + 'px'); }
   setTimeout(() => {
-    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 620, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 620 + 850);      // one breath, then break up; the view stays put until the whole logo has gone
-    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 2050);
+    U.uIntro.value = ok ? 1 : 0; morph = { t0: performance.now() + 240, dur: 1700, on: true }; loader.classList.add('go'); setTimeout(() => { holdView = false; }, 240 + 620);      // a quick charge, then the wave; the view stays put until the whole logo has gone
+    setTimeout(() => { loader.classList.add('done'); $('.intro').classList.remove('gone'); }, 1750);
   }, Math.max(150, 750 - (performance.now() - born)));
 }
 U.uT.value = 0; frame();
