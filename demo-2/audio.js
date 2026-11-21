@@ -113,9 +113,10 @@ export class Snd {
   // ---- UI ----
   _glide(f0, f1, dur, g, type = 'sine', lp = 2400, delay = 0) { const ctx = this.ctx, t = ctx.currentTime + delay, o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), e = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur); fl.type = 'lowpass'; fl.frequency.value = lp; e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(g, t + dur * 0.2); e.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(fl).connect(e).connect(this.ui); o.start(t); o.stop(t + dur + 0.02); }
   _air(f0, f1, dur, g, q = 4) { const ctx = this.ctx, t = ctx.currentTime, fl = this._shot(t, 'bandpass', f0, q, dur, g, this.ui); fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(f1, t + dur); }
+  // UI sounds are air and clean sine tones only: no low sawtooth glides.
   hover() { if (!this.ok()) return; this._air(3200, 6200, 0.05, 0.05, 6); }
-  click() { if (!this.ok()) return; this._air(1800, 5200, 0.07, 0.07, 5); this._glide(160, 70, 0.12, 0.2); this._glide(420, 1300, 0.07, 0.03, 'triangle', 3000); }
-  open() { if (!this.ok()) return; this._air(500, 3600, 0.4, 0.05, 2); this._glide(90, 180, 0.4, 0.14, 'sawtooth', 500); this._glide(360, 720, 0.28, 0.03, 'triangle', 2200, 0.05); }
-  close() { if (!this.ok()) return; this._air(3200, 500, 0.3, 0.045, 2); this._glide(180, 80, 0.3, 0.13, 'sawtooth', 450); }
-  morph() { if (!this.ok()) return; this._air(300, 4200, 1.3, 0.05, 1.2); this._glide(55, 110, 1.4, 0.16, 'sawtooth', 380); this._glide(110, 164.8, 1.4, 0.08, 'sawtooth', 500, 0.1); const t = this.ctx.currentTime; this._clank(t + 1.25, 0.8, 0.04); }
+  click() { if (!this.ok()) return; this._air(2200, 5600, 0.06, 0.06, 5); this._glide(520, 1040, 0.07, 0.04, 'sine', 4000); }
+  open() { if (!this.ok()) return; this._air(700, 4200, 0.35, 0.045, 2); this._glide(440, 880, 0.22, 0.035, 'sine', 4000); this._glide(660, 1320, 0.26, 0.02, 'sine', 5000, 0.06); }
+  close() { if (!this.ok()) return; this._air(3600, 700, 0.28, 0.04, 2); this._glide(880, 440, 0.2, 0.03, 'sine', 4000); }
+  morph() { if (!this.ok()) return; this._air(500, 5200, 0.9, 0.05, 1.4); this._air(6000, 1800, 0.5, 0.025, 2.5); this._glide(587, 880, 0.5, 0.022, 'sine', 5000, 0.15); this._glide(880, 1175, 0.6, 0.016, 'sine', 6000, 0.45); }
 }
