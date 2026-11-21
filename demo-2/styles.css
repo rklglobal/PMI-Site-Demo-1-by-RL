@@ -299,6 +299,7 @@ body.dark .hot.tile::before{background:linear-gradient(170deg,#202328 0%,#17191d
 body.dark .hot.tile span{color:#eef0f2}
 body.dark .hot.tile:hover b{background:linear-gradient(140deg,#fff,#cfd3d8);color:var(--ink)}
 body.dark #loader{background:#0b0c0e}
+body.dark #loader.go{background:rgba(11,12,14,0)}
 body.dark .copy li{border-color:var(--line)}
 body.dark .dia text{fill:#eef0f2}body.dark .dia rect{stroke:rgba(255,255,255,.3)}
 
