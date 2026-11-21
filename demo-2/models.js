@@ -160,8 +160,8 @@ function mechanical() {
   m.line([-0.95, cy + r * 0.72, r * 0.7], [0.95, cy + r * 0.72, r * 0.7], 1);
   [-0.6, 0.6].forEach(x => { m.add(new THREE.CylinderGeometry(r + 0.02, r + 0.02, 0.2, 24, 1, true, PI * 0.62, PI * 0.76), { p: [x, cy, 0], r: AX, w: 1.5, e: 2 }); m.add(extr([[-0.42, 0], [0.42, 0], [0.42, 0.45], [0.3, 0.55], [-0.3, 0.55], [-0.42, 0.45]], 0.04), { p: [x, g + 0.04, 0], r: [0, PI / 2, 0], e: 2 }); m.add(box(0.26, 0.04, 0.95), { p: [x, g + 0.02, 0], e: 2 }); });
   // manway with davit, nozzles
-  m.add(cyl(0.2, 0.2, 24), { p: [-0.5, cy + r + 0.08, 0] }); flange(m, [-0.5, cy + r + 0.2, 0], 'y', 0.2, 0.7); m.add(new THREE.CircleGeometry(0.34, 24), { p: [-0.5, cy + r + 0.26, 0], r: UP, w: 1.5 });
-  m.add(pipeGeo([[-0.86, cy + r - 0.05, 0], [-0.86, cy + r + 0.5, 0], [-0.5, cy + r + 0.5, 0]], 0.018, 0.08), { w: 3 }); m.line([-0.5, cy + r + 0.5, 0], [-0.5, cy + r + 0.27, 0], 1.5);
+  m.add(cyl(0.125, 0.16, 24), { p: [-0.5, cy + r + 0.06, 0] }); flange(m, [-0.5, cy + r + 0.15, 0], 'y', 0.125, 0.7); m.add(new THREE.CircleGeometry(0.215, 24), { p: [-0.5, cy + r + 0.2, 0], r: UP, w: 1.2 });
+  m.add(pipeGeo([[-0.76, cy + r - 0.1, 0], [-0.76, cy + r + 0.38, 0], [-0.5, cy + r + 0.38, 0]], 0.014, 0.07), { w: 3 }); m.line([-0.5, cy + r + 0.38, 0], [-0.5, cy + r + 0.21, 0], 1.5);
   m.add(cyl(0.085, 0.25, 16), { p: [0.3, cy + r + 0.1, 0] }); flange(m, [0.3, cy + r + 0.22, 0], 'y', 0.085);
   m.add(cyl(0.06, 0.25, 14), { p: [0, cy - r - 0.1, 0] }); flange(m, [0, cy - r - 0.24, 0], 'y', 0.06);
   m.add(cyl(0.075, 0.22, 14), { p: [-1.3, cy, 0], r: AX }); flange(m, [-1.42, cy, 0], 'x', 0.075);
@@ -201,8 +201,25 @@ function civilWork() {
   for (let i = 0; i < 4; i++) for (let k = 0; k < 4; k++) if (i % 3 === 0 || k % 3 === 0) m.line([-0.18 + i * 0.12, g + 0.44, -0.18 + k * 0.12], [-0.18 + i * 0.12, g + 0.95, -0.18 + k * 0.12], 1.6);
   [0.6, 0.75, 0.9].forEach(y => m.poly([[-0.18, g + y, -0.18], [0.18, g + y, -0.18], [0.18, g + y, 0.18], [-0.18, g + y, 0.18]], 1.2, true));
   for (let i = 0; i < 6; i++) { m.line([-0.45 + i * 0.18, g + 0.145, -0.45], [-0.45 + i * 0.18, g + 0.145, 0.45], 0.5); m.line([-0.45, g + 0.145, -0.45 + i * 0.18], [0.45, g + 0.145, -0.45 + i * 0.18], 0.5); } m.pop();
-  person(m, [0.55, g, 1.15], 2.4, 0.3);
-  rod(m, [1.5, g, 0.75], [1.5, g + 0.42, 0.75], 0.012, { w: 2 }); m.add(box(0.1, 0.07, 0.07), { p: [1.5, g + 0.46, 0.75], e: 2 });
+  // concrete mixer truck backing up to a formed slab, chute out
+  m.push([-0.55, 0, 1.5]);
+  m.add(box(1.95, 0.07, 0.34), { p: [0, g + 0.27, 0], e: 2 });
+  [-0.72, 0.36, 0.64].forEach(x => [-0.21, 0.21].forEach(z => { m.add(cyl(0.135, 0.1, 18), { p: [x, g + 0.135, z], r: AZ, e: 1.5 }); m.add(cyl(0.06, 0.11, 10), { p: [x, g + 0.135, z], r: AZ, w: 0.8 }); }));
+  m.add(box(0.44, 0.48, 0.5), { p: [-0.74, g + 0.55, 0], e: 3 }).add(box(0.1, 0.2, 0.5), { p: [-1.0, g + 0.4, 0], e: 2 });
+  m.poly([[-0.97, g + 0.52, -0.21], [-0.97, g + 0.75, -0.21], [-0.97, g + 0.75, 0.21], [-0.97, g + 0.52, 0.21]], 2, true).poly([[-0.9, g + 0.52, 0.255], [-0.62, g + 0.52, 0.255], [-0.62, g + 0.75, 0.255], [-0.9, g + 0.75, 0.255]], 1.5, true);
+  m.add(cyl(0.085, 0.3, 14), { p: [-0.36, g + 0.4, 0], r: AZ, w: 1.2 });
+  m.push([0.12, g + 0.74, 0], [0, 0, 0.2]);
+  m.add(new THREE.LatheGeometry([[0.1, -0.62], [0.27, -0.42], [0.345, -0.05], [0.33, 0.22], [0.2, 0.52], [0.14, 0.62]].map(q => new THREE.Vector2(q[0], q[1])), 30), { r: [0, 0, -PI / 2], w: 1.3 });
+  [[-0.42, 0.275], [-0.05, 0.35], [0.22, 0.335], [0.52, 0.205]].forEach(([x, rr]) => m.add(tor(rr, 0.007), { p: [x, 0, 0], r: [0, PI / 2, 0], w: 3 }));
+  for (let k = 0; k < 3; k++) { const pts = []; for (let j = 0; j <= 20; j++) { const u = j / 20, x = -0.4 + u * 0.9, rr = 0.28 + 0.07 * Math.sin(u * PI), a = u * PI * 1.3 + k * PI * 2 / 3; pts.push([x, Math.cos(a) * rr, Math.sin(a) * rr]); } m.poly(pts, 1.2); }
+  m.pop();
+  m.add(box(0.1, 0.62, 0.3), { p: [0.9, g + 0.6, 0], e: 2 }).add(new THREE.CylinderGeometry(0.17, 0.07, 0.2, 14, 1, true), { p: [0.93, g + 1.0, 0], w: 1.5, e: 1 });
+  m.add(new THREE.CylinderGeometry(0.07, 0.055, 0.62, 12, 1, true, 0, PI), { p: [1.22, g + 0.44, 0.06], r: [0, 0.2, 1.05], w: 2.2, e: 2 });
+  m.pop();
+  m.push([1.42, 0, 1.6]); m.add(box(1.0, 0.09, 0.62), { p: [0, g + 0.045, 0], e: 3 });
+  for (let i = 0; i <= 6; i++) m.line([-0.48 + i * 0.16, g + 0.1, -0.29], [-0.48 + i * 0.16, g + 0.1, 0.29], 0.7); for (let i = 0; i <= 4; i++) m.line([-0.48, g + 0.1, -0.28 + i * 0.14], [0.48, g + 0.1, -0.28 + i * 0.14], 0.7);
+  [[-0.52, -0.33], [0.52, -0.33], [0.52, 0.33], [-0.52, 0.33]].forEach(([x, z]) => m.line([x, g, z], [x, g + 0.2, z], 1.5)); m.pop();
+  person(m, [1.55, g, 1.02], 0.4, 0.3);
   return { m, hot: { enter: [2.2, 0.6, 0], a: [0.5, 1.0, 0], b: [2.2, -0.7, -0.3], c: [-2.2, -0.6, 0.4] } };
 }
 
@@ -309,28 +326,31 @@ function facility() {
 /* ---------- 7 · Locations: Gulf Coast map ---------- */
 export const CITIES = [['Port Lavaca', -96.63, 28.61, 1], ['Corpus Christi', -97.40, 27.80], ['Victoria', -97.00, 28.81], ['Freeport', -95.36, 28.95], ['Deer Park', -95.12, 29.70], ['Houston', -95.37, 29.76], ['Lake Charles', -93.22, 30.23], ['Baton Rouge', -91.15, 30.45], ['Mobile', -88.04, 30.69], ['Clarendon, Jamaica', -77.25, 17.95]];
 const PX = lon => (lon + 92) * 0.19, PY = lat => (lat - 27.2) * 0.19 * 1.13;
+// Jamaica is far off the Gulf Coast frame, so it is drawn as an enlarged inset in the Gulf
+const JM = { lo: -89.3, la: 25.3, k: 2.3 }, LL = (lo, la) => (lo > -80 && la < 20) ? [PX(JM.lo + (lo + 77.3) * JM.k), PY(JM.la + (la - 18.1) * JM.k)] : [PX(lo), PY(la)];
 function gulfMap(N) {
   const pos = new Float32Array(N * 3), tint = new Float32Array(N); let i = 0;
-  const polys = GULF.filter(o => !(o.s === 'FL' && o.r.length < 20)).map(o => { const r = o.r.map(p => [PX(p[0]), PY(p[1])]); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, len = 0; r.forEach((p, k) => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); if (k) len += Math.hypot(p[0] - r[k - 1][0], p[1] - r[k - 1][1]); }); return { r, x0, x1, y0, y1, len, area: (x1 - x0) * (y1 - y0), s: o.s }; });
+  const polys = GULF.filter(o => !(o.s === 'FL' && o.r.length < 20)).map(o => { const r = o.r.map(p => o.s === 'JM' ? LL(p[0], p[1]) : [PX(p[0]), PY(p[1])]); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, len = 0; r.forEach((p, k) => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); if (k) len += Math.hypot(p[0] - r[k - 1][0], p[1] - r[k - 1][1]); }); return { r, x0, x1, y0, y1, len, area: (x1 - x0) * (y1 - y0), s: o.s }; });
   const inside = (r, x, y) => { let c = false; for (let a = 0, b = r.length - 1; a < r.length; b = a++) if ((r[a][1] > y) !== (r[b][1] > y) && x < (r[b][0] - r[a][0]) * (y - r[a][1]) / (r[b][1] - r[a][1]) + r[a][0]) c = !c; return c; };
   const put = (x, y, z, t) => { if (i >= N) return; pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; tint[i++] = t; };
-  const nCity = Math.floor(N * 0.02), nEdge = Math.floor(N * 0.3), nFill = N - nCity - nEdge;
+  const nCity = Math.floor(N * 0.02), nEdge = Math.floor(N * 0.3), nFill = N - nCity - nEdge - Math.floor(N * 0.012);
   const totL = polys.reduce((s, p) => s + p.len, 0), totA = polys.reduce((s, p) => s + p.area * (p.s === 'JM' ? 3 : 1), 0);
   polys.forEach(p => { const n = Math.round(nEdge * p.len / totL); for (let k = 0; k < n; k++) { const j = 1 + ((R() * (p.r.length - 1)) | 0), u = R(), a = p.r[j - 1], b = p.r[j]; put(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, (R() - 0.5) * 0.05, 0); } });
   polys.forEach(p => { const n = Math.round(nFill * p.area * (p.s === 'JM' ? 3 : 1) / totA); let k = 0, guard = 0; while (k < n && guard++ < n * 40) { const x = p.x0 + R() * (p.x1 - p.x0), y = p.y0 + R() * (p.y1 - p.y0); if (inside(p.r, x, y)) { put(x, y, (R() - 0.5) * 0.03, 0); k++; } } });
   const per = Math.floor(nCity / CITIES.length);
-  CITIES.forEach(([, lo, la, hq]) => { for (let k = 0; k < per; k++) { const a = R() * PI * 2, rr = Math.sqrt(R()) * (hq ? 0.045 : 0.032); put(PX(lo) + Math.cos(a) * rr, PY(la) + Math.sin(a) * rr, 0.03, 1); } });
+  CITIES.forEach(([, lo, la, hq]) => { for (let k = 0; k < per; k++) { const a = R() * PI * 2, rr = Math.sqrt(R()) * (hq ? 0.045 : 0.032); const q = LL(lo, la); put(q[0] + Math.cos(a) * rr, q[1] + Math.sin(a) * rr, 0.03, 1); } });
+  { const x0 = PX(JM.lo - 3.5), x1 = PX(JM.lo + 3.5), y0 = PY(JM.la - 1.7), y1 = PY(JM.la + 1.9), n = Math.floor(N * 0.012); for (let k = 0; k < n; k++) { const u = R(), e = (R() * 4) | 0; put(e < 2 ? x0 + (x1 - x0) * u : e === 2 ? x0 : x1, e === 0 ? y0 : e === 1 ? y1 : y0 + (y1 - y0) * u, 0.02, 0); } }
   while (i < N) { const j = (R() * i) | 0; put(pos[j * 3], pos[j * 3 + 1], pos[j * 3 + 2], tint[j]); }
-  let bx0 = 1e9, bx1 = -1e9, by0 = 1e9, by1 = -1e9; polys.forEach(p => { bx0 = Math.min(bx0, p.x0); bx1 = Math.max(bx1, p.x1); by0 = Math.min(by0, p.y0); by1 = Math.max(by1, p.y1); });
-  const c = [(bx0 + bx1) / 2, (by0 + by1) / 2, 0], s = Math.min(3.95 / (bx1 - bx0), 3.1 / (by1 - by0));
+  const bx0 = PX(-100.4), bx1 = PX(-85.6), by0 = PY(23.4), by1 = PY(33.7);      // frame the working coast; west Texas and Florida run past the edges
+  const c = [(bx0 + bx1) / 2, (by0 + by1) / 2, 0], s = Math.min(4.3 / (bx1 - bx0), 3.0 / (by1 - by0));
   for (let k = 0; k < N; k++) { pos[k * 3] = (pos[k * 3] - c[0]) * s; pos[k * 3 + 1] = (pos[k * 3 + 1] - c[1]) * s; pos[k * 3 + 2] *= s; }
   const xf = p => [(p[0] - c[0]) * s, (p[1] - c[1]) * s, p[2] * s];
-  return { pos, tint, xf, city: (lo, la) => xf([PX(lo), PY(la), 0.04]) };
+  return { pos, tint, xf, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
 }
 
 const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility];
 export function buildAll(N) {
   const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
-  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, hot: { enter: [2.2, 0.9, 0], a: g.city(-90.5, 25.6), b: g.city(-102.5, 23.2), c: g.city(-81.5, 15.6) }, flat: true });
+  const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
   return out;
 }

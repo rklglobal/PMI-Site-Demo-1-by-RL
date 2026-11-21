@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Snd } from './audio.js?v=16';
-import { buildAll, CITIES } from './models.js?v=16';
+import { Snd } from './audio.js?v=18';
+import { buildAll, CITIES } from './models.js?v=18';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -25,7 +25,7 @@ const svc = (n, name, icon, items, big) => head(`${n} / 06 · Self-performed`, n
 const val = (eyebrow, title, text) => head(eyebrow, title) + `<p>${text}</p>`;
 
 const TOPICS = [
-  { key: 'intro', eyebrow: 'Turnkey industrial contractor · Since 2003', title: 'Reducing complexity. <span>Delivering results.</span>', lead: 'One contractor. Turnkey execution. Fewer handoffs.', name: 'Why PMI', rot: 0.5, hot: [
+  { key: 'intro', eyebrow: 'Turnkey industrial contractor · Since 2003', title: 'Reducing complexity. <span>Delivering results.</span>', lead: 'One contractor. Turnkey execution. Fewer handoffs.', name: 'Why PMI', cta: 'Why PMI?', rot: 0.5, hot: [
     { label: 'Why choose PMI', icon: IC.star, html: head('Why choose PMI', 'Every scope, working together') + `<p>The success of a project depends on how well every scope works together. PMI delivers coordinated, accountable, multi-discipline execution that reduces gaps between scopes and keeps work moving safely and efficiently.</p>` + diagram(IC.intro, ['One contractor, multiple scopes', 'Field-to-leadership alignment', 'Built to keep work moving', 'Execution that adapts']) + `<div class="cols"><div class="big"><b>6</b><span>disciplines under one team</span><b>29</b><span>self-performed services</span><b>2003</b><span>founded in Port Lavaca, Texas</span></div><div><p>Palacios Marine &amp; Industrial is a privately owned turnkey industrial contractor and Certified Minority Business Enterprise (MBE) delivering construction, maintenance, turnaround, and specialty services.</p><p>By integrating multiple disciplines under one team, PMI helps clients simplify project delivery, reduce contractor interfaces, and maintain operational continuity.</p></div></div>` },
     { label: 'PMI advantage', icon: IC.list, html: head('PMI advantage', 'Construction · Maintenance · Turnarounds') + `<p>PMI simplifies project delivery through a self-perform approach that reduces complexity, improves coordination, and helps keep projects on schedule.</p>` + diagram(IC.star, ['Eliminate handoffs that delay your project', 'Minimize disruption to operations', 'Take back control of your project schedule', 'Clear accountability at every stage']) },
     { label: 'Industries served', icon: IC.fac, html: head('Industries served', 'Where we work') + `<div class="pics">${[['petrochemical', 'Petrochemical'], ['refining', 'Refining'], ['midstream', 'Midstream'], ['food', 'Food &amp; Beverage'], ['mining', 'Mining &amp; Smelting'], ['power', 'Power Generation'], ['pulp', 'Pulp &amp; Paper'], ['datacenter', 'Mission Critical &amp; Data Centers']].map(([f, n]) => `<figure><img loading="lazy" src="../assets/ind-${f}.jpg" alt=""><figcaption>${n}</figcaption></figure>`).join('')}</div>` },
@@ -57,7 +57,6 @@ const TOPICS = [
   { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], name: 'Locations', rot: 0, flat: true, hot: [
     { label: 'All locations', icon: IC.loc, html: head('Locations', 'Gulf Coast and beyond') + diagram(IC.loc, ['Corporate Office: Port Lavaca, Texas', 'Texas: Corpus Christi · Victoria · Freeport · Deer Park · Houston', 'Louisiana: Lake Charles · Baton Rouge', 'Alabama: Mobile', 'International: Clarendon, Jamaica']) },
     { label: 'Contact PMI', icon: IC.mail, html: head('Let’s discuss', 'Your next project') + `<p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>` + list(['888.744.9699', 'bids@palaciosmarineindustrial.com', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>` },
-    { label: 'Jamaica', icon: IC.loc, html: val('International', 'Clarendon, Jamaica', 'PMI supports clients beyond the Gulf Coast with an international location in Clarendon, Jamaica.') },
   ] },
 ];
 
@@ -162,16 +161,29 @@ function setTarget(s, dur) {
 function wire(el) { el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') snd.hover(); }); el.addEventListener('pointerdown', () => snd.click()); return el; }
 function hotspot(icon, label, at, fn) { const el = wire(document.createElement('button')); el.className = 'hot'; el.innerHTML = `<b>${svg(icon)}</b>${label ? `<span>${label}</span>` : ''}`; el.onclick = fn; hots.appendChild(el); const h = { el, at: new THREE.Vector3(...at) }; hotEls.push(h); return h; }
 function showHots() { hotEls.forEach((h, k) => setTimeout(() => h.el.classList.add('show'), 150 + k * 170)); }
-function layout() { area();      // (re)build hotspots for the current mode
+function layout() { area(); closeLoc();      // (re)build hotspots for the current mode
   hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
   const t = TOPICS[cur], s = SH[cur];
   if (mode === 'over') hotspot(IC[t.key], '', s.hot.enter, enter);
   else t.hot.forEach((h, k) => hotspot(h.icon, h.label, s.hot['abc'[k]], () => openCard(h.html)));
-  if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); pinEls.push({ el, at: new THREE.Vector3(...s.city(lo, la)) }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
-  pill.querySelector('span').textContent = mode === 'over' ? 'Explore ' + t.name : 'Close';
+  if (t.flat) CITIES.forEach(([n, lo, la, hq], k) => { const el = document.createElement('div'); el.className = 'pin' + (hq ? ' hq' : ''); el.innerHTML = `<svg viewBox="0 0 24 32"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z"/><circle cx="12" cy="11.5" r="3.6"/></svg><span style="left:${PL[k][0]}px;top:${PL[k][1]}px${PL[k][2] ? ';transform:translateX(-100%)' : ''}">${n}</span>`; pins.appendChild(el); const ph = { el, at: new THREE.Vector3(...s.city(lo, la)) }; pinEls.push(ph); wire(el.querySelector('svg')).addEventListener('click', e => { e.stopPropagation(); openLoc(k, ph); }); setTimeout(() => el.classList.add('show'), (mode === 'over' ? 1900 : 300) + k * 110); });
+  pill.querySelector('span').textContent = mode === 'over' ? (t.cta || 'Explore ' + t.name) : 'Close';
   pill.classList.toggle('x', mode === 'detail');
   document.body.classList.toggle('detail', mode === 'detail');
 }
+// location window: tap a pin for a small card about that site
+const LOCS = [['Texas', 'refinery-red', 'Corporate Office<br>2392 State Highway 35 N, Port Lavaca, TX 77979<br>888.744.9699'], ['Texas', 'ind-refining'], ['Texas', 'ind-petrochemical'], ['Texas', 'hero-columns'], ['Texas', 'ind-petrochemical'], ['Texas', 'ind-refining'], ['Louisiana', 'ind-petrochemical'], ['Louisiana', 'ind-refining'], ['Alabama', 'hero-columns'], ['International', 'refinery-red']];
+const locEl = document.createElement('div'); locEl.className = 'loc'; document.body.appendChild(locEl); let locPin = null;
+function openLoc(k, ph) {
+  if (locPin === ph) { closeLoc(); return; }
+  const [region, img, extra] = LOCS[k];
+  locEl.innerHTML = `<button class="loc-x" aria-label="Close">×</button><figure><img src="../assets/${img}.jpg" alt=""><i></i></figure><div><p class="eyebrow">${region}</p><h4>${CITIES[k][0]}</h4><p class="t">${extra || 'PMI location'}</p><a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a></div>`;
+  wire(locEl.querySelector('.loc-x')).onclick = e => { e.stopPropagation(); closeLoc(); };
+  pinEls.forEach(p => p.el.classList.toggle('sel', p === ph)); locPin = ph; placeLoc(); locEl.classList.add('open'); snd.open();
+}
+function closeLoc() { if (!locPin) return; locPin = null; locEl.classList.remove('open'); pinEls.forEach(p => p.el.classList.remove('sel')); }
+function placeLoc() { if (!locPin || locPin.x === undefined) return; const W = locEl.offsetWidth, H = locEl.offsetHeight, x = Math.min(innerWidth - W - 8, Math.max(8, locPin.x - W / 2)), top = locPin.y - 40 - H, y = top > 70 ? top : Math.min(innerHeight - H - 8, locPin.y + 16); locEl.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`; }
+window.addEventListener('pointerdown', e => { if (locPin && !e.target.closest('.loc') && !e.target.closest('.pin')) closeLoc(); });
 const PL = [[13, -6], [-13, -8, 1], [-14, -30, 1], [14, -19], [-10, -64, 1], [-12, -47, 1], [-14, -44], [-8, -58], [14, -26], [14, -22]];   // label offsets per city so the Texas cluster stays readable
 const hint = $('.hint'), touch = matchMedia('(pointer:coarse)').matches; let moves = 0;
 hint.classList.toggle('touch', touch); hint.querySelector('span').textContent = touch ? 'Swipe up to explore' : 'Scroll to explore';
@@ -229,11 +241,12 @@ function area() {
   const ppu = (h / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   view.w = r - l; view.h = b - t; view.tx = (l + r) / 2 - w / 2; view.ty = (t + b) / 2 - h / 2;
   view.ts = mode === 'intro' ? Math.min(0.9, w / h * 1.1) : Math.min(1.15, view.w / (4.5 * ppu), view.h / (3.15 * ppu));
+  if (mode !== 'intro' && !narrow && TOPICS[Math.max(0, cur)].flat) { view.ts = Math.min(view.ts, view.w / (6.3 * ppu)); view.tx += 0.85 * view.ts * ppu; }      // wide screens: leave room for west Texas beside the text
 }
 window.addEventListener('resize', fit); fit();
 
 const v = new THREE.Vector3(); let t0 = performance.now(), el = 0, rush = 0;
-function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(spin.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
+function place(h, ox, oy, clamp) { v.copy(h.at).applyMatrix4(spin.matrixWorld).project(camera); let x = (v.x + 1) / 2 * innerWidth, y = (1 - v.y) / 2 * innerHeight; if (clamp) { const mx = Math.min(70, innerWidth * 0.16); x = Math.min(innerWidth - mx, Math.max(mx, x)); y = Math.min(innerHeight - 150, Math.max(130, y)); } h.x = x; h.y = y; h.el.style.transform = `translate(${(x - ox).toFixed(1)}px, ${(y - oy).toFixed(1)}px)`; }
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -252,10 +265,10 @@ function frame() {
   const sc = view.s * zoom; group.scale.setScalar(sc); U.uScale.value = sc;
   if (fly) ang += dt * 0.17;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
-  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.5 : 0.36, 0, 0);
+  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36, 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
-  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 0));
+  hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else place(h, 23, 23, true); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();
   renderer.render(scene, camera);
 }
 // Opening: the crisp PMI logo dissolves in place into the same logo made of particles, which then break apart and
