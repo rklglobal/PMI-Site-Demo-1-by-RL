@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=25';
-import { buildAll, CITIES } from './models.js?v=28';
+import { buildAll, CITIES } from './models.js?v=29';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -9,6 +9,8 @@ const IC = {
   intro: 'M9 3h6v15H9zM7 21h10M9 8h6M9 13h6', mech: 'M3 16h7a3 3 0 0 0 3-3V8a3 3 0 0 1 3-3h5M3 13v6M21 2v6', civil: 'M3 20h18M5 20v-3h9v3M8 17v-4h4l2-6 5 3-2 3M17 13l2 4',
   soft: 'M5 3v18M19 3v18M5 8h14M5 15h14M5 15l14-7', clean: 'M2 17h13V9H5l-3 4zM15 17h6v-5l-3-3h-3M6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', pipe: 'M3 13v6M21 13v6M3 16h5l4-2 4 2h5M12 14V7M8 7h8',
   fac: 'M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01', loc: 'M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  safe: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5', qual: 'M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM8.5 13.5L7 22l5-3 5 3-1.5-8.5M9.5 9l2 2 3.5-3.5',
+  exp: 'M4 21h8M6 21V5l12 3M6 5l4 3H6M18 8v5M16 13h4v3h-4zM8 21v-3h2v3', jobs: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M18 21v-1a6 6 0 0 0-3-5.2',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', star: 'M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6L12 16.8 6.7 19.6l1.1-6L3.4 9.4l6-.8z', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', shop: 'M4 21V9l8-5 8 5v12M4 13h16M10 21v-5h4v5',
 };
 const svg = d => `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>`;
@@ -23,6 +25,20 @@ function diagram(icon, items) {
 }
 const svc = (n, name, icon, items, big) => head(`${n} / 06 · Self-performed`, name) + diagram(icon, items) + `<div class="cols"><div class="big"><b>${items.length}</b><span>${name.toLowerCase()} services self-performed by PMI crews</span><b>${big[0]}</b><span>${big[1]}</span></div><div><p>PMI supports maintenance, turnarounds, capital projects, and specialty work through a coordinated self-perform approach.</p><p>Executing multiple disciplines under one team reduces contractor interfaces, improves schedule control, and delivers consistent project execution.</p></div></div>`;
 const val = (eyebrow, title, text) => head(eyebrow, title) + `<p>${text}</p>`;
+// grouped lists in chamfered boxes (services by contract type, safety program, welding)
+const groups = g => `<div class="svcgrid">${g.map(([h, a]) => `<div><h4>${h}</h4>${list(a)}</div>`).join('')}</div>`;
+const SERVICES = [
+  ['Construction', ['Small &amp; large capital', 'Procurement', 'Heavy civil', 'Piping &amp; vessel fabrication', 'Piping system installation', 'Structural steel erection', 'Equipment setting', 'Scaffolding', 'Insulation', 'Blasting &amp; painting', 'Fireproofing']],
+  ['Maintenance', ['Planning &amp; scheduling', 'Craft workforce', 'Mechanical', 'Warehouse', 'Administrative', 'Scaffolding', 'Blasting &amp; painting', 'Insulation', 'Heat exchanger repairs &amp; retubes', 'Code vessel repairs &amp; alterations', 'Fireproofing']],
+  ['Fabrication', ['Pipe fabrication', 'ASME code vessel fabrication', 'Skid fabrication', 'Module fabrication', 'Shop-applied paint &amp; linings', 'Insulation', 'Fireproofing']],
+  ['Shutdowns / Turnarounds', ['General mechanical execution', 'Planning &amp; scheduling', 'Subcontract management', 'Scaffolding', 'Blasting &amp; painting', 'Insulation', 'Heat exchanger repairs &amp; retubes', 'Code vessel repairs &amp; alterations', 'Fireproofing']],
+  ['Terminal services', ['Tank repair', 'Tank cleaning', 'Tank foundations', 'Bottom replacement &amp; shell weld repairs', 'In-service seal repairs &amp; replacement', 'Internal / external floating roofs']],
+  ['Industrial cleaning', ['Dry / wet vacuum services', 'Exchanger cleaning', 'Hydro-excavation', 'Hydroblasting', 'Vapor blasting']],
+  ['Facility services', ['Janitorial services', 'Grounds maintenance', 'Pre / post construction cleaning', 'Carpet extraction', 'Floor scrub &amp; recoat', 'Pressure washing']],
+];
+const WP = 'https://palaciosmarineindustrial.com/wp-content/uploads/';
+const GALLERY = [['2023/11/Modular-Installation-Projects.jpeg', 'Modular installation'], ['2023/09/modularinstallproject2.jpg', 'Modular installation'], ['2023/09/piping.jpg', 'Piping'], ['2023/09/fieldblastingpainting.jpg', 'Field blasting &amp; painting'], ['2023/09/blastingpainting.jpg', 'Blasting &amp; painting'], ['2023/09/boringinpipeline.jpg', 'Pipeline boring'], ['slider2/SprayerDryer.jpeg', 'Spray dryer'], ['2023/09/pmi2.jpg', ''], ['slider2/IMG_5280.jpeg', ''], ['slider2/IMG_5286.jpeg', ''], ['slider2/IMG_99212023-07-1916_21_13.jpeg', ''], ['slider2/IMG20221117105958.jpeg', ''], ['slider2/Attachment.jpeg', ''], ['slider2/IMG_00921.jpeg', ''], ['slider2/IMG_03791.jpeg', ''], ['slider2/IMG_03721.jpeg', '']];
+const JOBS = 'https://recruiting.paylocity.com/recruiting/jobs/All/03354591-1515-4072-970b-8b8b6216b89f/Palacios-Marine-Industrial';
 
 const TOPICS = [
   { key: 'intro', eyebrow: 'Turnkey industrial contractor · Since 2003', title: 'Reducing complexity. <span>Delivering results.</span>', lead: 'One contractor. Turnkey execution. Fewer handoffs.', name: 'Why PMI', cta: 'Why PMI?', rot: 0.5, hot: [
@@ -53,6 +69,23 @@ const TOPICS = [
   { key: 'fac', eyebrow: '<b>06</b> / 06 · Self-performed', title: 'Facility Services', items: ['Routine Facility Maintenance', 'Janitorial and Site Services', 'Grounds and Exterior Maintenance', 'Security Services'], name: 'Facility Services', rot: -0.4, hot: [
     { label: 'Facility services', icon: IC.list, html: svc('06', 'Facility Services', IC.fac, ['Routine Facility Maintenance', 'Janitorial and Site Services', 'Grounds and Exterior Maintenance', 'Security Services'], ['24/7', 'site needs handled by one contractor']).replace('<b>24/7</b><span>site needs handled by one contractor</span>', '') },
     { label: 'Our values', icon: IC.star, html: head('Core values', 'People. Grit. Integrity.') + diagram(IC.star, ['People: a people-first culture', 'Grit: dependable results', 'Integrity: accountability and follow-through']) + `<p>PMI strives to be our customers’ greatest asset by providing exceptional service through unrivaled responsiveness, reliability, and accountability, while maintaining a safety conscience workforce.</p>` },
+  ] },
+  { key: 'safe', eyebrow: 'Health &amp; Safety', title: 'Zero is <span>achievable.</span>', items: ['Zero accidents', 'Zero incidents', 'Zero harm to the environment'], name: 'Safety', rot: 0.5, hot: [
+    { label: 'Our safety goal', icon: IC.safe, html: head('Health &amp; Safety', 'Zero is achievable') + diagram(IC.safe, ['Zero accidents', 'Zero incidents', 'Zero harm to the environment']) + `<div class="cols"><div class="big"><b>0</b><span>the only acceptable target</span></div><div><p>PMI runs on a <b>Shared Responsibility for Safety</b> culture: every team member thinks through, plans, and carries out their work so the job site stays free of risk and incidents.</p><p>Any person on a PMI crew can stop work. As the company grows, so does its commitment to improving how it keeps people safe.</p></div></div>` },
+    { label: 'Safety program', icon: IC.list, html: head('Safety program', 'How we get to zero') + groups([['Leadership', ['Management-driven safety', 'Dedicated safety personnel', 'Contractor Safety Council', 'Associated Builders and Contractors (ABC)']], ['Planning', ['Pre-task analysis', 'Training and certification', 'The right tools for the job']], ['In the field', ['Stop Work Authority', 'Buddy system for at-risk employees', 'Observations and interventions']], ['Verification', ['Focused, weekly and “fresh eyes” audits', 'Exposure-hour tracking']]]) },
+  ] },
+  { key: 'qual', eyebrow: 'Quality', title: 'Our word is <span>our bond.</span>', items: ['ASME “U” and “S” stamps', 'Pressure vessel repairs and alterations', 'AWS CWI and API 510 / 570 / 653 inspectors', 'SSPC-QP 3 shop coatings'], name: 'Quality', rot: 0.5, hot: [
+    { label: 'Certifications', icon: IC.qual, html: head('Certifications', 'Certified to build and repair') + diagram(IC.qual, ['ASME “U”: design and fabrication of pressure vessels', 'ASME “S”: fabrication of boiler piping', 'NBIC “R”: repairs and alterations of pressure vessels', 'AWS CWI inspection personnel', 'API 510, 570 and 653 inspection personnel', 'SSPC-QP 3: shop-applied protective coatings']) },
+    { label: 'Welding capabilities', icon: IC.mech, html: head('Welding capabilities', 'Metals and processes') + groups([['Metals', ['Carbon steel', 'Stainless steel', 'Nickel alloys', 'Chrome', 'Titanium', 'Aluminum']], ['Processes', ['SMAW (stick)', 'GMAW (MIG)', 'GTAW (TIG)', 'FCAW (flux-core)', 'SAW (submerged arc)']]]) },
+    { label: 'Quality mission', icon: IC.star, html: head('Our quality mission', 'First-class workmanship') + `<p>PMI’s quality system builds a culture of continuous improvement in every employee, with procedures that direct work and workmanship toward quality and customer satisfaction.</p>` + diagram(IC.qual, ['Top-class workmanship', 'A safe project', 'A timely project']) + `<p>That is the promise on every job. Our word is our bond.</p>` },
+  ] },
+  { key: 'exp', eyebrow: 'Experience', title: 'Proven <span>in the field.</span>', items: ['Modular installation', 'Pipe fabrication and installation', 'Field blasting and painting', 'Pipeline boring'], name: 'Experience', rot: 0.5, hot: [
+    { label: 'Project gallery', icon: IC.exp, html: head('Experience', 'Proven in the field') + `<p>PMI’s experience shows in every completed project: modular installs, piping, coatings, pipeline and plant work across the Gulf Coast.</p><div class="pics">${GALLERY.map(([f, n]) => `<figure><img loading="lazy" src="${WP}${f}" alt="${n || 'PMI project'}" onerror="this.parentNode.remove()">${n ? `<figcaption>${n}</figcaption>` : ''}</figure>`).join('')}</div>` },
+    { label: 'All services', icon: IC.list, html: head('Services', 'Dedicated to service excellence') + groups(SERVICES) },
+  ] },
+  { key: 'jobs', eyebrow: 'Jobs &amp; Careers', title: 'Our people are <span>our greatest asset.</span>', items: ['A people-first culture', 'Stop Work Authority for everyone', 'Training and certification', 'Gulf Coast locations'], name: 'Careers', cta: 'Join the team', rot: 0.45, hot: [
+    { label: 'Join the PMI team', icon: IC.jobs, html: head('Jobs &amp; careers', 'Join the PMI team') + `<p>Our people are our greatest asset. Current openings are posted on PMI’s careers portal.</p>` + list(['Phone: 361.893.5390', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="${JOBS}" target="_blank" rel="noopener">View open positions</a>` },
+    { label: 'Why work here', icon: IC.star, html: head('Why PMI', 'People. Grit. Integrity.') + diagram(IC.jobs, ['A people-first culture', 'Safety is a shared responsibility', 'Training and certification', 'Work close to home across the Gulf Coast']) + `<p>Join a self-perform contractor where crews, supervisors and leadership work as one team.</p><a class="cta" href="${JOBS}" target="_blank" rel="noopener">View open positions</a>` },
   ] },
   { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], states: ['TX', 'LA', 'AL', 'JM'], name: 'Locations', cta: 'Contact PMI', rot: 0, flat: true, hot: [
     { label: 'All locations', icon: IC.loc, html: head('Locations', 'Gulf Coast and beyond') + diagram(IC.loc, ['Corporate Office: Port Lavaca, Texas', 'Texas: Corpus Christi · Victoria · Freeport · Deer Park · Houston', 'Louisiana: Lake Charles · Baton Rouge', 'Alabama: Mobile', 'International: Clarendon, Jamaica']) },

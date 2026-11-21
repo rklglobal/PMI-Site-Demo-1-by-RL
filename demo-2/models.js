@@ -355,6 +355,89 @@ function facility() {
 }
 
 /* ---------- 7 · Locations: Gulf Coast map ---------- */
+/* ---------- Safety: hard hat, cones, barricade, a hand raised to stop work ---------- */
+function safety() {
+  const m = new Model(), g = -1.5;
+  m.push([0, g, 0]);
+  m.add(dome(0.9), { p: [0, 0.34, 0], s: [1, 0.95, 1.12], w: 1.1 });                                                   // shell
+  m.add(new THREE.TorusGeometry(0.86, 0.06, 8, 40, PI), { p: [0, 0.34, 0], r: [0, PI / 2, 0], s: [1, 0.96, 1.13], w: 2.4 });   // crown ridge
+  m.add(new THREE.CylinderGeometry(0.98, 1.12, 0.05, 48, 1, true), { p: [0, 0.33, 0.1], s: [1, 1, 1.18], w: 2, e: 0 });      // brim with front peak
+  m.add(ring(0.9, 1.12), { p: [0, 0.355, 0.1], r: UP, s: [1, 1.18, 1], w: 1.6 });
+  m.add(new THREE.CircleGeometry(0.17, 24), { p: [0, 0.78, 0.88], r: [-0.45, 0, 0], w: 4, t: 1 });                      // red front emblem
+  m.add(tor(0.84, 0.012), { p: [0, 0.28, 0], r: UP, s: [1, 1.12, 1], w: 3 });                                           // suspension band
+  m.pop();
+  const cone = (x, z, sc) => { m.push([x, g, z], [0, 0, 0], sc); m.add(box(0.5, 0.04, 0.5), { p: [0, 0.02, 0], e: 3 }).add(new THREE.ConeGeometry(0.2, 0.75, 24, 1, true), { p: [0, 0.415, 0], w: 1.4 });
+    [[0.3, 0.1], [0.5, 0.08]].forEach(([y, hh]) => { const r0 = 0.2 * (1 - (y - 0.04 - hh / 2) / 0.75), r1 = 0.2 * (1 - (y - 0.04 + hh / 2) / 0.75); m.add(new THREE.CylinderGeometry(r1 + 0.004, r0 + 0.004, hh, 24, 1, true), { p: [0, y, 0], w: 3, t: 1 }); }); m.pop(); };
+  cone(-1.55, 0.7, 1); cone(1.6, 0.75, 1); cone(-1.95, -0.2, 0.85);
+  // barricade behind: A-frame legs, striped boards
+  [-0.95, 0.95].forEach(x => { rod(m, [x, g, -1.15], [x, g + 0.95, -1.3], 0.02, { w: 2 }); rod(m, [x, g, -1.45], [x, g + 0.95, -1.3], 0.02, { w: 2 }); });
+  [0.55, 0.85].forEach(y => { m.add(box(2.1, 0.15, 0.03), { p: [0, g + y, -1.3], e: 2.5, w: 0.8 }); for (let k = 0; k < 9; k++) { const x = -0.95 + k * 0.22; m.line([x, g + y - 0.07, -1.28], [x + 0.13, g + y + 0.07, -1.28], 2.6, 1); } });
+  // worker with a hand up: Stop Work Authority
+  person(m, [1.35, g, -0.2], -0.7, 0.32);
+  rod(m, [1.35 + 0.07, g + 0.42, -0.2 + 0.05], [1.35 + 0.02, g + 0.66, -0.2 + 0.14], 0.016, { w: 4 }); m.add(box(0.05, 0.07, 0.015), { p: [1.37, g + 0.7, -0.05], r: [0, -0.7, 0], w: 4, t: 1 });
+  return { m, hot: { enter: [2.2, 0.6, 0], a: [-1.6, 0.4, 0.6], b: [1.9, -0.4, 0.8], c: [0, 1.0, -1.2] } };
+}
+
+/* ---------- Quality: weld under inspection on a spool, code vessel with nameplate ---------- */
+function quality() {
+  const m = new Model(), g = -1.5, y = g + 0.75, rp = 0.2;
+  m.add(pipeGeo([[-1.7, y, 0.2], [0.95, y, 0.2], [0.95, y + 1.0, 0.2]], rp, 0.4), { w: 1 });
+  flange(m, [-1.7, y, 0.2], 'x', rp); flange(m, [0.95, y + 1.0, 0.2], 'y', rp);
+  m.add(tor(rp + 0.006, 0.028), { p: [-0.35, y, 0.2], r: [0, PI / 2, 0], w: 6, t: 1 });                                  // girth weld being inspected
+  m.add(tor(rp + 0.006, 0.02), { p: [0.55, y, 0.2], r: [0, PI / 2, 0], w: 3 });
+  [-1.25, 0.35].forEach(x => { rod(m, [x, g, 0.2], [x, y - rp, 0.2], 0.03, { w: 2 }); m.add(box(0.3, 0.03, 0.3), { p: [x, g + 0.015, 0.2], e: 2 }); m.add(new THREE.CylinderGeometry(rp + 0.03, rp + 0.03, 0.12, 16, 1, true, PI * 0.6, PI * 0.8), { p: [x, y, 0.2], r: AX, w: 2 }); });
+  // inspector at the weld with a light
+  person(m, [-0.35, g, 0.95], PI, 0.32);
+  rod(m, [-0.35 + 0.06, g + 0.42, 0.95 - 0.05], [-0.33, g + 0.5, 0.62], 0.014, { w: 4 }); m.add(cyl(0.02, 0.09, 10), { p: [-0.33, g + 0.51, 0.58], r: AZ, w: 4 });
+  for (let k = 0; k < 6; k++) m.line([-0.33, g + 0.51, 0.53], [-0.35 + (k - 2.5) * 0.03, y - 0.05 + (k % 2) * 0.1, 0.2 + rp + 0.02], 0.4, 1);
+  // code vessel behind on saddles, with nameplate
+  const vy = g + 0.55, vz = -1.05;
+  m.add(cyl(0.42, 1.7, 36), { p: [0, vy, vz], r: AX }).add(dome(0.42), { p: [0.85, vy, vz], r: [0, 0, -PI / 2], s: [1, 0.5, 1] }).add(dome(0.42), { p: [-0.85, vy, vz], r: [0, 0, PI / 2], s: [1, 0.5, 1] });
+  [-0.5, 0.5].forEach(x => m.add(box(0.12, 0.2, 0.7), { p: [x, g + 0.1, vz], e: 2.5 }));
+  m.add(box(0.3, 0.2, 0.01), { p: [0.15, vy + 0.08, vz + 0.43], r: [-0.2, 0, 0], e: 4, w: 2.5 }); for (let k = 0; k < 4; k++) m.line([0.04, vy + 0.13 - k * 0.04, vz + 0.445], [0.26, vy + 0.13 - k * 0.04, vz + 0.445], 1.2);
+  m.add(cyl(0.08, 0.22, 16), { p: [-0.3, vy + 0.52, vz] }); flange(m, [-0.3, vy + 0.62, vz], 'y', 0.08);
+  return { m, hot: { enter: [2.2, 0.6, 0], a: [-0.4, 0.3, 0.6], b: [0.2, -0.5, -1.0], c: [1.8, 0.7, 0.2] } };
+}
+
+/* ---------- Experience: crawler crane setting a pipe module on its pad ---------- */
+function experience() {
+  const m = new Model(), g = -1.5;
+  [-0.45, 0.45].forEach(z => { m.add(box(1.6, 0.22, 0.3), { p: [-1.1, g + 0.11, z], e: 3, w: 1 }); for (let k = 0; k < 12; k++) m.line([-1.85 + k * 0.135, g + 0.22, z - 0.15], [-1.85 + k * 0.135, g + 0.22, z + 0.15], 0.6); });
+  m.add(box(1.05, 0.38, 0.8), { p: [-1.15, g + 0.42, 0], e: 3, w: 1 }).add(box(0.36, 0.34, 0.3), { p: [-0.7, g + 0.78, 0.25], e: 3, w: 1.2 }).add(box(0.36, 0.42, 0.78), { p: [-1.6, g + 0.82, 0], e: 3, w: 1 });
+  const P0 = new THREE.Vector3(-0.8, g + 0.65, 0), P1 = new THREE.Vector3(0.75, g + 2.85, 0), ax = P1.clone().sub(P0), L = ax.length(), dir = ax.clone().normalize(), nrm = new THREE.Vector3(-dir.y, dir.x, 0);
+  const C = [[0.13, 0.1], [-0.13, 0.1], [0.13, -0.1], [-0.13, -0.1]].map(([zz, nn]) => t => P0.clone().addScaledVector(dir, t).addScaledVector(nrm, nn).add(new THREE.Vector3(0, 0, zz)).toArray());
+  C.forEach(c => rod(m, c(0), c(L), 0.014, { w: 2.2 }));
+  for (let k = 0; k < 16; k++) { const t0 = k / 16 * L, t1 = (k + 1) / 16 * L; [[0, 1], [2, 3], [0, 2], [1, 3]].forEach(([a, b]) => m.line(C[a](k % 2 ? t0 : t1), C[b](k % 2 ? t1 : t0), 1.3)); }
+  m.line([-1.6, g + 1.05, 0], P1.toArray(), 1.2).line([-1.6, g + 1.05, 0.05], [-0.6, g + 1.95, 0.05], 0.8);                        // pendant lines
+  const hook = [P1.x, g + 1.7, 0]; m.line(P1.toArray(), hook, 2.2).line([P1.x + 0.04, P1.y, 0], [hook[0] + 0.04, hook[1], 0], 2.2); m.add(box(0.12, 0.16, 0.08), { p: hook, e: 3, w: 2 });
+  // module: steel frame with piping inside, hanging over its pad
+  const mx = P1.x, my = g + 0.95, W = 1.0, H = 0.5, D = 0.7;
+  m.add(box(W, H, D), { p: [mx, my, 0], e: 5, w: 0 }); [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) => m.line(hook, [mx + a * W / 2, my + H / 2, b * D / 2], 1.6));
+  m.add(new THREE.PlaneGeometry(W, D), { p: [mx, my - H / 2, 0], r: UP, w: 0.3 });
+  [[-0.12, 0.06], [0.1, 0.05], [0.0, 0.04]].forEach(([zz, rr], k) => m.add(cyl(rr, W * 0.96, 14), { p: [mx, my - 0.12 + k * 0.13, zz * 2], r: AX }));
+  m.add(cyl(0.12, 0.3, 20), { p: [mx + 0.25, my - 0.08, 0.15] }); gateValve(m, [mx - 0.2, my + 0.14, 0.0], 'x', 0.035);
+  m.add(box(1.25, 0.06, 0.95), { p: [mx, g + 0.03, 0], e: 3, w: 0.8 }); [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) => m.add(cyl(0.012, 0.08, 6), { p: [mx + a * 0.45, g + 0.09, b * 0.3], w: 3 }));
+  // riggers on the tag lines
+  person(m, [1.75, g, 0.75], -2.2, 0.3); person(m, [-0.1, g, 0.95], 2.4, 0.3);
+  m.line([mx + W / 2, my - H / 2, D / 2], [1.68, g + 0.35, 0.7], 1.2).line([mx - W / 2, my - H / 2, D / 2], [-0.04, g + 0.35, 0.88], 1.2);
+  return { m, hot: { enter: [2.2, 0.7, 0], a: [0.7, 0.2, 0.6], b: [-1.6, -0.6, 0.6], c: [0.6, 1.4, 0] } };
+}
+
+/* ---------- Careers: the crew in front of the job trailer ---------- */
+function careers() {
+  const m = new Model(), g = -1.5, ty = g + 0.25, TW = 2.6, TH = 0.95, TD = 0.85, tz = -1.0;
+  m.add(box(TW, TH, TD), { p: [0, ty + TH / 2, tz], e: 4, w: 0.6 }).add(box(TW + 0.06, 0.04, TD + 0.06), { p: [0, ty + TH + 0.02, tz], e: 2.5 });
+  [-1.1, -0.4, 0.4, 1.1].forEach(x => m.add(box(0.14, 0.25, 0.14), { p: [x, g + 0.125, tz], e: 2 }));
+  const fz = tz + TD / 2 + 0.004, rect = (x, y, w, h) => m.poly([[x - w / 2, y - h / 2, fz], [x + w / 2, y - h / 2, fz], [x + w / 2, y + h / 2, fz], [x - w / 2, y + h / 2, fz]], 2, true);
+  [-0.95, -0.45, 0.55, 1.05].forEach(x => { rect(x, ty + 0.6, 0.34, 0.26); m.line([x, ty + 0.47, fz], [x, ty + 0.73, fz], 0.8); });
+  rect(0.05, ty + 0.4, 0.26, 0.66); m.add(box(0.5, 0.03, 0.3), { p: [0.05, ty + 0.0, fz + 0.18], e: 2 }); [0.08, 0.16].forEach((y, k) => m.add(box(0.4, 0.025, 0.12), { p: [0.05, g + y, fz + 0.38 + k * -0.1], e: 2 }));
+  m.add(box(0.7, 0.18, 0.02), { p: [-0.7, ty + 0.88 + 0.12, fz], e: 3, w: 2, t: 1 });                                     // company sign
+  // crew in a shallow arc (one welder, hood down), gang box
+  [[-1.4, 0.35, 0.35], [-0.7, 0.62, 0.15], [0, 0.72, 0], [0.7, 0.62, -0.15], [1.4, 0.35, -0.35]].forEach(([x, z, ry], k) => person(m, [x, g, z], ry, 0.36, k === 3));
+  m.add(box(0.6, 0.32, 0.36), { p: [1.85, g + 0.16, 0.9], e: 3, w: 1 }).add(box(0.62, 0.04, 0.38), { p: [1.85, g + 0.34, 0.9], e: 2 });
+  return { m, hot: { enter: [2.2, 0.6, 0], a: [0, 0.5, 0.7], b: [-1.2, 0.9, -1.0], c: [1.9, -0.6, 0.9] } };
+}
+
 export const CITIES = [['Port Lavaca', -96.63, 28.61, 1], ['Corpus Christi', -97.40, 27.80], ['Victoria', -97.00, 28.81], ['Freeport', -95.36, 28.95], ['Deer Park', -95.12, 29.70], ['Houston', -95.37, 29.76], ['Lake Charles', -93.22, 30.23], ['Baton Rouge', -91.15, 30.45], ['Mobile', -88.04, 30.69], ['Clarendon, Jamaica', -77.25, 17.95]];
 const PX = lon => (lon + 92) * 0.19, PY = lat => (lat - 27.2) * 0.19 * 1.13;
 // Jamaica is far off the Gulf Coast frame, so it is drawn as an enlarged inset in the Gulf
@@ -381,7 +464,7 @@ function gulfMap(N) {
   return { pos, tint, xf, state, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
 }
 
-const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility];
+const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility, safety, quality, experience, careers];
 export function buildAll(N) {
   const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
   const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, state: g.state, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
