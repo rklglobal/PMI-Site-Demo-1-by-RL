@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=39';
+import { buildAll, CITIES } from './models.js?v=40';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -158,9 +158,9 @@ const mat = new THREE.ShaderMaterial({
       float f = smoothstep(0.11, 0.0, length(d));
       gl_Position.xy += normalize(d + 1e-5) / vec2(uAspect, 1.0) * f * 0.045 * gl_Position.w;
       float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + clamp(vTint - 1.0, 0.0, 1.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0)) + spark * (0.15 + 0.7 * step(0.0, sin(uTime * (14.0 + aRnd.z * 20.0) + aRnd.x * 60.0)))) * uPix / -mv.z;
-      gl_PointSize = min(max(sz, uMin), uMin * 14.0);
+      gl_PointSize = min(max(sz, uMin), uMin * 9.0);
       float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
-      vA = (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
+      vA = smoothstep(1.0, 3.8, -mv.z) * (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
     }`,
   fragmentShader: `varying float vA; varying float vTint; varying float vR; uniform vec3 uInk; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(uInk, vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
@@ -339,6 +339,10 @@ function dock(h, now) {
   h.el.style.width = tw.toFixed(1) + 'px'; h.el.style.height = th + 'px'; h.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
   h.el.style.opacity = e > 0 ? 1 : 0; h.x = sx + tw / 2; h.y = top;
 }
+// Opening section: instead of a turntable the camera flies a loop through the process unit. The camera itself never moves;
+// the unit is scaled up, slid so the current point of the flight path sits at the pivot, and turned so the path runs into the screen.
+const TOUR = SH[0].tour ? new THREE.CatmullRomCurve3(SH[0].tour.map(q => new THREE.Vector3(...q)), true, 'centripetal') : null, TLEN = TOUR ? TOUR.getLength() : 1, TP = new THREE.Vector3(), TT = new THREE.Vector3();
+let tu = 0.02, tourAt = 0, tk = 0, lastCur = -9;
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -354,11 +358,20 @@ function frame() {
   camera.setViewOffset(innerWidth, innerHeight, -view.x, -view.y, innerWidth, innerHeight);
   const fly = mode === 'over' && !flat;
   zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
-  const fo = focus && flat ? focus : FO0; fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07;
-  const sc = view.s * zoom * fz; group.scale.setScalar(sc); U.uScale.value = view.s * zoom * Math.pow(fz, 0.6);
-  if (fly) ang += dt * 0.17;
+  if (cur !== lastCur) { lastCur = cur; if (cur === 0) tourAt = now; document.body.classList.toggle('tour', cur === 0); }
+  const fo = focus && flat ? focus : FO0, touring = !!TOUR && mode !== 'intro' && cur === 0 && now - tourAt > 1700; tk += ((touring ? 1 : 0) - tk) * 0.03;
+  let px = -fo.x, py = -fo.y, pz = 0, kz = fo.k, head = 0;
+  if (touring) {
+    tu = (tu + dt * 0.8 * SH[0].unit / TLEN) % 1; TOUR.getPointAt(tu, TP); TOUR.getTangentAt(tu, TT); px = -TP.x; py = -TP.y; pz = -TP.z; head = Math.atan2(TT.x, -TT.z);
+    const dist = Math.max(6.4, 4.6 * innerHeight / innerWidth) / (2 * Math.tan(camera.fov * Math.PI / 360));      // follow distance in plant units: the frame shows about 6.4 units of height, or 4.6 of width on a narrow phone
+    kz = camera.position.z / (dist * SH[0].unit) / (view.s * zoom);
+  }
+  const er = touring ? 0.03 : 0.07; fz += (kz - fz) * er; cloud.position.x += (px - cloud.position.x) * 0.07; cloud.position.y += (py - cloud.position.y) * 0.07; cloud.position.z += (pz - cloud.position.z) * 0.07;
+  const sc = view.s * zoom * fz; group.scale.setScalar(sc); U.uScale.value = Math.min(2.1 - 0.85 * tk, view.s * zoom * Math.pow(fz, 0.6));
+  if (touring) ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * 0.04;
+  else if (fly) ang += dt * 0.17;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
-  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36, 0, 0);
+  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36 - 0.17 * tk, 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
   hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else dock(h, now); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();

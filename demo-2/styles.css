@@ -357,3 +357,9 @@ body.dark .hot.tile.card span{color:#eef0f2}
 body.dark .hot.tile.card:hover span{color:#ff5a5f}
 @media (min-width:901px){.hot.tile.card{height:204px}.hot.tile.card figure>svg{width:42px;height:42px}.hot.tile.card>div{padding:12px 14px 13px}.hot.tile.card em{font-size:.56rem}.hot.tile.card span{font-size:1.6rem}.hot.tile.card small{font-size:.58rem}}
 @media (min-width:901px) and (max-width:1180px){body.detail .copy .lead,body.detail .copy ul{max-width:min(100%,calc(100vw - 3 * 150px - 190px));transition:max-width .4s}}
+
+/* fly-through section: the scene fills the screen, so the text gets a soft backing to stay readable */
+.copy::before{content:"";position:absolute;inset:-34px -70px -30px -90px;z-index:-1;background:radial-gradient(closest-side,rgba(246,247,248,.94) 58%,rgba(246,247,248,0));opacity:0;transition:opacity .8s;pointer-events:none}
+body.dark .copy::before{background:radial-gradient(closest-side,rgba(11,12,14,.94) 58%,rgba(11,12,14,0))}
+body.tour:not(.intro-on) .copy::before{opacity:1}
+@media (max-width:900px){.copy::before{inset:-26px -40px -150px -40px;background:linear-gradient(180deg,rgba(246,247,248,0),rgba(246,247,248,.92) 22%)}body.dark .copy::before{background:linear-gradient(180deg,rgba(11,12,14,0),rgba(11,12,14,.92) 22%)}}

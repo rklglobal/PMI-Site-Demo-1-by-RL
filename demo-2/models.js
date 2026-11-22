@@ -543,9 +543,78 @@ function gulfMap(N) {
   return { pos, tint, xf, state, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
 }
 
-const BUILDERS = [refinery, mechanical, civilWork, softCraft, cleaning, pipeline, facility, safety, quality, experience, careers];
+/* ---------- full process unit for the opening section: flown through, not turned on a turntable ---------- */
+function plant() {
+  const m = new Model(), g = 0, W = 0.55;
+  // paving grid and battery limit
+  for (let x = -7; x <= 7.01; x += 1) m.line([x, g, -5], [x, g, 5], 0.45); for (let z = -5; z <= 5.01; z += 1) m.line([-7, g, z], [7, g, z], 0.45);
+  m.poly([[-7, g, -5], [7, g, -5], [7, g, 5], [-7, g, 5]], 1.6, true);
+  // ---- central pipe rack, two tiers, running the length of the unit
+  for (let x = -6; x <= 6.01; x += 1) {
+    [-0.45, 0.45].forEach(z => m.add(box(0.06, 1.75, 0.06), { p: [x, g + 0.875, z], e: 1.6, w: 0.5 }));
+    [1.0, 1.6].forEach(y => m.add(box(0.05, 0.06, 0.96), { p: [x, g + y, 0], e: 1.6, w: 0.5 }));
+    if (x < 5.9 && Math.round(x) % 2 === 0) [-0.45, 0.45].forEach(z => { m.line([x, g, z], [x + 1, g + 1.0, z], 0.7); m.line([x + 1, g, z], [x, g + 1.0, z], 0.7); });
+  }
+  [1.0, 1.6, 1.75].forEach(y => [-0.45, 0.45].forEach(z => m.line([-6, g + y, z], [6, g + y, z], 1.6)));
+  [[-0.36, 0.05], [-0.22, 0.07], [-0.05, 0.045], [0.1, 0.06], [0.26, 0.04], [0.37, 0.05]].forEach(([z, r]) => m.add(cyl(r, 12, 12), { p: [0, g + 1.03 + r, z], r: AX, w: W }));
+  [[-0.34, 0.06], [-0.16, 0.04], [0.02, 0.08], [0.22, 0.05], [0.36, 0.04]].forEach(([z, r]) => m.add(cyl(r, 12, 12), { p: [0, g + 1.63 + r, z], r: AX, w: W }));
+  for (let x = -5.5; x <= 5.6; x += 1) m.add(tor(0.085, 0.012), { p: [x, g + 1.71, 0.02], r: [0, PI / 2, 0], w: 2 });      // weld / support rings on the big header
+  m.add(pipeGeo([[-0.9, g + 1.69, 0.22], [-0.9, g + 2.15, 0.22], [-0.9, g + 2.15, -0.3], [0.0, g + 2.15, -0.3], [0.0, g + 2.15, 0.22], [0.0, g + 1.69, 0.22]], 0.05, 0.14), { w: 1 });      // expansion loop
+  // fin-fan air coolers on top of the rack
+  m.add(box(3.2, 0.2, 1.15), { p: [2.7, g + 2.2, 0], e: 3, w: 0.35 }); [1.3, 2.0, 2.7, 3.4, 4.1].forEach(x => { [-0.5, 0.5].forEach(z => m.line([x, g + 1.75, z], [x, g + 2.1, z], 1.4)); });
+  [1.7, 2.7, 3.7].forEach(x => { m.add(tor(0.36, 0.012), { p: [x, g + 2.07, 0], r: UP, w: 2.5 }).add(cyl(0.36, 0.08, 28), { p: [x, g + 2.06, 0], w: 0.8 }); for (let k = 0; k < 4; k++) { const a = k * PI / 4; m.line([x - Math.cos(a) * 0.34, g + 2.04, -Math.sin(a) * 0.34], [x + Math.cos(a) * 0.34, g + 2.04, Math.sin(a) * 0.34], 0.9); } });
+  for (let x = 1.2; x <= 4.21; x += 0.2) m.line([x, g + 2.31, -0.55], [x, g + 2.31, 0.55], 0.35);
+  const branch = (x, y, zEq, yEq, r, side) => m.add(pipeGeo([[x, g + y, side * 0.3], [x, g + y, zEq], [x, g + yEq, zEq]], r, 0.13), { w: 1 });
+  const hvessel = (x, y, z, L, r) => { m.add(cyl(r, L, 30), { p: [x, g + y, z], r: AX, w: 0.8 }); [-1, 1].forEach(sg => m.add(sph(r), { p: [x + sg * L / 2, g + y, z], s: [0.45, 1, 1], w: 0.8 })); [-0.3, 0.3].forEach(o => { m.add(box(0.07, y - r * 0.6, r * 1.5), { p: [x + o * L, g + (y - r * 0.6) / 2, z], e: 2, w: 0.6 }); m.add(tor(r + 0.004, 0.006), { p: [x + o * L, g + y, z], r: [0, PI / 2, 0], w: 2 }); }); };
+  // ================= south row (z > 0) =================
+  column(m, -4.8, 3.0, 0.36, g, 3.6, [g + 1.2, g + 2.1, g + 3.0]);      // crude column and its overhead line
+  m.add(pipeGeo([[-4.8, g + 4.05, 3.0], [-4.8, g + 4.3, 3.0], [-4.15, g + 4.3, 3.0], [-4.15, g + 1.69, 3.0], [-4.15, g + 1.69, 0.3]], 0.06, 0.18), { w: 1.1 });
+  column(m, -3.3, 3.15, 0.25, g, 2.6, [g + 1.1, g + 2.0]);
+  m.add(pipeGeo([[-3.3, g + 3.0, 3.15], [-3.3, g + 3.2, 3.15], [-2.85, g + 3.2, 3.15], [-2.85, g + 1.09, 3.15], [-2.85, g + 1.09, 0.3]], 0.045, 0.14), { w: 1.1 });
+  hvessel(-1.5, 0.78, 3.0, 1.5, 0.3); branch(-1.5, 1.68, 3.0, 1.08, 0.04, 1); m.add(cyl(0.09, 0.3, 14), { p: [-1.1, g + 0.4, 3.0], w: 1 });      // overhead drum with boot
+  [0.45, 0.95].forEach(y => { hvessel(0.3, y, 2.9, 1.3, 0.2); flange(m, [-0.25, g + y, 2.9], 'x', 0.125); flange(m, [0.85, g + y, 2.9], 'x', 0.125); }); branch(0.1, 1.68, 2.9, 1.15, 0.04, 1); branch(0.55, 1.08, 2.55, 0.5, 0.035, 1);   // stacked exchangers
+  // fired heater with stack
+  m.push([2.2, 0, 3.1]); [[-0.45, -0.4], [0.45, -0.4], [0.45, 0.4], [-0.45, 0.4]].forEach(([x, z]) => m.add(box(0.07, 0.32, 0.07), { p: [x, g + 0.16, z], e: 1.5, w: 0.6 }));
+  m.add(box(1.0, 1.1, 0.9), { p: [0, g + 0.87, 0], e: 3.5, w: 0.3 }).add(box(0.62, 0.45, 0.62), { p: [0, g + 1.65, 0], e: 3, w: 0.4 }).add(cyl(0.13, 2.3, 22), { p: [0, g + 3.0, 0], w: 0.9 }).add(cyl(0.2, 0.3, 22, true, 0.13), { p: [0, g + 1.99, 0], w: 1 }).add(tor(0.135, 0.01), { p: [0, g + 4.15, 0], r: UP, w: 3 });
+  [1.2, 2.6, 3.6].forEach(y => m.add(tor(0.134, 0.006), { p: [0, g + y + 0.9, 0], r: UP, w: 2 })); for (let k = 0; k < 4; k++) m.add(cyl(0.05, 0.14, 10), { p: [-0.3 + k * 0.2, g + 0.26, 0], w: 1.5 });
+  [0.6, 0.9, 1.2].forEach(y => m.poly([[-0.5, g + y, 0.455], [0.5, g + y, 0.455]], 0.6)); m.pop(); rod(m, [2.2, g + 1.69, 2.65], [2.2, g + 1.69, 0.3], 0.05, { w: 1 });
+  // reactor in its structure
+  column(m, 4.0, 3.1, 0.4, g, 1.9, [g + 1.35]); m.push([4.0, 0, 3.1]); [[-0.68, -0.68], [0.68, -0.68], [0.68, 0.68], [-0.68, 0.68]].forEach(([x, z], i, A) => { m.add(box(0.06, 2.7, 0.06), { p: [x, g + 1.35, z], e: 1.6, w: 0.5 }); const n = A[(i + 1) % 4]; [1.35, 2.7].forEach(y => m.line([x, g + y, z], [n[0], g + y, n[1]], 1.6)); m.line([x, g, z], [n[0], g + 1.35, n[1]], 0.7); }); m.pop();
+  branch(4.0, 1.68, 2.35, 2.2, 0.05, 1);
+  // compressor shelter
+  m.push([5.7, 0, 3.2]); [[-0.75, -0.5], [0.75, -0.5], [0.75, 0.5], [-0.75, 0.5]].forEach(([x, z]) => m.add(box(0.06, 1.3, 0.06), { p: [x, g + 0.65, z], e: 1.5, w: 0.6 }));
+  [-1, 1].forEach(sg => m.add(box(1.7, 0.03, 0.66), { p: [0, g + 1.47, sg * 0.29], r: [sg * 0.5, 0, 0], e: 2.5, w: 0.5 })); m.poly([[-0.75, g + 1.3, -0.5], [0.75, g + 1.3, -0.5], [0.75, g + 1.3, 0.5], [-0.75, g + 1.3, 0.5]], 1.4, true);
+  m.add(cyl(0.2, 0.8, 22), { p: [0, g + 0.42, 0], r: AX, w: 1 }).add(box(0.9, 0.12, 0.5), { p: [0, g + 0.1, 0], e: 2, w: 0.6 }); [-0.3, 0.3].forEach(x => m.add(cyl(0.1, 0.5, 14), { p: [x, g + 0.42, 0.3], r: AZ, w: 1.2 })); m.add(cyl(0.16, 0.4, 18), { p: [0.62, g + 0.42, 0], r: AX, w: 1 }); m.pop();
+  // pumps along the rack, each with suction / discharge up to the rack and a block valve
+  [-4, -1, 2, 5].forEach(x => { m.add(box(0.46, 0.05, 0.22), { p: [x, g + 0.03, 0.95], e: 2, w: 0.8 }).add(cyl(0.085, 0.24, 14), { p: [x - 0.1, g + 0.17, 0.95], r: AX, w: 1.4 }).add(sph(0.09), { p: [x + 0.12, g + 0.17, 0.95], s: [0.6, 1, 1], w: 1.6 }); m.add(pipeGeo([[x + 0.12, g + 0.26, 0.95], [x + 0.12, g + 1.09, 0.95], [x + 0.12, g + 1.09, 0.38]], 0.03, 0.09), { w: 1.2 }); gateValve(m, [x + 0.12, g + 0.62, 0.95], 'x', 0.022); });
+  // ================= north row (z < 0) =================
+  const sphereTank = (x, z, Rr) => { const cy = g + Rr + 0.5; m.push([x, 0, z]); m.add(sph(Rr), { p: [0, cy, 0], w: 0.45 }).add(tor(Rr + 0.003, 0.007), { p: [0, cy, 0], r: UP, w: 2 }).add(tor(Rr * 0.3, 0.007), { p: [0, cy + Rr + 0.09, 0], r: UP, w: 3 }).add(ring(0, Rr * 0.3), { p: [0, cy + Rr - 0.02, 0], r: UP, w: 1.5 });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * PI * 2, b = (k + 1) / 8 * PI * 2, lx = Math.cos(a) * Rr * 0.9, lz = Math.sin(a) * Rr * 0.9; rod(m, [lx, g, lz], [lx, cy, lz], 0.028, { w: 1.4 }); m.line([lx, g, lz], [Math.cos(b) * Rr * 0.9, g + 0.5, Math.sin(b) * Rr * 0.9], 0.8); m.line([lx, g + 0.5, lz], [Math.cos(b) * Rr * 0.9, g, Math.sin(b) * Rr * 0.9], 0.8); }
+    const st = []; for (let k = 0; k <= 24; k++) { const a = -0.4 + k / 24 * 1.9, y = g + (cy + Rr * 0.75 - g) * k / 24, rr = Math.max(Rr * 0.9, Math.sqrt(Math.max(0, Rr * Rr - (y - cy) * (y - cy))) + 0.06); st.push([Math.cos(a) * rr, y, Math.sin(a) * rr]); } m.poly(st, 2).poly(st.map(q => [q[0], q[1] + 0.12, q[2]]), 1.5); m.pop(); };
+  sphereTank(4.9, -3.3, 0.6); sphereTank(3.3, -3.3, 0.6); m.add(pipeGeo([[3.3, g + 0.35, -3.3], [3.3, g + 0.35, -2.4], [4.9, g + 0.35, -2.4], [4.9, g + 0.35, -3.3]], 0.04, 0.12), { w: 1 }); m.add(pipeGeo([[4.1, g + 0.35, -2.4], [4.1, g + 1.09, -2.4], [4.1, g + 1.09, -0.3]], 0.04, 0.12), { w: 1 });
+  const tank = (x, z, r, h) => { m.push([x, 0, z]); m.add(cyl(r, h, 48), { p: [0, g + h / 2, 0], w: 0.4 }).add(new THREE.ConeGeometry(r + 0.01, 0.14, 48, 1, true), { p: [0, g + h + 0.07, 0], w: 0.5 }).add(tor(r, 0.009), { p: [0, g + h, 0], r: UP, w: 2.5 }); [0.08, 0.15].forEach(o => m.add(tor(r, 0.005), { p: [0, g + h + o, 0], r: UP, w: 3 })); [0.33, 0.66].forEach(o => m.add(tor(r + 0.002, 0.004), { p: [0, g + h * o, 0], r: UP, w: 1.5 }));
+    for (let k = 0; k < 20; k++) { const a = k / 20 * PI * 2; m.line([Math.cos(a) * r, g + h, Math.sin(a) * r], [Math.cos(a) * r, g + h + 0.15, Math.sin(a) * r], 1); }
+    const hx = []; for (let k = 0; k <= 30; k++) { const a = 0.5 + 1.5 * k / 30; hx.push([Math.cos(a) * (r + 0.06), g + h * k / 30, Math.sin(a) * (r + 0.06)]); } m.poly(hx, 2.5).poly(hx.map(q => [q[0], q[1] + 0.13, q[2]]), 2); m.add(cyl(0.05, 0.3, 12), { p: [0, g + 0.2, r + 0.14], r: AZ, w: 1.5 }); m.pop(); };
+  tank(1.1, -3.4, 0.85, 1.15); tank(-0.9, -3.4, 0.85, 1.15); m.poly([[2.25, g + 0.12, -4.55], [-2.05, g + 0.12, -4.55], [-2.05, g + 0.12, -2.25], [2.25, g + 0.12, -2.25]], 2.2, true);      // dike wall
+  m.add(pipeGeo([[1.1, g + 0.2, -2.4], [1.1, g + 0.2, -1.9], [0.1, g + 0.2, -1.9], [0.1, g + 1.09, -1.9], [0.1, g + 1.09, -0.3]], 0.045, 0.13), { w: 1 }); rod(m, [-0.9, g + 0.2, -2.4], [-0.9, g + 0.2, -1.9], 0.045, { w: 1 }); rod(m, [-0.9, g + 0.2, -1.9], [0.1, g + 0.2, -1.9], 0.045, { w: 1 });
+  [-2.75, -3.3, -3.85].forEach(z => hvessel(-3.3, 0.5, z, 1.7, 0.21)); m.add(pipeGeo([[-3.3, g + 0.71, -3.85], [-3.3, g + 0.95, -3.85], [-3.3, g + 0.95, -2.0], [-3.3, g + 1.68, -2.0], [-3.3, g + 1.68, -0.3]], 0.035, 0.1), { w: 1.1 });   // LPG bullets
+  // cooling tower
+  m.push([-5.3, 0, -3.4]); m.add(box(1.9, 1.0, 1.15), { p: [0, g + 0.6, 0], e: 3.5, w: 0.25 }).add(box(2.05, 0.1, 1.3), { p: [0, g + 0.05, 0], e: 2.5, w: 0.4 }); for (let y = 0.2; y < 1.05; y += 0.1) { m.line([-0.95, g + y, 0.58], [0.95, g + y, 0.58], 0.6); m.line([-0.95, g + y, -0.58], [0.95, g + y, -0.58], 0.6); }
+  [-0.47, 0.47].forEach(x => { m.add(cyl(0.3, 0.36, 26, true, 0.37), { p: [x, g + 1.28, 0], w: 1 }).add(tor(0.37, 0.008), { p: [x, g + 1.46, 0], r: UP, w: 2.5 }); for (let k = 0; k < 3; k++) { const a = k * PI / 3; m.line([x - Math.cos(a) * 0.3, g + 1.2, -Math.sin(a) * 0.3], [x + Math.cos(a) * 0.3, g + 1.2, Math.sin(a) * 0.3], 0.9); } }); m.pop();
+  m.add(pipeGeo([[-5.3, g + 0.3, -2.8], [-5.3, g + 0.3, -1.6], [-5.3, g + 1.09, -1.6], [-5.3, g + 1.09, -0.3]], 0.06, 0.15), { w: 1 });
+  // flare stack in the corner
+  rod(m, [-6.3, g, -4.4], [-6.3, g + 4.9, -4.4], 0.045, { w: 1.5 }); m.add(cyl(0.07, 0.24, 12), { p: [-6.3, g + 5.0, -4.4], w: 1.5 }); [0.4, 2.5, 4.6].forEach(a => m.line([-6.3, g + 3.3, -4.4], [-6.3 + Math.cos(a) * 1.6, g, -4.4 + Math.sin(a) * 1.6], 0.7));
+  m.add(sph(0.14), { p: [-6.27, g + 5.3, -4.4], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.07), { p: [-6.24, g + 5.56, -4.4], s: [1, 2.4, 1], w: 5, t: 1 });
+  m.add(pipeGeo([[-6.3, g + 0.25, -4.4], [-6.3, g + 0.25, -0.2], [-6.0, g + 0.25, -0.2]], 0.05, 0.14), { w: 0.9 });
+  // crew
+  [[-2.6, 1.5, 1.2], [1.2, 1.35, -0.6], [3.2, 2.1, 2.6], [0.3, -1.5, 0.4], [-4.4, -1.9, 2.0]].forEach(([x, z, ry]) => person(m, [x, g, z], ry, 0.27));
+  // flight path: east down the south aisle, around the end, back west along the tank farm, around the flare end
+  const tour = [[-5.6, 1.85], [-3.6, 1.8], [-1.6, 1.8], [0.4, 1.8], [2.4, 1.8], [4.4, 1.8], [6.1, 1.6], [7.2, 0.4], [6.6, -1.3], [5.0, -1.9], [3.0, -1.85], [1.0, -1.75], [-1.0, -1.75], [-3.0, -1.8], [-5.0, -1.8], [-6.5, -1.5], [-7.4, 0.0], [-6.7, 1.5]].map(([x, z], i) => [x, g + 0.95 + 0.18 * Math.sin(i * 1.3), z]);
+  return { m, tour, noGround: true, hot: { enter: [2.2, 0.2, 0], a: [-0.8, 0.5, 0.4], b: [0, 0.3, 0], c: [0.8, 0.5, -0.4] } };
+}
+const BUILDERS = [plant, mechanical, civilWork, softCraft, cleaning, pipeline, facility, safety, quality, experience, careers];
 export function buildAll(N) {
-  const out = BUILDERS.map(fn => { const { m, hot } = fn(), b = m.ground().build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H }; });
+  const out = BUILDERS.map(fn => { const { m, hot, tour, noGround } = fn(), b = (noGround ? m : m.ground()).build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H, tour: tour && tour.map(b.xf), unit: b.xf([1, 0, 0])[0] - b.xf([0, 0, 0])[0] }; });
   const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, state: g.state, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
   return out;
 }
