@@ -2,7 +2,7 @@
 // Bed: chill lounge (electric-piano chords, round bass, soft kick and rim, sparse melody).
 // UI: soft airy ticks, short glides and low thumps (no pure-tone beeps).
 // To use a recorded track instead of the generated one, put the file in this folder and set its name here (e.g. 'music.mp3').
-const MUSIC_FILE = 'music.mp3'; // "Rust & Neon" by Ross Landry
+const MUSIC_FILE = 'pmi-demo-1.mp3'; // "PMI - Demo 1", supplied by Ross Landry
 export class Snd {
   constructor() { this.ctx = null; this.on = true; }
   start() {
