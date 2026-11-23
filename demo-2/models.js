@@ -425,9 +425,9 @@ function worker(m, base, ry, J) {
   return m.pop();
 }
 // text drawn into particles: render to a canvas, turn each row of lit pixels into a short line segment
-function text(m, str, cx, cy, z, h, t = 0, w = 1, font = '900 100px Impact, "Arial Black", sans-serif') {
+function text(m, str, cx, cy, z, h, t = 0, w = 1, font = '900 100px Impact, "Arial Black", sans-serif', maxW = 0) {      // maxW: shrink to fit a board whatever font the device falls back to
   const c = document.createElement('canvas'), x = c.getContext('2d'); x.font = font; const tw = Math.ceil(x.measureText(str).width) + 8; c.width = tw; c.height = 120;
-  x.font = font; x.fillStyle = '#000'; x.textBaseline = 'middle'; x.fillText(str, 4, 62); const d = x.getImageData(0, 0, tw, 120).data, k = h / 100;
+  x.font = font; x.fillStyle = '#000'; x.textBaseline = 'middle'; x.fillText(str, 4, 62); const d = x.getImageData(0, 0, tw, 120).data, k = maxW ? Math.min(h / 100, maxW / tw) : h / 100;
   for (let yy = 0; yy < 120; yy += 2) { let run = -1; for (let xx = 0; xx <= tw; xx++) { const on = xx < tw && d[(yy * tw + xx) * 4 + 3] > 128; if (on && run < 0) run = xx; if (!on && run >= 0) { m.line([cx + (run - tw / 2) * k, cy + (62 - yy) * k, z], [cx + (xx - tw / 2) * k, cy + (62 - yy) * k, z], w, t); run = -1; } } }
 }
 /* ---------- Safety: pre-job toolbox talk at the SAFETY FIRST board ---------- */
@@ -437,8 +437,8 @@ function safety() {
   [-1.35, 1.35].forEach(x => { rod(m, [x, g, bz - 0.04], [x, by + BH / 2, bz - 0.04], 0.045, { w: 2 }); m.add(box(0.22, 0.04, 0.22), { p: [x, g + 0.02, bz - 0.04], e: 2 }); });
   m.add(box(BW, BH, 0.05), { p: [0, by, bz - 0.06], e: 4, w: 0.12 });
   m.poly([[-BW / 2 + 0.06, by - BH / 2 + 0.06, bz - 0.03], [BW / 2 - 0.06, by - BH / 2 + 0.06, bz - 0.03], [BW / 2 - 0.06, by + BH / 2 - 0.06, bz - 0.03], [-BW / 2 + 0.06, by + BH / 2 - 0.06, bz - 0.03]], 5, true, 1);
-  text(m, 'SAFETY', 0, by + 0.26, bz - 0.025, 0.62, 1, 1.25);
-  text(m, 'FIRST', 0, by - 0.33, bz - 0.025, 0.5, 0, 1.25);
+  text(m, 'SAFETY', 0, by + 0.26, bz - 0.025, 0.62, 1, 1.25, undefined, 2.8);
+  text(m, 'FIRST', 0, by - 0.33, bz - 0.025, 0.5, 0, 1.25, undefined, 2.8);
   // foreman beside the board pointing at it, crew of five in a half circle listening: hard hats, glasses
   const plain = { suit: 0, muffs: false };
   worker(m, [1.95, g, bz + 0.35], -0.5, { ...plain, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.12, 0.48, 0.02], footL: [-0.14, 0.06, 0], kneeR: [0.12, 0.48, 0.02], footR: [0.14, 0.06, 0],
@@ -507,7 +507,7 @@ function careers() {
   [-1.6, 1.6].forEach(x => { rod(m, [x, g, bz], [x, by + BH / 2, bz], 0.04, { w: 2 }); m.add(box(0.22, 0.04, 0.22), { p: [x, g + 0.02, bz], e: 2 }); });
   m.add(box(BW, BH, 0.04), { p: [0, by, bz], e: 4, w: 0.1 });
   m.poly([[-BW / 2 + 0.05, by - BH / 2 + 0.05, bz + 0.03], [BW / 2 - 0.05, by - BH / 2 + 0.05, bz + 0.03], [BW / 2 - 0.05, by + BH / 2 - 0.05, bz + 0.03], [-BW / 2 + 0.05, by + BH / 2 - 0.05, bz + 0.03]], 5, true, 1);
-  text(m, 'JOIN THE TEAM', 0, by - 0.01, bz + 0.035, 0.4, 1, 1.25);
+  text(m, 'JOIN THE TEAM', 0, by - 0.01, bz + 0.035, 0.4, 1, 1.25, undefined, 3.1);
   const legs = { hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.13, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.13, 0.06, 0], chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], shR: [0.2, 1.42, 0], head: [0, 1.62, 0.02], muffs: false };
   const down = { elL: [-0.23, 1.14, 0.02], hdL: [-0.18, 0.92, 0.06] }, shake = { elR: [0.17, 1.2, 0.2], hdR: [0.02, 1.06, 0.43] };
   worker(m, [-0.43, g, 0.55], PI / 2, { ...legs, ...down, ...shake, suit: 0 });                                   // foreman
@@ -698,7 +698,8 @@ export function makeTour(m, way, cs, step = 0.5) {
     const i = order[lo], j = i * 9; let u = R(), w = R(); if (i >= nTri) w = 0; else if (u + w > 1) { u = 1 - u; w = 1 - w; } const q = 1 - u - w;
     out[o] = (Gf[j] * q + Gf[j + 3] * u + Gf[j + 6] * w - cx) * sc; out[o + 1] = (Gf[j + 1] * q + Gf[j + 4] * u + Gf[j + 7] * w - cy) * sc; out[o + 2] = (Gf[j + 2] * q + Gf[j + 5] * u + Gf[j + 8] * w - cz) * sc; return Tf[i]; };
   const fit = Q => { for (let i = 0; i < Q.length; i += 3) { Q[i] = (Q[i] - cx) * sc; Q[i + 1] = (Q[i + 1] - cy) * sc; Q[i + 2] = (Q[i + 2] - cz) * sc; } return Q; };
-  return { K, len, P: fit(P), D, W, sample, unit: sc, wire: fit(new Float32Array(m.S)) };
+  const wt = new Float32Array(m.ST.length * 2); for (let i = 0; i < m.ST.length; i++) wt[i * 2] = wt[i * 2 + 1] = m.ST[i];
+  return { K, len, P: fit(P), D, W, sample, unit: sc, wire: fit(new Float32Array(m.S)), wireTint: wt };
 }
 const BUILDERS = [plant, mechanical, civilWork, softCraft, cleaning, pipeline, facility, safety, quality, experience, careers];
 export function buildAll(N) {

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=43';
+import { buildAll, CITIES } from './models.js?v=46';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -347,9 +347,9 @@ function dock(h, now) {
 // outline (a particle cloud alone turns to scattered dots at arm's length) and it shows the rest of the plant into the distance.
 const WU = { uInk: U.uInk, uWire: { value: 0 } };
 const wireMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms: WU, transparent: true, depthWrite: false,
-  vertexShader: `uniform float uWire; varying float vA; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 10.0, 0.0, 1.0); vA = uWire * smoothstep(0.12, 0.7, -mv.z) * mix(0.8, 0.2, sqrt(d)) * mix(1.0, 0.22, clamp((-mv.z - 12.0) / 34.0, 0.0, 1.0)); }`,      // far units fade off into the distance
-  fragmentShader: `uniform vec3 uInk; varying float vA; void main(){ gl_FragColor = vec4(uInk, vA); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
-let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); } }, 3400);
+  vertexShader: `uniform float uWire; attribute float aTint; varying float vA; varying float vT; void main(){ vT = aTint; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 10.0, 0.0, 1.0); vA = uWire * smoothstep(0.12, 0.7, -mv.z) * mix(0.8, 0.2, sqrt(d)) * mix(1.0, 0.22, clamp((-mv.z - 12.0) / 34.0, 0.0, 1.0)); }`,      // far units fade off into the distance
+  fragmentShader: `uniform vec3 uInk; varying float vA; varying float vT; void main(){ float r = step(0.5, vT) * step(vT, 1.5); gl_FragColor = vec4(mix(uInk, vec3(0.89, 0.12, 0.14), r), min(1.0, vA * (1.0 + r))); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
+let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); wireMesh.geometry.setAttribute('aTint', new THREE.BufferAttribute(TOUR.wireTint, 1)); } }, 3400);
 const WN = 15, pslab = new Int16Array(N), TC = new THREE.Vector3(), TD = new THREE.Vector3(), TG = new THREE.Vector3();
 let tu = 0, tourAt = 0, tk = 0, lastCur = -9, phase = 0, tourT0 = 0, cursor = 0;
 const pickFar = k0 => { const K = TOUR.K, a = (k0 + WN - 2) % K, b = (k0 + WN - 1) % K, c = (k0 + WN) % K, r = R() * (TOUR.W[a] + TOUR.W[b] + TOUR.W[c]); return r < TOUR.W[a] ? a : r < TOUR.W[a] + TOUR.W[b] ? b : c; };
