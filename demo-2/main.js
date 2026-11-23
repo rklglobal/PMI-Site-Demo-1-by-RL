@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=41';
+import { buildAll, CITIES } from './models.js?v=42';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -347,7 +347,7 @@ function dock(h, now) {
 // outline (a particle cloud alone turns to scattered dots at arm's length) and it shows the rest of the plant into the distance.
 const WU = { uInk: U.uInk, uWire: { value: 0 } };
 const wireMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms: WU, transparent: true, depthWrite: false,
-  vertexShader: `uniform float uWire; varying float vA; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 9.0, 0.0, 1.0); vA = uWire * smoothstep(0.12, 0.7, -mv.z) * mix(0.8, 0.13, sqrt(d)); }`,
+  vertexShader: `uniform float uWire; varying float vA; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 10.0, 0.0, 1.0); vA = uWire * smoothstep(0.12, 0.7, -mv.z) * mix(0.8, 0.2, sqrt(d)) * mix(1.0, 0.22, clamp((-mv.z - 12.0) / 34.0, 0.0, 1.0)); }`,      // far units fade off into the distance
   fragmentShader: `uniform vec3 uInk; varying float vA; void main(){ gl_FragColor = vec4(uInk, vA); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
 let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); } }, 3400);
 const WN = 15, pslab = new Int16Array(N), TC = new THREE.Vector3(), TD = new THREE.Vector3(), TG = new THREE.Vector3();
@@ -387,14 +387,17 @@ function frame() {
     tu = (tu + dt * 1.5 * easeO(Math.min(1, (now - tourT0) / 3200)) / TOUR.len) % 1;
     const K = TOUR.K, kf = tu * K, k0 = Math.floor(kf) % K, k1 = (k0 + 1) % K, f = kf - Math.floor(kf), P = TOUR.P, D = TOUR.D;
     TC.set(P[k0 * 3] + (P[k1 * 3] - P[k0 * 3]) * f, P[k0 * 3 + 1] + (P[k1 * 3 + 1] - P[k0 * 3 + 1]) * f, P[k0 * 3 + 2] + (P[k1 * 3 + 2] - P[k0 * 3 + 2]) * f);
-    TD.set(D[k0 * 3] + (D[k1 * 3] - D[k0 * 3]) * f, 0, D[k0 * 3 + 2] + (D[k1 * 3 + 2] - D[k0 * 3 + 2]) * f).normalize();
+    // look where the path is going about two units ahead rather than along the instantaneous tangent, and ease the turn: the eye
+    // stays exactly on the path while the view swings through corners smoothly
+    { const la = ((tu + 2.2 / TOUR.len) % 1) * K, a0 = Math.floor(la) % K, a1 = (a0 + 1) % K, af = la - Math.floor(la), hx = P[a0 * 3] + (P[a1 * 3] - P[a0 * 3]) * af - TC.x, hz = P[a0 * 3 + 2] + (P[a1 * 3 + 2] - P[a0 * 3 + 2]) * af - TC.z, head = Math.atan2(hx, -hz);
+      ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * (0.03 + 0.035 * te); }
+    TD.set(Math.sin(ang), 0, -Math.cos(ang));
     TG.copy(TC).addScaledVector(TD, camera.position.z * TOUR.unit).negate();      // model offset that puts the eye point at the camera
     if (!morph.on) conveyor(k0);
   }
   const fo = focus && flat ? focus : FO0; let sc;
   if (tk > 0.002) {
     sc = view.s * zoom + (1 / (TOUR ? TOUR.unit : 1) - view.s * zoom) * te; fz = 1; cloud.position.set(TG.x * te, TG.y * te, TG.z * te);
-    if (flying) { const head = Math.atan2(TD.x, -TD.z); ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * (0.05 + 0.3 * te); }
     U.uScale.value = view.s * zoom + (0.8 - view.s * zoom) * te;
   } else {
     fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07; cloud.position.z += (0 - cloud.position.z) * 0.07;
