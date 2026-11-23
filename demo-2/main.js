@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=42';
+import { buildAll, CITIES } from './models.js?v=43';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -160,7 +160,7 @@ const mat = new THREE.ShaderMaterial({
       float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + clamp(vTint - 1.0, 0.0, 1.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0)) + spark * (0.15 + 0.7 * step(0.0, sin(uTime * (14.0 + aRnd.z * 20.0) + aRnd.x * 60.0)))) * uPix / -mv.z;
       gl_PointSize = min(max(sz, uMin), uMin * mix(9.0, 2.0, uTour));      // near objects stay fine-grained in the fly-through
       float depth = clamp((-mv.z - mix(5.4, 2.6, uTour)) / mix(3.6, 4.6, uTour), 0.0, 1.0);      // fly-through: haze builds over the stretch of plant ahead, so new detail arrives already faded
-      vA = smoothstep(mix(1.0, 0.35, uTour), mix(3.8, 2.0, uTour), -mv.z) * (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
+      vA = smoothstep(mix(1.0, 0.35, uTour), mix(3.8, 1.2, uTour), -mv.z) * (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
     }`,
   fragmentShader: `varying float vA; varying float vTint; varying float vR; uniform vec3 uInk; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(uInk, vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
@@ -362,7 +362,7 @@ function startTour(now) {
 }
 function conveyor(k0) {
   const A = geo.attributes, to = A.aTo.array, t1 = A.aT1.array, K = TOUR.K, M = Math.ceil(N / 24), end = Math.min(N, cursor + M);
-  for (let i = cursor; i < end; i++) { const sl = pslab[i]; if (sl < 0) continue; const d = (sl - k0 + K) % K; if (d <= WN || d >= K - 1) continue; const k = pickFar(k0), t = TOUR.sample(k, to, i * 3); if (t >= 0) t1[i] = t; pslab[i] = k; }
+  for (let i = cursor; i < end; i++) { const sl = pslab[i]; if (sl < 0) continue; const d = (sl - k0 + K) % K; if (d <= WN || d >= K - 4) continue; const k = pickFar(k0), t = TOUR.sample(k, to, i * 3); if (t >= 0) t1[i] = t; pslab[i] = k; }
   A.aTo.addUpdateRange(cursor * 3, (end - cursor) * 3); A.aTo.needsUpdate = true; A.aT1.addUpdateRange(cursor, end - cursor); A.aT1.needsUpdate = true; cursor = end >= N ? 0 : end;
 }
 function frame() {
