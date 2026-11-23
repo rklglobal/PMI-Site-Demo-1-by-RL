@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=40';
+import { buildAll, CITIES } from './models.js?v=41';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -98,7 +98,7 @@ const TOPICS = [
    ========================================================= */
 const canvas = document.getElementById('scene');
 const mobile = window.innerWidth < 760;
-const N = mobile ? 110000 : 240000;
+const N = mobile ? 170000 : 360000;
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'high-performance' });
 const DPR = Math.min(window.devicePixelRatio, 2); renderer.setPixelRatio(DPR);
 const scene = new THREE.Scene();
@@ -118,12 +118,12 @@ geo.setAttribute('aTo', new THREE.BufferAttribute(RING.slice(), 3));
 geo.setAttribute('aT0', new THREE.BufferAttribute(new Float32Array(N), 1));
 geo.setAttribute('aT1', new THREE.BufferAttribute(RT.slice(), 1));
 geo.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 4));
-const U = { uInk: { value: new THREE.Vector3(0.07, 0.075, 0.09) }, uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 }, uC: { value: new THREE.Vector3(0, 0, 1) } };
+const U = { uInk: { value: new THREE.Vector3(0.07, 0.075, 0.09) }, uT: { value: 0 }, uTime: { value: 0 }, uPix: { value: 1 }, uMouse: { value: new THREE.Vector2(9, 9) }, uAspect: { value: 1 }, uSize: { value: 0.0085 }, uScale: { value: 1 }, uMin: { value: DPR * 0.8 }, uIntro: { value: 0 }, uTour: { value: 0 }, uC: { value: new THREE.Vector3(0, 0, 1) } };
 const mat = new THREE.ShaderMaterial({
   uniforms: U, transparent: true, depthWrite: false,
   vertexShader: `
     attribute vec3 aFrom, aTo; attribute vec4 aRnd; attribute float aT0, aT1;
-    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro; uniform vec3 uC; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
+    uniform float uT, uTime, uPix, uAspect, uSize, uScale, uMin, uIntro, uTour; uniform vec3 uC; uniform vec2 uMouse; varying float vA; varying float vTint; varying float vR;
     void main(){
       // opening: the logo breaks up from the exact centre of the triangle outward, like a shockwave (uC = centre x, y and outer radius)
       vec2 rad = aFrom.xy - uC.xy; float dl = mix(aRnd.x, clamp(length(rad) / uC.z, 0.0, 1.0) * 0.9 + aRnd.x * 0.1, uIntro), dls = mix(0.8, 0.45, uIntro);
@@ -143,7 +143,7 @@ const mat = new THREE.ShaderMaterial({
       p.xz = mat2(c, -s, s, c) * p.xz;
       p += burst * vec3((aRnd.w - 0.35) * 3.2, sin(aRnd.y * 6.283 + uTime) * 0.5 + (aRnd.z - 0.5) * 1.2, (aRnd.y - 0.5) * 2.0);
       // a few loose particles orbit the object as a dust ring
-      float loose = step(0.965, aRnd.w);
+      float loose = step(0.965, aRnd.w) * (1.0 - step(0.5, uTour));      // no dust ring while flying through the refinery
       float oa = uTime * (0.08 + aRnd.x * 0.12) + aRnd.y * 6.283, orad = 2.1 + aRnd.z * 1.2;
       vec3 orb = vec3(cos(oa) * orad, sin(oa * 0.7 + aRnd.x * 6.0) * 0.5 + (aRnd.z - 0.5) * 1.4, sin(oa) * orad * 0.8);
       p = mix(p, orb, loose * (1.0 - burst * 0.5));
@@ -158,9 +158,9 @@ const mat = new THREE.ShaderMaterial({
       float f = smoothstep(0.11, 0.0, length(d));
       gl_Position.xy += normalize(d + 1e-5) / vec2(uAspect, 1.0) * f * 0.045 * gl_Position.w;
       float sz = uSize * uScale * (0.6 + aRnd.z * 0.9) * (1.0 + burst * 0.5 + min(vTint, 1.0) * 0.3 + clamp(vTint - 1.0, 0.0, 1.0) * (0.6 + 0.5 * sin(uTime * 30.0 + aRnd.x * 60.0)) + spark * (0.15 + 0.7 * step(0.0, sin(uTime * (14.0 + aRnd.z * 20.0) + aRnd.x * 60.0)))) * uPix / -mv.z;
-      gl_PointSize = min(max(sz, uMin), uMin * 9.0);
-      float depth = clamp((-mv.z - 5.4) / 3.6, 0.0, 1.0);
-      vA = smoothstep(1.0, 3.8, -mv.z) * (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
+      gl_PointSize = min(max(sz, uMin), uMin * mix(9.0, 2.0, uTour));      // near objects stay fine-grained in the fly-through
+      float depth = clamp((-mv.z - mix(5.4, 2.6, uTour)) / mix(3.6, 4.6, uTour), 0.0, 1.0);      // fly-through: haze builds over the stretch of plant ahead, so new detail arrives already faded
+      vA = smoothstep(mix(1.0, 0.35, uTour), mix(3.8, 2.0, uTour), -mv.z) * (0.75 + 0.25 * aRnd.x) * mix(1.0, 0.22, depth * depth) * (1.0 - loose * 0.4) * min(1.0, sz / uMin + 0.35) * mix(1.0, smoothstep(0.0, 0.05, t), uIntro);      // opening: a particle only appears as it leaves the crisp logo
     }`,
   fragmentShader: `varying float vA; varying float vTint; varying float vR; uniform vec3 uInk; void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.38, d); vec3 col = mix(mix(uInk, vec3(0.89, 0.12, 0.14), clamp(vTint, 0.0, 1.0)), vec3(0.1, 0.45, 0.95), clamp(vTint - 1.0, 0.0, 1.0)); col = mix(col, mix(vec3(1.0, 0.36, 0.0), vec3(1.0, 0.74, 0.05), vR), clamp(vTint - 2.0, 0.0, 1.0)); gl_FragColor = vec4(col, a * min(1.0, vA * 0.92 + min(vTint, 1.0) * 0.4)); }`,
 });
@@ -339,10 +339,32 @@ function dock(h, now) {
   h.el.style.width = tw.toFixed(1) + 'px'; h.el.style.height = th + 'px'; h.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
   h.el.style.opacity = e > 0 ? 1 : 0; h.x = sx + tw / 2; h.y = top;
 }
-// Opening section: instead of a turntable the camera flies a loop through the process unit. The camera itself never moves;
-// the unit is scaled up, slid so the current point of the flight path sits at the pivot, and turned so the path runs into the screen.
-const TOUR = SH[0].tour ? new THREE.CatmullRomCurve3(SH[0].tour.map(q => new THREE.Vector3(...q)), true, 'centripetal') : null, TLEN = TOUR ? TOUR.getLength() : 1, TP = new THREE.Vector3(), TT = new THREE.Vector3();
-let tu = 0.02, tourAt = 0, tk = 0, lastCur = -9;
+// Opening section: a first-person flight at walking height through the refinery. The camera itself never moves: the model is
+// scaled so one plant unit is one world unit, slid so the eye point of the flight path sits exactly at the camera, levelled, and
+// turned so the path runs straight into the screen. Detail is "conveyed": nearly all particles are kept in the stretch of plant
+// just ahead of the camera and re-drawn further along as it passes, so what is in front of you is always dense.
+// A fine line drawing of the whole refinery sits under the particles during the flight: it is what gives close equipment a crisp
+// outline (a particle cloud alone turns to scattered dots at arm's length) and it shows the rest of the plant into the distance.
+const WU = { uInk: U.uInk, uWire: { value: 0 } };
+const wireMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms: WU, transparent: true, depthWrite: false,
+  vertexShader: `uniform float uWire; varying float vA; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 9.0, 0.0, 1.0); vA = uWire * smoothstep(0.12, 0.7, -mv.z) * mix(0.8, 0.13, sqrt(d)); }`,
+  fragmentShader: `uniform vec3 uInk; varying float vA; void main(){ gl_FragColor = vec4(uInk, vA); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
+let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); } }, 3400);
+const WN = 15, pslab = new Int16Array(N), TC = new THREE.Vector3(), TD = new THREE.Vector3(), TG = new THREE.Vector3();
+let tu = 0, tourAt = 0, tk = 0, lastCur = -9, phase = 0, tourT0 = 0, cursor = 0;
+const pickFar = k0 => { const K = TOUR.K, a = (k0 + WN - 2) % K, b = (k0 + WN - 1) % K, c = (k0 + WN) % K, r = R() * (TOUR.W[a] + TOUR.W[b] + TOUR.W[c]); return r < TOUR.W[a] ? a : r < TOUR.W[a] + TOUR.W[b] ? b : c; };
+function startTour(now) {
+  const K = TOUR.K, pos = SH[0].pos.slice(), tint = SH[0].tint.slice(), cum = new Float32Array(WN + 2); let tot = 0; tu = 0; cursor = 0;
+  for (let q = 0; q < WN + 2; q++) cum[q] = (tot += TOUR.W[(q - 1 + K) % K]);
+  for (let i = 0; i < N; i++) { if (i % 7 === 0) { pslab[i] = -1; continue; }      // one particle in seven stays as the distant, whole-plant backdrop
+    const r = R() * tot; let q = 0; while (q < WN + 1 && cum[q] < r) q++; const k = (q - 1 + K) % K, t = TOUR.sample(k, pos, i * 3); if (t >= 0) tint[i] = t; pslab[i] = k; }
+  setTarget({ pos, tint }, 2.4); phase = 1; tourT0 = now;
+}
+function conveyor(k0) {
+  const A = geo.attributes, to = A.aTo.array, t1 = A.aT1.array, K = TOUR.K, M = Math.ceil(N / 24), end = Math.min(N, cursor + M);
+  for (let i = cursor; i < end; i++) { const sl = pslab[i]; if (sl < 0) continue; const d = (sl - k0 + K) % K; if (d <= WN || d >= K - 1) continue; const k = pickFar(k0), t = TOUR.sample(k, to, i * 3); if (t >= 0) t1[i] = t; pslab[i] = k; }
+  A.aTo.addUpdateRange(cursor * 3, (end - cursor) * 3); A.aTo.needsUpdate = true; A.aT1.addUpdateRange(cursor, end - cursor); A.aT1.needsUpdate = true; cursor = end >= N ? 0 : end;
+}
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now(), dt = Math.min(0.05, (now - t0) / 1000); t0 = now; el += dt;
@@ -355,23 +377,34 @@ function frame() {
   // the model stays at the origin, dead on the optical axis, and turns about its vertical axis like a turntable;
   // the lens is shifted to place it in the free area, so the pivot never skews
   if (!holdView) { view.x += (view.tx - view.x) * 0.06; view.y += (view.ty - view.y) * 0.06; view.s += (view.ts - view.s) * 0.06; }
-  camera.setViewOffset(innerWidth, innerHeight, -view.x, -view.y, innerWidth, innerHeight);
+  camera.setViewOffset(innerWidth, innerHeight, -view.x, -(view.y + view.h * 0.24 * U.uTour.value), innerWidth, innerHeight);      // fly-through: horizon low in the frame, so the plant fills the view rather than the ground
   const fly = mode === 'over' && !flat;
   zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
-  if (cur !== lastCur) { lastCur = cur; if (cur === 0) tourAt = now; document.body.classList.toggle('tour', cur === 0); }
-  const fo = focus && flat ? focus : FO0, touring = !!TOUR && mode !== 'intro' && cur === 0 && now - tourAt > 1700; tk += ((touring ? 1 : 0) - tk) * 0.03;
-  let px = -fo.x, py = -fo.y, pz = 0, kz = fo.k, head = 0;
-  if (touring) {
-    tu = (tu + dt * 0.8 * SH[0].unit / TLEN) % 1; TOUR.getPointAt(tu, TP); TOUR.getTangentAt(tu, TT); px = -TP.x; py = -TP.y; pz = -TP.z; head = Math.atan2(TT.x, -TT.z);
-    const dist = Math.max(6.4, 4.6 * innerHeight / innerWidth) / (2 * Math.tan(camera.fov * Math.PI / 360));      // follow distance in plant units: the frame shows about 6.4 units of height, or 4.6 of width on a narrow phone
-    kz = camera.position.z / (dist * SH[0].unit) / (view.s * zoom);
+  if (cur !== lastCur) { lastCur = cur; phase = 0; if (cur === 0) tourAt = now; document.body.classList.toggle('tour', cur === 0); }
+  if (TOUR && phase === 0 && cur === 0 && mode !== 'intro' && !morph.on && now - tourAt > 2700) startTour(now);
+  const flying = phase > 0; tk += ((flying ? 1 : 0) - tk) * 0.04; const te = tk * tk * (3 - 2 * tk);
+  if (flying) {
+    tu = (tu + dt * 1.5 * easeO(Math.min(1, (now - tourT0) / 3200)) / TOUR.len) % 1;
+    const K = TOUR.K, kf = tu * K, k0 = Math.floor(kf) % K, k1 = (k0 + 1) % K, f = kf - Math.floor(kf), P = TOUR.P, D = TOUR.D;
+    TC.set(P[k0 * 3] + (P[k1 * 3] - P[k0 * 3]) * f, P[k0 * 3 + 1] + (P[k1 * 3 + 1] - P[k0 * 3 + 1]) * f, P[k0 * 3 + 2] + (P[k1 * 3 + 2] - P[k0 * 3 + 2]) * f);
+    TD.set(D[k0 * 3] + (D[k1 * 3] - D[k0 * 3]) * f, 0, D[k0 * 3 + 2] + (D[k1 * 3 + 2] - D[k0 * 3 + 2]) * f).normalize();
+    TG.copy(TC).addScaledVector(TD, camera.position.z * TOUR.unit).negate();      // model offset that puts the eye point at the camera
+    if (!morph.on) conveyor(k0);
   }
-  const er = touring ? 0.03 : 0.07; fz += (kz - fz) * er; cloud.position.x += (px - cloud.position.x) * 0.07; cloud.position.y += (py - cloud.position.y) * 0.07; cloud.position.z += (pz - cloud.position.z) * 0.07;
-  const sc = view.s * zoom * fz; group.scale.setScalar(sc); U.uScale.value = Math.min(2.1 - 0.85 * tk, view.s * zoom * Math.pow(fz, 0.6));
-  if (touring) ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * 0.04;
-  else if (fly) ang += dt * 0.17;
+  const fo = focus && flat ? focus : FO0; let sc;
+  if (tk > 0.002) {
+    sc = view.s * zoom + (1 / (TOUR ? TOUR.unit : 1) - view.s * zoom) * te; fz = 1; cloud.position.set(TG.x * te, TG.y * te, TG.z * te);
+    if (flying) { const head = Math.atan2(TD.x, -TD.z); ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * (0.05 + 0.3 * te); }
+    U.uScale.value = view.s * zoom + (0.8 - view.s * zoom) * te;
+  } else {
+    fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07; cloud.position.z += (0 - cloud.position.z) * 0.07;
+    sc = view.s * zoom * fz; U.uScale.value = view.s * zoom * Math.pow(fz, 0.6);
+  }
+  group.scale.setScalar(sc); U.uTour.value = te; WU.uWire.value = Math.max(0, (te - 0.55) / 0.45) * (morph.on && phase > 0 ? Math.max(0, (now - morph.t0) / morph.dur - 0.5) * 2 : 1); wireMesh.visible = WU.uWire.value > 0.003;
+  const fov = 38 + ((narrow ? 88 : 62) - 38) * te; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; U.uPix.value = DU.uPix.value = innerHeight * DPR / (2 * Math.tan(fov * Math.PI / 360)); }
+  if (flying) { /* heading handled above */ } else if (fly) ang += dt * 0.17;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
-  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36 - 0.17 * tk, 0, 0);
+  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36 * (1 - te), 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
   hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else dock(h, now); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();

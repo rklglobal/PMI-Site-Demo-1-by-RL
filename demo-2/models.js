@@ -48,7 +48,7 @@ export class Model {
     }
     const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3()), s = Math.min(fit[0] / Math.max(sz.x, sz.z), fit[1] / sz.y);
     for (let i = 0; i < N; i++) { pos[i * 3] = (pos[i * 3] - c.x) * s; pos[i * 3 + 1] = (pos[i * 3 + 1] - c.y) * s; pos[i * 3 + 2] = (pos[i * 3 + 2] - c.z) * s; }
-    return { pos, tint, xf: p => [(p[0] - c.x) * s, (p[1] - c.y) * s, (p[2] - c.z) * s] };
+    return { pos, tint, cs: [c.x, c.y, c.z, s], xf: p => [(p[0] - c.x) * s, (p[1] - c.y) * s, (p[2] - c.z) * s] };
   }
 }
 
@@ -543,78 +543,153 @@ function gulfMap(N) {
   return { pos, tint, xf, state, city: (lo, la) => xf([...LL(lo, la), 0.04]) };
 }
 
-/* ---------- full process unit for the opening section: flown through, not turned on a turntable ---------- */
+/* ---------- refinery for the opening section: large enough to fly through at walking height ---------- */
 function plant() {
-  const m = new Model(), g = 0, W = 0.55;
-  // paving grid and battery limit
-  for (let x = -7; x <= 7.01; x += 1) m.line([x, g, -5], [x, g, 5], 0.45); for (let z = -5; z <= 5.01; z += 1) m.line([-7, g, z], [7, g, z], 0.45);
-  m.poly([[-7, g, -5], [7, g, -5], [7, g, 5], [-7, g, 5]], 1.6, true);
-  // ---- central pipe rack, two tiers, running the length of the unit
-  for (let x = -6; x <= 6.01; x += 1) {
-    [-0.45, 0.45].forEach(z => m.add(box(0.06, 1.75, 0.06), { p: [x, g + 0.875, z], e: 1.6, w: 0.5 }));
-    [1.0, 1.6].forEach(y => m.add(box(0.05, 0.06, 0.96), { p: [x, g + y, 0], e: 1.6, w: 0.5 }));
-    if (x < 5.9 && Math.round(x) % 2 === 0) [-0.45, 0.45].forEach(z => { m.line([x, g, z], [x + 1, g + 1.0, z], 0.7); m.line([x + 1, g, z], [x, g + 1.0, z], 0.7); });
-  }
-  [1.0, 1.6, 1.75].forEach(y => [-0.45, 0.45].forEach(z => m.line([-6, g + y, z], [6, g + y, z], 1.6)));
-  [[-0.36, 0.05], [-0.22, 0.07], [-0.05, 0.045], [0.1, 0.06], [0.26, 0.04], [0.37, 0.05]].forEach(([z, r]) => m.add(cyl(r, 12, 12), { p: [0, g + 1.03 + r, z], r: AX, w: W }));
-  [[-0.34, 0.06], [-0.16, 0.04], [0.02, 0.08], [0.22, 0.05], [0.36, 0.04]].forEach(([z, r]) => m.add(cyl(r, 12, 12), { p: [0, g + 1.63 + r, z], r: AX, w: W }));
-  for (let x = -5.5; x <= 5.6; x += 1) m.add(tor(0.085, 0.012), { p: [x, g + 1.71, 0.02], r: [0, PI / 2, 0], w: 2 });      // weld / support rings on the big header
-  m.add(pipeGeo([[-0.9, g + 1.69, 0.22], [-0.9, g + 2.15, 0.22], [-0.9, g + 2.15, -0.3], [0.0, g + 2.15, -0.3], [0.0, g + 2.15, 0.22], [0.0, g + 1.69, 0.22]], 0.05, 0.14), { w: 1 });      // expansion loop
-  // fin-fan air coolers on top of the rack
-  m.add(box(3.2, 0.2, 1.15), { p: [2.7, g + 2.2, 0], e: 3, w: 0.35 }); [1.3, 2.0, 2.7, 3.4, 4.1].forEach(x => { [-0.5, 0.5].forEach(z => m.line([x, g + 1.75, z], [x, g + 2.1, z], 1.4)); });
-  [1.7, 2.7, 3.7].forEach(x => { m.add(tor(0.36, 0.012), { p: [x, g + 2.07, 0], r: UP, w: 2.5 }).add(cyl(0.36, 0.08, 28), { p: [x, g + 2.06, 0], w: 0.8 }); for (let k = 0; k < 4; k++) { const a = k * PI / 4; m.line([x - Math.cos(a) * 0.34, g + 2.04, -Math.sin(a) * 0.34], [x + Math.cos(a) * 0.34, g + 2.04, Math.sin(a) * 0.34], 0.9); } });
-  for (let x = 1.2; x <= 4.21; x += 0.2) m.line([x, g + 2.31, -0.55], [x, g + 2.31, 0.55], 0.35);
-  const branch = (x, y, zEq, yEq, r, side) => m.add(pipeGeo([[x, g + y, side * 0.3], [x, g + y, zEq], [x, g + yEq, zEq]], r, 0.13), { w: 1 });
-  const hvessel = (x, y, z, L, r) => { m.add(cyl(r, L, 30), { p: [x, g + y, z], r: AX, w: 0.8 }); [-1, 1].forEach(sg => m.add(sph(r), { p: [x + sg * L / 2, g + y, z], s: [0.45, 1, 1], w: 0.8 })); [-0.3, 0.3].forEach(o => { m.add(box(0.07, y - r * 0.6, r * 1.5), { p: [x + o * L, g + (y - r * 0.6) / 2, z], e: 2, w: 0.6 }); m.add(tor(r + 0.004, 0.006), { p: [x + o * L, g + y, z], r: [0, PI / 2, 0], w: 2 }); }); };
-  // ================= south row (z > 0) =================
-  column(m, -4.8, 3.0, 0.36, g, 3.6, [g + 1.2, g + 2.1, g + 3.0]);      // crude column and its overhead line
-  m.add(pipeGeo([[-4.8, g + 4.05, 3.0], [-4.8, g + 4.3, 3.0], [-4.15, g + 4.3, 3.0], [-4.15, g + 1.69, 3.0], [-4.15, g + 1.69, 0.3]], 0.06, 0.18), { w: 1.1 });
-  column(m, -3.3, 3.15, 0.25, g, 2.6, [g + 1.1, g + 2.0]);
-  m.add(pipeGeo([[-3.3, g + 3.0, 3.15], [-3.3, g + 3.2, 3.15], [-2.85, g + 3.2, 3.15], [-2.85, g + 1.09, 3.15], [-2.85, g + 1.09, 0.3]], 0.045, 0.14), { w: 1.1 });
-  hvessel(-1.5, 0.78, 3.0, 1.5, 0.3); branch(-1.5, 1.68, 3.0, 1.08, 0.04, 1); m.add(cyl(0.09, 0.3, 14), { p: [-1.1, g + 0.4, 3.0], w: 1 });      // overhead drum with boot
-  [0.45, 0.95].forEach(y => { hvessel(0.3, y, 2.9, 1.3, 0.2); flange(m, [-0.25, g + y, 2.9], 'x', 0.125); flange(m, [0.85, g + y, 2.9], 'x', 0.125); }); branch(0.1, 1.68, 2.9, 1.15, 0.04, 1); branch(0.55, 1.08, 2.55, 0.5, 0.035, 1);   // stacked exchangers
-  // fired heater with stack
-  m.push([2.2, 0, 3.1]); [[-0.45, -0.4], [0.45, -0.4], [0.45, 0.4], [-0.45, 0.4]].forEach(([x, z]) => m.add(box(0.07, 0.32, 0.07), { p: [x, g + 0.16, z], e: 1.5, w: 0.6 }));
-  m.add(box(1.0, 1.1, 0.9), { p: [0, g + 0.87, 0], e: 3.5, w: 0.3 }).add(box(0.62, 0.45, 0.62), { p: [0, g + 1.65, 0], e: 3, w: 0.4 }).add(cyl(0.13, 2.3, 22), { p: [0, g + 3.0, 0], w: 0.9 }).add(cyl(0.2, 0.3, 22, true, 0.13), { p: [0, g + 1.99, 0], w: 1 }).add(tor(0.135, 0.01), { p: [0, g + 4.15, 0], r: UP, w: 3 });
-  [1.2, 2.6, 3.6].forEach(y => m.add(tor(0.134, 0.006), { p: [0, g + y + 0.9, 0], r: UP, w: 2 })); for (let k = 0; k < 4; k++) m.add(cyl(0.05, 0.14, 10), { p: [-0.3 + k * 0.2, g + 0.26, 0], w: 1.5 });
-  [0.6, 0.9, 1.2].forEach(y => m.poly([[-0.5, g + y, 0.455], [0.5, g + y, 0.455]], 0.6)); m.pop(); rod(m, [2.2, g + 1.69, 2.65], [2.2, g + 1.69, 0.3], 0.05, { w: 1 });
-  // reactor in its structure
-  column(m, 4.0, 3.1, 0.4, g, 1.9, [g + 1.35]); m.push([4.0, 0, 3.1]); [[-0.68, -0.68], [0.68, -0.68], [0.68, 0.68], [-0.68, 0.68]].forEach(([x, z], i, A) => { m.add(box(0.06, 2.7, 0.06), { p: [x, g + 1.35, z], e: 1.6, w: 0.5 }); const n = A[(i + 1) % 4]; [1.35, 2.7].forEach(y => m.line([x, g + y, z], [n[0], g + y, n[1]], 1.6)); m.line([x, g, z], [n[0], g + 1.35, n[1]], 0.7); }); m.pop();
-  branch(4.0, 1.68, 2.35, 2.2, 0.05, 1);
-  // compressor shelter
-  m.push([5.7, 0, 3.2]); [[-0.75, -0.5], [0.75, -0.5], [0.75, 0.5], [-0.75, 0.5]].forEach(([x, z]) => m.add(box(0.06, 1.3, 0.06), { p: [x, g + 0.65, z], e: 1.5, w: 0.6 }));
-  [-1, 1].forEach(sg => m.add(box(1.7, 0.03, 0.66), { p: [0, g + 1.47, sg * 0.29], r: [sg * 0.5, 0, 0], e: 2.5, w: 0.5 })); m.poly([[-0.75, g + 1.3, -0.5], [0.75, g + 1.3, -0.5], [0.75, g + 1.3, 0.5], [-0.75, g + 1.3, 0.5]], 1.4, true);
-  m.add(cyl(0.2, 0.8, 22), { p: [0, g + 0.42, 0], r: AX, w: 1 }).add(box(0.9, 0.12, 0.5), { p: [0, g + 0.1, 0], e: 2, w: 0.6 }); [-0.3, 0.3].forEach(x => m.add(cyl(0.1, 0.5, 14), { p: [x, g + 0.42, 0.3], r: AZ, w: 1.2 })); m.add(cyl(0.16, 0.4, 18), { p: [0.62, g + 0.42, 0], r: AX, w: 1 }); m.pop();
-  // pumps along the rack, each with suction / discharge up to the rack and a block valve
-  [-4, -1, 2, 5].forEach(x => { m.add(box(0.46, 0.05, 0.22), { p: [x, g + 0.03, 0.95], e: 2, w: 0.8 }).add(cyl(0.085, 0.24, 14), { p: [x - 0.1, g + 0.17, 0.95], r: AX, w: 1.4 }).add(sph(0.09), { p: [x + 0.12, g + 0.17, 0.95], s: [0.6, 1, 1], w: 1.6 }); m.add(pipeGeo([[x + 0.12, g + 0.26, 0.95], [x + 0.12, g + 1.09, 0.95], [x + 0.12, g + 1.09, 0.38]], 0.03, 0.09), { w: 1.2 }); gateValve(m, [x + 0.12, g + 0.62, 0.95], 'x', 0.022); });
-  // ================= north row (z < 0) =================
-  const sphereTank = (x, z, Rr) => { const cy = g + Rr + 0.5; m.push([x, 0, z]); m.add(sph(Rr), { p: [0, cy, 0], w: 0.45 }).add(tor(Rr + 0.003, 0.007), { p: [0, cy, 0], r: UP, w: 2 }).add(tor(Rr * 0.3, 0.007), { p: [0, cy + Rr + 0.09, 0], r: UP, w: 3 }).add(ring(0, Rr * 0.3), { p: [0, cy + Rr - 0.02, 0], r: UP, w: 1.5 });
-    for (let k = 0; k < 8; k++) { const a = k / 8 * PI * 2, b = (k + 1) / 8 * PI * 2, lx = Math.cos(a) * Rr * 0.9, lz = Math.sin(a) * Rr * 0.9; rod(m, [lx, g, lz], [lx, cy, lz], 0.028, { w: 1.4 }); m.line([lx, g, lz], [Math.cos(b) * Rr * 0.9, g + 0.5, Math.sin(b) * Rr * 0.9], 0.8); m.line([lx, g + 0.5, lz], [Math.cos(b) * Rr * 0.9, g, Math.sin(b) * Rr * 0.9], 0.8); }
-    const st = []; for (let k = 0; k <= 24; k++) { const a = -0.4 + k / 24 * 1.9, y = g + (cy + Rr * 0.75 - g) * k / 24, rr = Math.max(Rr * 0.9, Math.sqrt(Math.max(0, Rr * Rr - (y - cy) * (y - cy))) + 0.06); st.push([Math.cos(a) * rr, y, Math.sin(a) * rr]); } m.poly(st, 2).poly(st.map(q => [q[0], q[1] + 0.12, q[2]]), 1.5); m.pop(); };
-  sphereTank(4.9, -3.3, 0.6); sphereTank(3.3, -3.3, 0.6); m.add(pipeGeo([[3.3, g + 0.35, -3.3], [3.3, g + 0.35, -2.4], [4.9, g + 0.35, -2.4], [4.9, g + 0.35, -3.3]], 0.04, 0.12), { w: 1 }); m.add(pipeGeo([[4.1, g + 0.35, -2.4], [4.1, g + 1.09, -2.4], [4.1, g + 1.09, -0.3]], 0.04, 0.12), { w: 1 });
-  const tank = (x, z, r, h) => { m.push([x, 0, z]); m.add(cyl(r, h, 48), { p: [0, g + h / 2, 0], w: 0.4 }).add(new THREE.ConeGeometry(r + 0.01, 0.14, 48, 1, true), { p: [0, g + h + 0.07, 0], w: 0.5 }).add(tor(r, 0.009), { p: [0, g + h, 0], r: UP, w: 2.5 }); [0.08, 0.15].forEach(o => m.add(tor(r, 0.005), { p: [0, g + h + o, 0], r: UP, w: 3 })); [0.33, 0.66].forEach(o => m.add(tor(r + 0.002, 0.004), { p: [0, g + h * o, 0], r: UP, w: 1.5 }));
-    for (let k = 0; k < 20; k++) { const a = k / 20 * PI * 2; m.line([Math.cos(a) * r, g + h, Math.sin(a) * r], [Math.cos(a) * r, g + h + 0.15, Math.sin(a) * r], 1); }
-    const hx = []; for (let k = 0; k <= 30; k++) { const a = 0.5 + 1.5 * k / 30; hx.push([Math.cos(a) * (r + 0.06), g + h * k / 30, Math.sin(a) * (r + 0.06)]); } m.poly(hx, 2.5).poly(hx.map(q => [q[0], q[1] + 0.13, q[2]]), 2); m.add(cyl(0.05, 0.3, 12), { p: [0, g + 0.2, r + 0.14], r: AZ, w: 1.5 }); m.pop(); };
-  tank(1.1, -3.4, 0.85, 1.15); tank(-0.9, -3.4, 0.85, 1.15); m.poly([[2.25, g + 0.12, -4.55], [-2.05, g + 0.12, -4.55], [-2.05, g + 0.12, -2.25], [2.25, g + 0.12, -2.25]], 2.2, true);      // dike wall
-  m.add(pipeGeo([[1.1, g + 0.2, -2.4], [1.1, g + 0.2, -1.9], [0.1, g + 0.2, -1.9], [0.1, g + 1.09, -1.9], [0.1, g + 1.09, -0.3]], 0.045, 0.13), { w: 1 }); rod(m, [-0.9, g + 0.2, -2.4], [-0.9, g + 0.2, -1.9], 0.045, { w: 1 }); rod(m, [-0.9, g + 0.2, -1.9], [0.1, g + 0.2, -1.9], 0.045, { w: 1 });
-  [-2.75, -3.3, -3.85].forEach(z => hvessel(-3.3, 0.5, z, 1.7, 0.21)); m.add(pipeGeo([[-3.3, g + 0.71, -3.85], [-3.3, g + 0.95, -3.85], [-3.3, g + 0.95, -2.0], [-3.3, g + 1.68, -2.0], [-3.3, g + 1.68, -0.3]], 0.035, 0.1), { w: 1.1 });   // LPG bullets
-  // cooling tower
-  m.push([-5.3, 0, -3.4]); m.add(box(1.9, 1.0, 1.15), { p: [0, g + 0.6, 0], e: 3.5, w: 0.25 }).add(box(2.05, 0.1, 1.3), { p: [0, g + 0.05, 0], e: 2.5, w: 0.4 }); for (let y = 0.2; y < 1.05; y += 0.1) { m.line([-0.95, g + y, 0.58], [0.95, g + y, 0.58], 0.6); m.line([-0.95, g + y, -0.58], [0.95, g + y, -0.58], 0.6); }
-  [-0.47, 0.47].forEach(x => { m.add(cyl(0.3, 0.36, 26, true, 0.37), { p: [x, g + 1.28, 0], w: 1 }).add(tor(0.37, 0.008), { p: [x, g + 1.46, 0], r: UP, w: 2.5 }); for (let k = 0; k < 3; k++) { const a = k * PI / 3; m.line([x - Math.cos(a) * 0.3, g + 1.2, -Math.sin(a) * 0.3], [x + Math.cos(a) * 0.3, g + 1.2, Math.sin(a) * 0.3], 0.9); } }); m.pop();
-  m.add(pipeGeo([[-5.3, g + 0.3, -2.8], [-5.3, g + 0.3, -1.6], [-5.3, g + 1.09, -1.6], [-5.3, g + 1.09, -0.3]], 0.06, 0.15), { w: 1 });
-  // flare stack in the corner
-  rod(m, [-6.3, g, -4.4], [-6.3, g + 4.9, -4.4], 0.045, { w: 1.5 }); m.add(cyl(0.07, 0.24, 12), { p: [-6.3, g + 5.0, -4.4], w: 1.5 }); [0.4, 2.5, 4.6].forEach(a => m.line([-6.3, g + 3.3, -4.4], [-6.3 + Math.cos(a) * 1.6, g, -4.4 + Math.sin(a) * 1.6], 0.7));
-  m.add(sph(0.14), { p: [-6.27, g + 5.3, -4.4], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.07), { p: [-6.24, g + 5.56, -4.4], s: [1, 2.4, 1], w: 5, t: 1 });
-  m.add(pipeGeo([[-6.3, g + 0.25, -4.4], [-6.3, g + 0.25, -0.2], [-6.0, g + 0.25, -0.2]], 0.05, 0.14), { w: 0.9 });
-  // crew
-  [[-2.6, 1.5, 1.2], [1.2, 1.35, -0.6], [3.2, 2.1, 2.6], [0.3, -1.5, 0.4], [-4.4, -1.9, 2.0]].forEach(([x, z, ry]) => person(m, [x, g, z], ry, 0.27));
-  // flight path: east down the south aisle, around the end, back west along the tank farm, around the flare end
-  const tour = [[-5.6, 1.85], [-3.6, 1.8], [-1.6, 1.8], [0.4, 1.8], [2.4, 1.8], [4.4, 1.8], [6.1, 1.6], [7.2, 0.4], [6.6, -1.3], [5.0, -1.9], [3.0, -1.85], [1.0, -1.75], [-1.0, -1.75], [-3.0, -1.8], [-5.0, -1.8], [-6.5, -1.5], [-7.4, 0.0], [-6.7, 1.5]].map(([x, z], i) => [x, g + 0.95 + 0.18 * Math.sin(i * 1.3), z]);
-  return { m, tour, noGround: true, hot: { enter: [2.2, 0.2, 0], a: [-0.8, 0.5, 0.4], b: [0, 0.3, 0], c: [0.8, 0.5, -0.4] } };
+  const m = new Model(), g = 0;
+  const at = (x, z, ry, fn) => { m.push([x, 0, z], [0, ry, 0]); fn(); m.pop(); };
+  const ball = r => new THREE.SphereGeometry(r, 10, 7);
+  // light pipe run: straight rods with a small ball at each corner (far fewer triangles than a swept tube)
+  const pipe = (pts, r, w = 1) => { for (let i = 1; i < pts.length; i++) { rod(m, pts[i - 1], pts[i], r, { w });
+      const a = new THREE.Vector3(...pts[i - 1]), b = new THREE.Vector3(...pts[i]), d = b.clone().sub(a).normalize(), u = new THREE.Vector3().crossVectors(d, Math.abs(d.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0)).normalize(), v = new THREE.Vector3().crossVectors(d, u);
+      for (let k = 0; k < 4; k++) { const an = k / 4 * PI * 2 + 0.4, o = u.clone().multiplyScalar(Math.cos(an) * r).addScaledVector(v, Math.sin(an) * r); m.line(a.clone().add(o).toArray(), b.clone().add(o).toArray(), 0.6); }
+      [a, b].forEach(c => { const q = []; for (let k = 0; k <= 8; k++) { const an = k / 8 * PI * 2; q.push(c.clone().addScaledVector(u, Math.cos(an) * r * 1.05).addScaledVector(v, Math.sin(an) * r * 1.05).toArray()); } m.poly(q, 0.8); }); }
+    for (let i = 1; i < pts.length - 1; i++) m.add(ball(r * 1.08), { p: pts[i], w }); };
+  // vertical shell outline: staves and hoops, so a column or stack reads crisply
+  const staves = (x, z, r, y0, y1, n = 12) => { for (let k = 0; k < n; k++) { const a = k / n * PI * 2; m.line([x + Math.cos(a) * r, y0, z + Math.sin(a) * r], [x + Math.cos(a) * r, y1, z + Math.sin(a) * r], 0.7); } for (let y = y0; y <= y1 + 0.01; y += 0.28) { const q = []; for (let k = 0; k <= 24; k++) { const a = k / 24 * PI * 2; q.push([x + Math.cos(a) * r * 1.01, y, z + Math.sin(a) * r * 1.01]); } m.poly(q, 0.7); } };
+  const col = (x, z, r, h, plats) => { column(m, x, z, r, g, h, plats); staves(x, z, r, g + 0.25, g + h + 0.25); for (let k = 0; k < 6; k++) { const q = [], a = k / 6 * PI; for (let j = 0; j <= 10; j++) { const b = j / 10 * PI; q.push([x + Math.cos(a) * Math.cos(b) * r, g + h + 0.25 + Math.sin(b) * r * 0.55, z + Math.sin(a) * Math.cos(b) * r]); } m.poly(q, 0.7); } };
+  const valve = (p, rp, ry = 0) => { m.push(p, [0, ry, 0]); m.add(ball(rp * 1.7), { s: [1.15, 1, 0.9], w: 1.4 }).add(cyl(rp * 1.05, rp * 2.2, 12), { p: [0, rp * 2.2, 0], w: 1.4 }).add(cyl(rp * 1.6, rp * 0.4, 14, false), { p: [0, rp * 3.3, 0], e: 2 });
+    rod(m, [0, rp * 3.3, 0], [0, rp * 7.4, 0], rp * 0.18, { w: 3 }); m.add(new THREE.TorusGeometry(rp * 2.3, rp * 0.2, 5, 20), { p: [0, rp * 7.2, 0], r: UP, w: 2.5 }); for (let k = 0; k < 2; k++) { const a = k * PI / 2; m.line([Math.cos(a) * rp * 2.3, rp * 7.2, Math.sin(a) * rp * 2.3], [-Math.cos(a) * rp * 2.3, rp * 7.2, -Math.sin(a) * rp * 2.3], 2); }
+    [-1, 1].forEach(sg => m.add(cyl(rp * 1.75, rp * 0.5, 16, false), { p: [sg * rp * 2.2, 0, 0], r: AX, w: 1.3, e: 2 })); m.pop(); };
+  // long straight pipe along local x: a light surface fill plus crisp lengthwise lines and hoops, so it reads as pipe rather than noise
+  const run = (L, r, y, z, axisZ) => { m.push([0, y, z], axisZ ? [0, PI / 2, 0] : [0, 0, 0]); m.add(new THREE.CylinderGeometry(r, r, L, 12, 1, true), { r: AX, w: 0.14 }); for (let k = 0; k < 6; k++) { const a = k / 6 * PI * 2 + 0.3; m.line([-L / 2, Math.cos(a) * r, Math.sin(a) * r], [L / 2, Math.cos(a) * r, Math.sin(a) * r], 0.7); }
+    for (let x = -L / 2 + 0.4; x < L / 2; x += 0.75) { const c = []; for (let k = 0; k <= 10; k++) { const a = k / 10 * PI * 2; c.push([x, Math.cos(a) * r * 1.03, Math.sin(a) * r * 1.03]); } m.poly(c, r > 0.07 ? 1.2 : 0.7); } m.pop(); };
+  // pipe rack along local x, centred on z = 0
+  const rack = (L, hw, ys, top) => {
+    const n = Math.round(L / 1.5);
+    for (let i = 0; i <= n; i++) { const x = -L / 2 + i * L / n;
+      [-hw, hw].forEach(z => { m.add(box(0.08, top, 0.08), { p: [x, top / 2, z], e: 1.8, w: 0.6 }); m.add(box(0.22, 0.04, 0.22), { p: [x, 0.02, z], e: 1.5, w: 0.6 }); });
+      ys.forEach(y => { m.add(box(0.07, 0.09, hw * 2), { p: [x, y, 0], e: 1.8, w: 0.6 }); [-1, 1].forEach(sg => m.line([x, y - 0.32, sg * hw], [x, y, sg * (hw - 0.32)], 1)); });
+      if (i < n && i % 2 === 0) [-hw, hw].forEach(z => { const x1 = x + L / n; m.line([x, ys[0], z], [x1, top, z], 0.8); m.line([x1, ys[0], z], [x, top, z], 0.8); });
+    }
+    [...ys, top].forEach(y => [-hw, hw].forEach(z => m.line([-L / 2, y, z], [L / 2, y, z], 1.8)));
+    ys.forEach((y, t) => { let z = -hw + 0.14, k = t * 3; while (z < hw - 0.16) { const r = [0.05, 0.075, 0.04, 0.06, 0.09, 0.045][k++ % 6]; run(L, r, y + 0.045 + r, z + r); z += r * 2 + 0.07; } });
+  };
+  // centrifugal pump on a base: motor, casing, valved suction, discharge rising to H and running d toward local -z
+  const pump = (H, d) => { m.add(box(0.56, 0.07, 0.26), { p: [0, 0.035, 0], e: 2, w: 0.8 }).add(cyl(0.095, 0.28, 16), { p: [-0.13, 0.2, 0], r: AX, w: 1.5, e: 1.5 }).add(cyl(0.095, 0.01, 16, false), { p: [-0.27, 0.2, 0], r: AX, w: 1.5 }); for (let k = 0; k < 5; k++) m.add(new THREE.TorusGeometry(0.098, 0.006, 4, 16), { p: [-0.23 + k * 0.045, 0.2, 0], r: [0, PI / 2, 0], w: 2 });
+    m.add(new THREE.SphereGeometry(0.105, 16, 10), { p: [0.15, 0.2, 0], s: [0.55, 1, 1], w: 1.6 }).add(cyl(0.107, 0.02, 16), { p: [0.15, 0.2, 0], r: AX, w: 1, e: 2 }).add(cyl(0.03, 0.12, 8), { p: [0.04, 0.2, 0], r: AX, w: 1.5 });
+    pipe([[0.15, 0.3, 0], [0.15, H, 0], [0.15, H, -d]], 0.036, 1.2); m.add(cyl(0.063, 0.02, 14, false), { p: [0.15, 0.36, 0], w: 1.5, e: 2 }); pipe([[0.25, 0.2, 0], [0.62, 0.2, 0], [0.62, 0.2, 0.34], [0.62, 0.05, 0.34]], 0.042, 1.2); valve([0.44, 0.2, 0], 0.026); };
+  const hvessel = (L, r, y) => { m.add(new THREE.CylinderGeometry(r, r, L, 30, 4, true), { p: [0, y, 0], r: AX, w: 0.8 }); [-1, 1].forEach(sg => m.add(new THREE.SphereGeometry(r, 20, 12), { p: [sg * L / 2, y, 0], s: [0.45, 1, 1], w: 0.8 })); [-0.3, 0.3].forEach(o => { m.add(box(0.08, y - r * 0.6, r * 1.5), { p: [o * L, (y - r * 0.6) / 2, 0], e: 2, w: 0.6 }); m.add(new THREE.TorusGeometry(r + 0.004, 0.007, 5, 28), { p: [o * L, y, 0], r: [0, PI / 2, 0], w: 2 }); });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * PI * 2; m.line([-L / 2, y + Math.cos(a) * r, Math.sin(a) * r], [L / 2, y + Math.cos(a) * r, Math.sin(a) * r], 0.9); } [-1, 1].forEach(sg => { for (let k = 0; k < 4; k++) { const q = []; for (let j = 0; j <= 8; j++) { const b = -PI / 2 + j / 8 * PI, a = k / 4 * PI; q.push([sg * (L / 2 + Math.cos(b) * r * 0.45), y + Math.sin(b) * r * Math.cos(a), Math.sin(b) * r * Math.sin(a)]); } m.poly(q, 0.9); } });
+    m.add(cyl(r * 0.2, r * 0.5, 12), { p: [-L * 0.2, y + r + r * 0.2, 0], w: 1.2 }).add(cyl(r * 0.33, r * 0.08, 14, false), { p: [-L * 0.2, y + r + r * 0.45, 0], w: 1.5, e: 2 }); m.line([-L / 2 - r * 0.45, y, 0], [-L / 2 - r * 0.45, y, 0.001], 1); };
+  const exch = () => { [0.5, 1.08].forEach(y => { hvessel(1.6, 0.23, y); [-0.62, 0.62].forEach(x => m.add(cyl(0.3, 0.05, 20, false), { p: [x, y, 0], r: AX, w: 1.3, e: 2 })); }); pipe([[0.4, 0.73, 0], [0.4, 0.85, 0]], 0.05, 1.2); };
+  const sphereTank = Rr => { const cy = Rr + 0.75; m.add(new THREE.SphereGeometry(Rr, 40, 26), { p: [0, cy, 0], w: 0.45 }).add(new THREE.TorusGeometry(Rr + 0.004, 0.008, 5, 60), { p: [0, cy, 0], r: UP, w: 2 }).add(new THREE.TorusGeometry(Rr * 0.3, 0.008, 5, 30), { p: [0, cy + Rr + 0.1, 0], r: UP, w: 3 }).add(ring(0, Rr * 0.3), { p: [0, cy + Rr - 0.02, 0], r: UP, w: 1.5 });
+    for (let k = 0; k < 8; k++) { const q = [], a = k / 8 * PI; for (let j = 0; j <= 36; j++) { const b = j / 36 * PI * 2; q.push([Math.cos(a) * Math.cos(b) * Rr, cy + Math.sin(b) * Rr, Math.sin(a) * Math.cos(b) * Rr]); } m.poly(q, 0.8); } [-0.5, 0.5].forEach(o => { const q = [], rr = Math.sqrt(1 - o * o) * Rr; for (let j = 0; j <= 40; j++) { const b = j / 40 * PI * 2; q.push([Math.cos(b) * rr, cy + o * Rr, Math.sin(b) * rr]); } m.poly(q, 0.8); });
+    for (let k = 0; k < 10; k++) { const a = k / 10 * PI * 2, b = (k + 1) / 10 * PI * 2, lx = Math.cos(a) * Rr * 0.92, lz = Math.sin(a) * Rr * 0.92; rod(m, [lx, 0, lz], [lx, cy, lz], 0.035, { w: 1.4 }); m.line([lx, 0, lz], [Math.cos(b) * Rr * 0.92, 0.75, Math.sin(b) * Rr * 0.92], 0.8); m.line([lx, 0.75, lz], [Math.cos(b) * Rr * 0.92, 0, Math.sin(b) * Rr * 0.92], 0.8); }
+    const st = []; for (let k = 0; k <= 30; k++) { const a = -0.4 + k / 30 * 1.9, y = (cy + Rr * 0.75) * k / 30, rr = Math.max(Rr * 0.92, Math.sqrt(Math.max(0, Rr * Rr - (y - cy) * (y - cy))) + 0.07); st.push([Math.cos(a) * rr, y, Math.sin(a) * rr]); } m.poly(st, 2).poly(st.map(q => [q[0], q[1] + 0.13, q[2]]), 1.5); pipe([[0, cy - Rr, 0], [0, 0.3, 0], [0, 0.3, -Rr - 0.5]], 0.05, 1); valve([0, 0.3, -Rr - 0.2], 0.03, PI / 2); };
+  const tank = (r, h) => { m.add(new THREE.CylinderGeometry(r, r, h, 56, 3, true), { p: [0, h / 2, 0], w: 0.4 }).add(new THREE.ConeGeometry(r + 0.01, 0.2, 56, 1, true), { p: [0, h + 0.1, 0], w: 0.5 }).add(new THREE.TorusGeometry(r, 0.01, 5, 64), { p: [0, h, 0], r: UP, w: 2.5 }); [0.09, 0.17].forEach(o => m.add(new THREE.TorusGeometry(r, 0.006, 4, 64), { p: [0, h + o, 0], r: UP, w: 3 })); [0.25, 0.5, 0.75].forEach(o => m.add(new THREE.TorusGeometry(r + 0.003, 0.005, 4, 64), { p: [0, h * o, 0], r: UP, w: 1.5 }));
+    for (let k = 0; k < 28; k++) { const a = k / 28 * PI * 2; m.line([Math.cos(a) * r, h, Math.sin(a) * r], [Math.cos(a) * r, h + 0.17, Math.sin(a) * r], 1); m.line([Math.cos(a) * r, 0, Math.sin(a) * r], [Math.cos(a) * r, h, Math.sin(a) * r], 0.5); m.line([Math.cos(a) * r, h, Math.sin(a) * r], [0, h + 0.2, 0], 0.4); }
+    const hx = []; for (let k = 0; k <= 40; k++) { const a = -2.2 + 1.5 * k / 40; hx.push([Math.cos(a) * (r + 0.07), h * k / 40, Math.sin(a) * (r + 0.07)]); } m.poly(hx, 2.5).poly(hx.map(q => [q[0], q[1] + 0.14, q[2]]), 2); for (let k = 0; k <= 40; k += 4) m.line(hx[k], [hx[k][0], hx[k][1] + 0.14, hx[k][2]], 1);
+    pipe([[0, 0.22, -r], [0, 0.22, -r - 0.42]], 0.06, 1); valve([0, 0.22, -r - 0.2], 0.034, PI / 2); m.add(cyl(0.16, 0.06, 16, false), { p: [r * 0.5, 0.4, -r * 0.87], r: [PI / 2, 0, 0.5], w: 1.5, e: 2 }); };
+  const heater = () => { [[-0.6, -0.5], [0.6, -0.5], [0.6, 0.5], [-0.6, 0.5]].forEach(([x, z]) => m.add(box(0.08, 0.4, 0.08), { p: [x, 0.2, z], e: 1.5, w: 0.6 }));
+    m.add(new THREE.BoxGeometry(1.35, 1.5, 1.15, 3, 3, 3), { p: [0, 1.15, 0], e: 3.5, w: 0.3 }).add(box(0.8, 0.6, 0.8), { p: [0, 2.2, 0], e: 3, w: 0.4 }).add(new THREE.CylinderGeometry(0.17, 0.17, 3.2, 22, 6, true), { p: [0, 4.3, 0], w: 0.9, e: 1.5 }).add(cyl(0.27, 0.36, 22, true, 0.17), { p: [0, 2.68, 0], w: 1 }).add(new THREE.TorusGeometry(0.175, 0.012, 5, 24), { p: [0, 5.9, 0], r: UP, w: 3 });
+    staves(0, 0, 0.17, 2.7, 5.9, 10); [3.4, 4.4, 5.3].forEach(y => m.add(new THREE.TorusGeometry(0.174, 0.007, 4, 24), { p: [0, y, 0], r: UP, w: 2 })); for (let k = 0; k < 5; k++) m.add(cyl(0.06, 0.16, 10), { p: [-0.44 + k * 0.22, 0.32, 0], w: 1.5 });
+    [0.8, 1.15, 1.5].forEach(y => { m.line([-0.675, y, 0.58], [0.675, y, 0.58], 0.7); m.line([-0.675, y, -0.58], [0.675, y, -0.58], 0.7); }); [-0.3, 0.3].forEach(x => m.add(new THREE.CircleGeometry(0.07, 12), { p: [x, 1.0, 0.585], w: 2 })); m.poly([[-0.68, 1.9, -0.6], [0.68, 1.9, -0.6], [0.68, 1.9, 0.6], [-0.68, 1.9, 0.6]], 1.5, true); };
+  const structure = (hw, H, levels) => { [[-hw, -hw], [hw, -hw], [hw, hw], [-hw, hw]].forEach(([x, z], i, A) => { m.add(box(0.08, H, 0.08), { p: [x, H / 2, z], e: 1.8, w: 0.5 }); const n = A[(i + 1) % 4]; levels.forEach((y, li) => { m.line([x, y, z], [n[0], y, n[1]], 1.8); m.line([x, y + 0.16, z], [n[0], y + 0.16, n[1]], 1); m.line([x, li ? levels[li - 1] : 0, z], [n[0], y, n[1]], 0.7); }); }); };
+  const shelter = () => { [[-1.6, -0.75], [0, -0.75], [1.6, -0.75], [1.6, 0.75], [0, 0.75], [-1.6, 0.75]].forEach(([x, z]) => m.add(box(0.08, 1.6, 0.08), { p: [x, 0.8, z], e: 1.5, w: 0.6 }));
+    [-1, 1].forEach(sg => m.add(new THREE.BoxGeometry(3.5, 0.03, 0.95, 6, 1, 2), { p: [0, 1.82, sg * 0.42], r: [sg * 0.48, 0, 0], e: 2.5, w: 0.4 })); m.poly([[-1.6, 1.6, -0.75], [1.6, 1.6, -0.75], [1.6, 1.6, 0.75], [-1.6, 1.6, 0.75]], 1.6, true);
+    [-0.8, 0.8].forEach(x => { m.add(cyl(0.24, 0.9, 22), { p: [x, 0.5, 0], r: AX, w: 1 }).add(box(1.1, 0.14, 0.6), { p: [x, 0.07, 0], e: 2, w: 0.6 }); [-0.25, 0.25].forEach(o => m.add(cyl(0.12, 0.55, 14), { p: [x + o, 0.5, 0.36], r: AZ, w: 1.2 })); m.add(cyl(0.19, 0.4, 18), { p: [x + 0.62, 0.5, 0], r: AX, w: 1 }); pipe([[x, 0.74, 0], [x, 1.3, 0], [x, 1.3, -0.9]], 0.05, 1); }); };
+  const coolingTower = () => { m.add(new THREE.BoxGeometry(3.2, 1.3, 1.5, 6, 2, 2), { p: [0, 0.8, 0], e: 3.5, w: 0.25 }).add(box(3.4, 0.14, 1.7), { p: [0, 0.07, 0], e: 2.5, w: 0.4 }); for (let y = 0.3; y < 1.4; y += 0.11) { m.line([-1.6, y, 0.76], [1.6, y, 0.76], 0.6); m.line([-1.6, y, -0.76], [1.6, y, -0.76], 0.6); }
+    [-1.05, 0, 1.05].forEach(x => { m.add(cyl(0.38, 0.45, 26, true, 0.46), { p: [x, 1.68, 0], w: 1 }).add(new THREE.TorusGeometry(0.46, 0.01, 5, 30), { p: [x, 1.9, 0], r: UP, w: 2.5 }); for (let k = 0; k < 3; k++) { const a = k * PI / 3; m.line([x - Math.cos(a) * 0.38, 1.6, -Math.sin(a) * 0.38], [x + Math.cos(a) * 0.38, 1.6, Math.sin(a) * 0.38], 0.9); } }); [-0.53, 0.53].forEach(x => m.line([x, 0.14, 0.76], [x, 1.45, 0.76], 1)); };
+  // pipe bridge over a road: portal frame of span S along local z, pipes crossing at height y
+  const bridge = (S, y) => { [-S / 2, S / 2].forEach(z => { m.add(box(0.08, y + 0.5, 0.08), { p: [0, (y + 0.5) / 2, z], e: 1.8, w: 0.6 }); m.add(box(0.08, y + 0.5, 0.08), { p: [0.7, (y + 0.5) / 2, z], e: 1.8, w: 0.6 }); m.line([0, y, z], [0.7, y + 0.5, z], 0.8); m.line([0.7, y, z], [0, y + 0.5, z], 0.8); });
+    [0, 0.7].forEach(x => [y, y + 0.5].forEach(yy => m.line([x, yy, -S / 2], [x, yy, S / 2], 1.8))); for (let z = -S / 2; z < S / 2 - 0.01; z += S / 4) { m.line([0, y, z], [0.7, y, z + S / 4], 0.7); m.line([0, y + 0.5, z], [0, y, z + S / 4], 0.7); }
+    [[0.12, 0.06], [0.3, 0.085], [0.48, 0.05], [0.6, 0.04]].forEach(([x, r]) => { m.push([x, 0, 0]); run(S + 0.8, r, y + 0.05 + r, 0, true); m.pop(); }); };
+  const pole = () => { rod(m, [0, 0, 0], [0, 1.9, 0], 0.02, { w: 2 }); m.line([0, 1.9, 0], [0, 1.95, 0.3], 2); m.add(box(0.06, 0.03, 0.16), { p: [0, 1.94, 0.3], e: 2, w: 1 }); };
+  const drop = (x, zEq, yEq, yT, sg, r = 0.045) => pipe([[x, yEq, zEq], [x, yT + 0.12, zEq], [x, yT + 0.12, sg * 0.75]], r, 1);
+
+  // ---- ground: paving joints, road edges, battery limit
+  for (let x = -19.5; x <= 19.51; x += 1.5) m.line([x, g, -6], [x, g, 17], 0.3); for (let z = -6; z <= 17.01; z += 1.5) m.line([-19.5, g, z], [19.5, g, z], 0.3);
+  m.poly([[-19.5, g, -6], [19.5, g, -6], [19.5, g, 17], [-19.5, g, 17]], 1.2, true);
+  [[-12.4, 2.0, 12.4, 2.0], [-12.4, 2.72, 12.4, 2.72], [-12.4, -2.0, 12.4, -2.0], [-12.4, -2.72, 12.4, -2.72], [-12, 9.45, 12, 9.45], [-12, 10.95, 12, 10.95], [12.85, 1.5, 12.85, 8.7], [14.35, 1.5, 14.35, 8.7], [-12.85, 1.5, -12.85, 8.7], [-14.35, 1.5, -14.35, 8.7]].forEach(([a, b, c, d]) => m.line([a, g + 0.01, b], [c, g + 0.01, d], 1.1));
+
+  // ================= LEG 1: under the main pipe rack (west to east along z = 0) =================
+  at(0, 0, 0, () => rack(25.5, 0.9, [1.35, 2.0], 2.35));
+  at(5, 0, 0, () => { m.add(new THREE.BoxGeometry(6.2, 0.22, 2.1, 12, 1, 2), { p: [0, 2.82, 0], e: 3, w: 0.3 }); for (let x = -3; x <= 3.01; x += 1.5) [-0.9, 0.9].forEach(z => m.line([x, 2.35, z], [x, 2.71, z], 1.4)); [-2.25, -0.75, 0.75, 2.25].forEach(x => { m.add(new THREE.TorusGeometry(0.62, 0.014, 5, 36), { p: [x, 2.68, 0], r: UP, w: 2.5 }); for (let k = 0; k < 4; k++) { const a = k * PI / 4; m.line([x - Math.cos(a) * 0.6, 2.64, -Math.sin(a) * 0.6], [x + Math.cos(a) * 0.6, 2.64, Math.sin(a) * 0.6], 0.9); } }); for (let x = -3; x <= 3.01; x += 0.25) m.line([x, 2.94, -1.0], [x, 2.94, 1.0], 0.3); });      // fin-fan coolers on the rack
+  [-10.5, -8.2, -6, -4.2, 3, 5.2, 7.5, 9.8].forEach(x => at(x, 1.55, 0, () => pump(1.47, 0.85))); [-8.2, -5.9, -3.7, 3.1, 5.3, 7.5, 9.8].forEach(x => at(x, -1.55, PI, () => pump(1.47, 0.85)));
+  // south process row
+  col(-10.6, 3.5, 0.48, 5.6, [1.7, 3.1, 4.5]); pipe([[-10.6, 6.15, 3.5], [-10.6, 6.5, 3.5], [-9.8, 6.5, 3.5], [-9.8, 2.14, 3.5], [-9.8, 2.14, 0.75]], 0.075, 1.1);
+  col(-8.3, 3.4, 0.31, 3.8, [1.5, 2.8]); pipe([[-8.3, 4.25, 3.4], [-8.3, 4.5, 3.4], [-7.75, 4.5, 3.4], [-7.75, 1.47, 3.4], [-7.75, 1.47, 0.75]], 0.05, 1.1);
+  at(-5.6, 3.75, 0, () => { structure(0.95, 1.5, [1.42]); m.push([0, 1.5, 0]); hvessel(2.1, 0.4, 0.62); m.pop(); }); drop(-5.2, 3.75, 2.56, 2.0, 1);
+  at(-3.0, 3.1, 0, exch); drop(-3.4, 3.1, 1.3, 1.35, 1); at(-0.6, 3.1, 0, exch); drop(-0.2, 3.1, 1.3, 2.0, 1);
+  col(1.9, 3.5, 0.36, 4.4, [1.6, 3.0]); pipe([[1.9, 4.85, 3.5], [1.9, 5.1, 3.5], [2.6, 5.1, 3.5], [2.6, 2.14, 3.5], [2.6, 2.14, 0.75]], 0.055, 1.1);
+  at(4.6, 3.2, 0, () => hvessel(2.0, 0.36, 0.78)); drop(4.2, 3.2, 1.2, 1.35, 1);
+  [7.2].forEach(x => { col(x, 3.6, 0.5, 2.7, [1.9]); at(x, 3.6, 0, () => structure(0.85, 3.5, [1.9, 3.5])); drop(x - 0.3, 2.75, 3.1, 2.0, 1, 0.06); });
+  // north process row
+  at(-10.3, -3.2, 0, () => hvessel(2.2, 0.42, 0.85)); drop(-10.7, -3.2, 1.3, 1.35, -1);
+  col(-7.6, -3.5, 0.42, 4.9, [1.7, 3.2]); pipe([[-7.6, 5.4, -3.5], [-7.6, 5.7, -3.5], [-6.9, 5.7, -3.5], [-6.9, 2.14, -3.5], [-6.9, 2.14, -0.75]], 0.065, 1.1);
+  col(-5.1, -3.4, 0.29, 3.4, [1.5, 2.6]); pipe([[-5.1, 3.85, -3.4], [-5.1, 4.1, -3.4], [-4.6, 4.1, -3.4], [-4.6, 1.47, -3.4], [-4.6, 1.47, -0.75]], 0.045, 1.1);
+  [-2.3, 0.7].forEach(x => { at(x, -3.5, 0, heater); pipe([[x, 2.0, -2.9], [x, 2.14, -2.9], [x, 2.14, -0.75]], 0.06, 1); });
+  at(3.5, -3.1, 0, exch); drop(3.1, -3.1, 1.3, 1.35, -1);
+  col(6.1, -3.5, 0.38, 4.1, [1.6, 2.9]); pipe([[6.1, 4.55, -3.5], [6.1, 4.8, -3.5], [6.8, 4.8, -3.5], [6.8, 2.14, -3.5], [6.8, 2.14, -0.75]], 0.055, 1.1);
+  at(8.9, -3.2, 0, () => hvessel(2.3, 0.45, 0.9)); drop(8.5, -3.2, 1.4, 2.0, -1);
+  col(11.2, -3.3, 0.27, 3.0, [1.4, 2.3]);
+
+  // ================= LEG 2: east road (north to south along x = 13.6) =================
+  at(15.75, 3.0, PI / 2, shelter); at(15.75, 6.6, 0, heater); col(15.6, 9.0, 0.34, 3.8, [1.5, 2.7]);
+  col(11.3, 3.2, 0.5, 2.7, [1.9]); at(11.3, 3.2, 0, () => structure(0.85, 3.5, [1.9, 3.5])); at(11.9, 5.9, PI / 2, exch); at(11.9, 8.1, PI / 2, () => hvessel(1.7, 0.34, 0.75));
+  [1.6, 4.6, 7.6].forEach(z => at(13.6, z, PI / 2, () => bridge(3.2, 1.75))); [1.0, 5.0, 8.0].forEach(z => at(14.75, z, -PI / 2, () => pump(1.87, 0.3)));
+  // ================= LEG 3: tank farm road (east to west along z = 10.2) =================
+  [9.4, 6.4, 3.4].forEach(x => at(x, 12.95, 0, () => sphereTank(1.15))); pipe([[9.4, 0.3, 11.3], [3.4, 0.3, 11.3]], 0.06, 0.8);
+  [-1.6, -5.6, -9.6].forEach(x => at(x, 13.4, 0, () => tank(1.6, 2.1))); m.poly([[0.6, 0.18, 11.25], [-11.8, 0.18, 11.25], [-11.8, 0.18, 15.6], [0.6, 0.18, 15.6]], 2.5, true); pipe([[-1.6, 0.22, 11.4], [-9.6, 0.22, 11.4]], 0.07, 0.8);
+  [8.6, 4.2].forEach(x => at(x, 7.6, 0, () => { [-0.62, 0, 0.62].forEach(z => { m.push([0, 0, z]); hvessel(2.9, 0.26, 0.62); m.pop(); }); pipe([[0, 0.9, 0.62], [0, 1.2, 0.62], [0, 1.2, 1.5]], 0.04, 1); }));      // LPG bullets
+  at(-5.6, 8.0, 0, () => rack(9, 0.6, [1.25, 1.75], 2.0)); [-8.2, -5.2, -2.6].forEach(x => at(x, 9.0, 0, () => pump(1.37, 0.55)));
+  { const n = 8; m.push([5.6, 0, 0]); for (let k = 0; k < 4; k++) run(9.5, 0.05 + (k % 2) * 0.02, 0.27 + (k % 2) * 0.02, 9.05 - k * 0.17); m.pop(); for (let i = 0; i <= n; i++) m.add(box(0.12, 0.2, 0.8), { p: [0.85 + i * 9.5 / n, 0.1, 8.8], e: 2, w: 0.6 }); }      // sleeper pipeway beside the road
+  [7.6, 0.4, -6.8].forEach(x => at(x, 10.2, 0, () => bridge(3.2, 1.75)));
+  // ================= LEG 4: west road (south to north along x = -13.6) =================
+  at(-15.95, 7.6, PI / 2, coolingTower); at(-15.95, 3.6, PI / 2, coolingTower); pipe([[-15.1, 0.35, 7.6], [-14.7, 0.35, 7.6], [-14.7, 0.35, 3.6], [-15.1, 0.35, 3.6]], 0.08, 0.9);
+  at(-11.9, 7.7, PI / 2, exch); at(-11.9, 5.4, PI / 2, () => hvessel(1.7, 0.36, 0.78));
+  [6.6, 4.0].forEach(z => at(-13.6, z, PI / 2, () => bridge(3.2, 1.75)));
+  // flare, far corner
+  rod(m, [-17.6, g, -3.6], [-17.6, g + 8.2, -3.6], 0.06, { w: 1.5 }); m.add(cyl(0.1, 0.34, 12), { p: [-17.6, g + 8.35, -3.6], w: 1.5 }); [0.4, 2.5, 4.6].forEach(a => m.line([-17.6, g + 5.5, -3.6], [-17.6 + Math.cos(a) * 2.6, g, -3.6 + Math.sin(a) * 2.6], 0.7));
+  m.add(sph(0.22), { p: [-17.55, g + 8.85, -3.6], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.11), { p: [-17.5, g + 9.3, -3.6], s: [1, 2.4, 1], w: 5, t: 1 });
+  // light poles and crew
+  for (let x = -11; x <= 11; x += 5.5) { at(x, 11.2, PI, pole); at(x + 2.7, -1.25, 0, pole); } [3, 7].forEach(z => { at(14.6, z, -PI / 2, pole); at(-12.6, z, PI / 2, pole); });
+  [[-9.2, 1.2, 1.9], [-4.4, -1.15, 0.4], [1.6, 1.2, 2.6], [6.3, -1.2, -0.5], [12.6, 4.0, 1.2], [14.5, 7.0, -1.8], [5.0, 9.6, 0.3], [-2.0, 10.9, 2.8], [-9.0, 9.7, -0.6], [-14.4, 5.0, 1.4], [-12.9, 2.0, -2.0]].forEach(([x, z, ry]) => person(m, [x, g, z], ry, 0.27));
+  // flight path at eye height: down the pump alley beside the main rack, across under the rack, along the far alley, down the east road, back along the tank farm, up the west road
+  const way = [[-11, 2.35], [-8, 2.35], [-5.5, 2.35], [-3.4, 2.3], [-0.75, 0], [1.9, -2.3], [4.5, -2.35], [7.5, -2.35], [10.5, -2.35], [12.6, -1.7], [13.6, 0.3], [13.6, 3], [13.6, 6], [13.5, 8.4], [12.6, 9.8], [10.8, 10.2], [8, 10.2], [4, 10.2], [0, 10.2], [-4, 10.2], [-8, 10.2], [-11, 10.2], [-12.9, 9.6], [-13.6, 7.8], [-13.6, 5.2], [-13.5, 3.7], [-12.7, 2.65]].map(([x, z]) => [x, g + 0.5, z]);
+  return { m, way, noGround: true, hot: { enter: [2.2, 0.2, 0], a: [-0.8, 0.5, 0.4], b: [0, 0.3, 0], c: [0.8, 0.5, -0.4] } };
+}
+
+// Turns a model into "slabs" along a closed flight path so particles can be drawn only where the camera is about to be.
+// Every triangle and line is cut into pieces no longer than the slab length and filed under the nearest point of the path.
+export function makeTour(m, way, cs, step = 0.5) {
+  const curve = new THREE.CatmullRomCurve3(way.map(p => new THREE.Vector3(...p)), true, 'centripetal'), len = curve.getLength(), K = Math.round(len / step), v = new THREE.Vector3();
+  const P = new Float32Array(K * 3), D = new Float32Array(K * 3); for (let k = 0; k < K; k++) { curve.getPointAt(k / K, v); P.set([v.x, v.y, v.z], k * 3); curve.getTangentAt(k / K, v); D.set([v.x, v.y, v.z], k * 3); }
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; const scan = A => { for (let i = 0; i < A.length; i += 3) { x0 = Math.min(x0, A[i]); x1 = Math.max(x1, A[i]); z0 = Math.min(z0, A[i + 2]); z1 = Math.max(z1, A[i + 2]); } }; scan(m.T); scan(m.S);
+  const cell = 0.5, gw = Math.ceil((x1 - x0) / cell) + 1, gh = Math.ceil((z1 - z0) / cell) + 1, grid = new Int16Array(gw * gh);
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) { const x = x0 + i * cell, z = z0 + j * cell; let b = 0, bd = 1e9; for (let k = 0; k < K; k++) { const dx = P[k * 3] - x, dz = P[k * 3 + 2] - z, d = dx * dx + dz * dz; if (d < bd) { bd = d; b = k; } } grid[j * gw + i] = b; }
+  const slabOf = (x, z) => grid[Math.min(gh - 1, Math.max(0, Math.round((z - z0) / cell))) * gw + Math.min(gw - 1, Math.max(0, Math.round((x - x0) / cell)))];
+  const G = [], GW = [], GT = [], GS = [];      // geometry (9 numbers per piece; a line is stored as a, b, a), weight, tint, slab
+  const tri = (a, b, c, w, t, depth) => { const ab = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]), bc = Math.hypot(b[0] - c[0], b[1] - c[1], b[2] - c[2]), ca = Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]), mx = Math.max(ab, bc, ca);
+    if (mx > 0.8 && depth < 7) { const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2]; if (mx === ab) { const h = mid(a, b); tri(a, h, c, w / 2, t, depth + 1); tri(h, b, c, w / 2, t, depth + 1); } else if (mx === bc) { const h = mid(b, c); tri(a, b, h, w / 2, t, depth + 1); tri(a, h, c, w / 2, t, depth + 1); } else { const h = mid(c, a); tri(a, b, h, w / 2, t, depth + 1); tri(h, b, c, w / 2, t, depth + 1); } return; }
+    G.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]); GW.push(w * (depth > 0 || mx > 0.22 ? 0.3 : mx < 0.06 ? 1.6 : 0.8)); GT.push(t); GS.push(slabOf((a[0] + b[0] + c[0]) / 3, (a[2] + b[2] + c[2]) / 3)); };
+  for (let i = 0; i < m.TW.length; i++) { const j = i * 9, T = m.T; tri([T[j], T[j + 1], T[j + 2]], [T[j + 3], T[j + 4], T[j + 5]], [T[j + 6], T[j + 7], T[j + 8]], m.TW[i], m.TT[i], 0); }
+  const nTri = GW.length;
+  for (let i = 0; i < m.SW.length; i++) { const j = i * 6, S = m.S, L = Math.hypot(S[j + 3] - S[j], S[j + 4] - S[j + 1], S[j + 5] - S[j + 2]), n = Math.max(1, Math.ceil(L / 0.6)); for (let q = 0; q < n; q++) { const u0 = q / n, u1 = (q + 1) / n, a = [0, 1, 2].map(d => S[j + d] + (S[j + 3 + d] - S[j + d]) * u0), b = [0, 1, 2].map(d => S[j + d] + (S[j + 3 + d] - S[j + d]) * u1); G.push(a[0], a[1], a[2], b[0], b[1], b[2], a[0], a[1], a[2]); GW.push(m.SW[i] / n * 5); GT.push(m.ST[i]); GS.push(slabOf((a[0] + b[0]) / 2, (a[2] + b[2]) / 2)); } }
+  const n = GW.length, start = new Int32Array(K + 1), order = new Int32Array(n), cum = new Float32Array(n), W = new Float32Array(K);
+  for (let i = 0; i < n; i++) start[GS[i] + 1]++; for (let k = 0; k < K; k++) start[k + 1] += start[k]; const fill = start.slice(0, K); for (let i = 0; i < n; i++) order[fill[GS[i]]++] = i;
+  for (let k = 0; k < K; k++) { let t = 0; for (let q = start[k]; q < start[k + 1]; q++) cum[q] = (t += GW[order[q]]); W[k] = t; }
+  const Gf = new Float32Array(G), Tf = new Float32Array(GT), [cx, cy, cz, sc] = cs;
+  // one random surface point of slab k, written into out[o..o+2] in the model's fitted coordinates; returns its tint
+  const sample = (k, out, o) => { const a0 = start[k], a1 = start[k + 1]; if (a1 <= a0) return -1; const r = R() * W[k]; let lo = a0, hi = a1 - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < r) lo = mid + 1; else hi = mid; }
+    const i = order[lo], j = i * 9; let u = R(), w = R(); if (i >= nTri) w = 0; else if (u + w > 1) { u = 1 - u; w = 1 - w; } const q = 1 - u - w;
+    out[o] = (Gf[j] * q + Gf[j + 3] * u + Gf[j + 6] * w - cx) * sc; out[o + 1] = (Gf[j + 1] * q + Gf[j + 4] * u + Gf[j + 7] * w - cy) * sc; out[o + 2] = (Gf[j + 2] * q + Gf[j + 5] * u + Gf[j + 8] * w - cz) * sc; return Tf[i]; };
+  const fit = Q => { for (let i = 0; i < Q.length; i += 3) { Q[i] = (Q[i] - cx) * sc; Q[i + 1] = (Q[i + 1] - cy) * sc; Q[i + 2] = (Q[i + 2] - cz) * sc; } return Q; };
+  return { K, len, P: fit(P), D, W, sample, unit: sc, wire: fit(new Float32Array(m.S)) };
 }
 const BUILDERS = [plant, mechanical, civilWork, softCraft, cleaning, pipeline, facility, safety, quality, experience, careers];
 export function buildAll(N) {
-  const out = BUILDERS.map(fn => { const { m, hot, tour, noGround } = fn(), b = (noGround ? m : m.ground()).build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H, tour: tour && tour.map(b.xf), unit: b.xf([1, 0, 0])[0] - b.xf([0, 0, 0])[0] }; });
+  const out = BUILDERS.map(fn => { const { m, hot, way, noGround } = fn(), b = (noGround ? m : m.ground()).build(N); const H = {}; for (const k in hot) H[k] = hot[k]; return { pos: b.pos, tint: b.tint, hot: H, tourMake: way ? () => makeTour(m, way, b.cs) : null }; });
   const g = gulfMap(N); out.push({ pos: g.pos, tint: g.tint, city: g.city, state: g.state, hot: { enter: [2.2, 0.9, 0], a: g.city(-95.9, 26.3), b: g.city(-99.4, 23.2) }, flat: true });
   return out;
 }
