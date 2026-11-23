@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=47';
+import { buildAll, CITIES } from './models.js?v=48';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
