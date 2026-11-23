@@ -137,7 +137,7 @@ const mat = new THREE.ShaderMaterial({
         float ia = smoothstep(0.0, 0.26, t), ib = smoothstep(0.44, 1.0, t); ib = ib * ib * (3.0 - 2.0 * ib);
         p = mix(mix(aFrom, nrg, ia), aTo, ib);
       }
-      float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro);
+      float burst = sin(3.14159 * e) * (1.0 - 0.72 * uIntro) * (1.0 - smoothstep(0.0, 0.25, uTour));      // no scatter while flying: particles slide straight to their new places
       // in flight: swirl around the axis and stream across as a ribbon before settling
       float ang = burst * (0.6 + aRnd.y) * 1.6; float c = cos(ang), s = sin(ang);
       p.xz = mat2(c, -s, s, c) * p.xz;
@@ -351,14 +351,26 @@ const wireMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.Sh
   fragmentShader: `uniform vec3 uInk; varying float vA; varying float vT; void main(){ float r = step(0.5, vT) * step(vT, 1.5); gl_FragColor = vec4(mix(uInk, vec3(0.89, 0.12, 0.14), r), min(1.0, vA * (1.0 + r))); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
 let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); wireMesh.geometry.setAttribute('aTint', new THREE.BufferAttribute(TOUR.wireTint, 1)); } }, 3400);
 const WN = 15, pslab = new Int16Array(N), TC = new THREE.Vector3(), TD = new THREE.Vector3(), TG = new THREE.Vector3();
-let tu = 0, tourAt = 0, tk = 0, lastCur = -9, phase = 0, tourT0 = 0, cursor = 0;
+let tu = 0, tourAt = 0, tk = 0, lastCur = -9, phase = 0, cursor = 0, fly0 = 0, drawn = false, tiltNow = 0.36;
+const FLY = 5200, B0 = new THREE.Vector3(), B1 = new THREE.Vector3(), B2 = new THREE.Vector3(), B3 = new THREE.Vector3(), AH = new THREE.Vector3(), EY = new THREE.Vector3(), LT = new THREE.Vector3(), sm = x => { x = Math.min(1, Math.max(0, x)); return x * x * x * (x * (x * 6 - 15) + 10); };
 const pickFar = k0 => { const K = TOUR.K, a = (k0 + WN - 2) % K, b = (k0 + WN - 1) % K, c = (k0 + WN) % K, r = R() * (TOUR.W[a] + TOUR.W[b] + TOUR.W[c]); return r < TOUR.W[a] ? a : r < TOUR.W[a] + TOUR.W[b] ? b : c; };
-function startTour(now) {
-  const K = TOUR.K, pos = SH[0].pos.slice(), tint = SH[0].tint.slice(), cum = new Float32Array(WN + 2); let tot = 0; tu = 0; cursor = 0;
+// Fly-in: from the overview the camera flies one continuous curve down to the start of the walk. It is a real camera move (eye
+// position + look target, converted into the model transform), not a blend of two poses: the eye follows a Bezier curve that
+// arrives level, along the path, at walking speed, so the hand-off to the walk has no stop or jump.
+function beginFly(now) {
+  const P = TOUR.P, D = TOUR.D, un = TOUR.unit, s0 = view.s * zoom, t0 = group.rotation.x;
+  B0.set(-Math.sin(ang) * Math.cos(t0), Math.sin(t0), Math.cos(ang) * Math.cos(t0)).multiplyScalar(camera.position.z / s0).sub(cloud.position);      // where the overview camera is, in model space
+  B3.set(P[0], P[1], P[2]); const dx = D[0], dz = D[2];
+  B2.set(B3.x - dx * 2.6 * un, B3.y, B3.z - dz * 2.6 * un);      // 2.6 units back along the path: arrival speed = 3 x 2.6 / 5.2 s = the walking speed
+  B1.set(B3.x - dx * 13 * un, B3.y + 5.5 * un, B3.z - dz * 13 * un).sub(B0).multiplyScalar(0.55).add(B0);      // swing round toward a point high behind the start
+  AH.set(B3.x + dx * 2.2 * un, B3.y, B3.z + dz * 2.2 * un); tu = 0; cursor = 0; phase = 1; fly0 = now; drawn = false;
+}
+function startTour() {
+  const K = TOUR.K, pos = SH[0].pos.slice(), tint = SH[0].tint.slice(), cum = new Float32Array(WN + 2); let tot = 0;
   for (let q = 0; q < WN + 2; q++) cum[q] = (tot += TOUR.W[(q - 1 + K) % K]);
   for (let i = 0; i < N; i++) { if (i % 7 === 0) { pslab[i] = -1; continue; }      // one particle in seven stays as the distant, whole-plant backdrop
     const r = R() * tot; let q = 0; while (q < WN + 1 && cum[q] < r) q++; const k = (q - 1 + K) % K, t = TOUR.sample(k, pos, i * 3); if (t >= 0) tint[i] = t; pslab[i] = k; }
-  setTarget({ pos, tint }, 2.4); phase = 1; tourT0 = now;
+  setTarget({ pos, tint }, 2.3); drawn = true;
 }
 function conveyor(k0) {
   const A = geo.attributes, to = A.aTo.array, t1 = A.aT1.array, K = TOUR.K, M = Math.ceil(N / 24), end = Math.min(N, cursor + M);
@@ -381,33 +393,43 @@ function frame() {
   const fly = mode === 'over' && !flat;
   zoom += ((detail && !narrow ? 1.12 : 1) - zoom) * 0.05;
   if (cur !== lastCur) { lastCur = cur; phase = 0; if (cur === 0) tourAt = now; document.body.classList.toggle('tour', cur === 0); }
-  if (TOUR && phase === 0 && cur === 0 && mode !== 'intro' && !morph.on && now - tourAt > 2700) startTour(now);
-  const flying = phase > 0; tk += ((flying ? 1 : 0) - tk) * 0.04; const te = tk * tk * (3 - 2 * tk);
-  if (flying) {
-    tu = (tu + dt * 1.5 * easeO(Math.min(1, (now - tourT0) / 3200)) / TOUR.len) % 1;
-    const K = TOUR.K, kf = tu * K, k0 = Math.floor(kf) % K, k1 = (k0 + 1) % K, f = kf - Math.floor(kf), P = TOUR.P, D = TOUR.D;
+  if (TOUR && phase === 0 && cur === 0 && mode !== 'intro' && !morph.on && now - tourAt > 1500 && tk < 0.01) beginFly(now);
+  const flying = phase > 0, fo = focus && flat ? focus : FO0, s0 = view.s * zoom, camZ = camera.position.z; let sc, te;
+  if (phase === 1) {
+    const u = Math.min(1, (now - fly0) / FLY), b = u * u * (2 - u), ib = 1 - b; te = sm(u); tk = 1;
+    if (u > 0.5 && !drawn) startTour();
+    EY.set(0, 0, 0).addScaledVector(B0, ib * ib * ib).addScaledVector(B1, 3 * ib * ib * b).addScaledVector(B2, 3 * ib * b * b).addScaledVector(B3, b * b * b);
+    LT.copy(AH).multiplyScalar(sm(u / 0.85)).sub(EY);      // look target slides from the middle of the plant to a point ahead on the path
+    const head = Math.atan2(LT.x, -LT.z); ang = head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)); tiltNow = Math.atan2(-LT.y, Math.hypot(LT.x, LT.z));
+    sc = s0 * Math.pow(1 / (TOUR.unit * s0), te);
+    cloud.position.set(-Math.sin(ang) * Math.cos(tiltNow), Math.sin(tiltNow), Math.cos(ang) * Math.cos(tiltNow)).multiplyScalar(camZ / sc).sub(EY); fz = 1;
+    if (u >= 1) phase = 2;
+  } else if (phase === 2) {
+    te = 1; tk = 1; tiltNow = 0; tu = (tu + dt * 1.5 / TOUR.len) % 1;
+    const K = TOUR.K, kf = tu * K, k0 = Math.floor(kf) % K, k1 = (k0 + 1) % K, f = kf - Math.floor(kf), P = TOUR.P;
     TC.set(P[k0 * 3] + (P[k1 * 3] - P[k0 * 3]) * f, P[k0 * 3 + 1] + (P[k1 * 3 + 1] - P[k0 * 3 + 1]) * f, P[k0 * 3 + 2] + (P[k1 * 3 + 2] - P[k0 * 3 + 2]) * f);
     // look where the path is going about two units ahead rather than along the instantaneous tangent, and ease the turn: the eye
     // stays exactly on the path while the view swings through corners smoothly
     { const la = ((tu + 2.2 / TOUR.len) % 1) * K, a0 = Math.floor(la) % K, a1 = (a0 + 1) % K, af = la - Math.floor(la), hx = P[a0 * 3] + (P[a1 * 3] - P[a0 * 3]) * af - TC.x, hz = P[a0 * 3 + 2] + (P[a1 * 3 + 2] - P[a0 * 3 + 2]) * af - TC.z, head = Math.atan2(hx, -hz);
-      ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * (0.03 + 0.035 * te); }
+      ang += (head + Math.PI * 2 * Math.round((ang - head) / (Math.PI * 2)) - ang) * 0.065; }
     TD.set(Math.sin(ang), 0, -Math.cos(ang));
-    TG.copy(TC).addScaledVector(TD, camera.position.z * TOUR.unit).negate();      // model offset that puts the eye point at the camera
+    TG.copy(TC).addScaledVector(TD, camZ * TOUR.unit).negate();      // model offset that puts the eye point at the camera
+    sc = 1 / TOUR.unit; cloud.position.copy(TG); fz = 1;
     if (!morph.on) conveyor(k0);
-  }
-  const fo = focus && flat ? focus : FO0; let sc;
-  if (tk > 0.002) {
-    sc = view.s * zoom + (1 / (TOUR ? TOUR.unit : 1) - view.s * zoom) * te; fz = 1; cloud.position.set(TG.x * te, TG.y * te, TG.z * te);
-    U.uScale.value = view.s * zoom + (0.8 - view.s * zoom) * te;
+  } else if (tk > 0.002) {      // leaving the section: ease back out of the walk
+    tk += (0 - tk) * 0.04; te = tk * tk * (3 - 2 * tk); tiltNow = 0.36 * (1 - te);
+    sc = s0 + (1 / (TOUR ? TOUR.unit : 1) - s0) * te; fz = 1; cloud.position.set(TG.x * te, TG.y * te, TG.z * te);
   } else {
+    tk = 0; te = 0; tiltNow = 0.36;
     fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07; cloud.position.z += (0 - cloud.position.z) * 0.07;
-    sc = view.s * zoom * fz; U.uScale.value = view.s * zoom * Math.pow(fz, 0.6);
+    sc = s0 * fz;
   }
-  group.scale.setScalar(sc); U.uTour.value = te; WU.uWire.value = Math.max(0, (te - 0.55) / 0.45) * (morph.on && phase > 0 ? Math.max(0, (now - morph.t0) / morph.dur - 0.5) * 2 : 1); wireMesh.visible = WU.uWire.value > 0.003;
+  U.uScale.value = te > 0 ? s0 + (0.8 - s0) * te : s0 * Math.pow(fz, 0.6);
+  group.scale.setScalar(sc); U.uTour.value = te; WU.uWire.value = sm((te - 0.06) / 0.5); wireMesh.visible = WU.uWire.value > 0.003;
   const fov = 38 + ((narrow ? 88 : 62) - 38) * te; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; U.uPix.value = DU.uPix.value = innerHeight * DPR / (2 * Math.tan(fov * Math.PI / 360)); }
   if (flying) { /* heading handled above */ } else if (fly) ang += dt * 0.17;
   else { const home = mode === 'intro' ? 0 : t.rot + Math.sin(el * 0.2) * (flat ? 0.08 : 0.16); ang += (home + Math.PI * 2 * Math.round((ang - home) / (Math.PI * 2)) - ang) * 0.05; }
-  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : 0.36 * (1 - te), 0, 0);
+  group.rotation.set(mode === 'intro' ? 0.1 : flat ? -0.32 : tiltNow, 0, 0);
   spin.rotation.y = ang;
   group.updateMatrixWorld();
   hotEls.forEach(h => { if (mode === 'over') h.el.style.transform = `translate(${(innerWidth / 2 + view.tx + Math.min(view.w * 0.36, 300) - 23).toFixed(1)}px, ${(innerHeight / 2 + view.ty - view.h * 0.36 - 23).toFixed(1)}px)`; else dock(h, now); }); pinEls.forEach(h => place(h, 0, 0)); placeLoc();
