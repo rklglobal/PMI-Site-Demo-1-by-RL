@@ -404,7 +404,8 @@ function worker(m, base, ry, J) {
   m.push(base, [0, ry, 0]);
   const suit = J.suit === undefined ? 1 : J.suit, limb = (a, b, r, t = suit, w = 2.4) => { rod(m, a, b, r, { w, t }); m.add(sph(r), { p: b, w: w * 0.6, t }); };
   limb(J.hipL, J.kneeL, 0.06); limb(J.kneeL, J.footL, 0.05); limb(J.hipR, J.kneeR, 0.06); limb(J.kneeR, J.footR, 0.05);
-  [J.footL, J.footR].forEach(f => m.add(box(0.1, 0.07, 0.2), { p: [f[0], f[1] - 0.02, f[2] + (J.toe || 0.05)], w: 2.6 }));
+  [J.footL, J.footR].forEach(f => m.add(box(0.1, 0.07, 0.26), { p: [f[0], f[1] - 0.02, f[2] + (J.toe || 0.08)], e: 2, w: 2.6 }));
+  m.add(box(0.31, 0.15, 0.17), { p: [(J.hipL[0] + J.hipR[0]) / 2, (J.hipL[1] + J.hipR[1]) / 2 + 0.03, (J.hipL[2] + J.hipR[2]) / 2], e: 2, w: 2.4, t: suit });      // pelvis: wider than deep, so the hips visibly turn with the body
   m.add(new THREE.CapsuleGeometry(0.15, 0.32, 4, 12), { p: J.chest, r: J.lean || [0, 0, 0], s: [1, 1, 0.72], w: 2.4, t: suit });
   [[J.shL, J.elL, J.hdL], [J.shR, J.elR, J.hdR]].forEach(([a, b, c]) => { limb(a, b, 0.045); limb(b, c, 0.04); m.add(sph(0.045), { p: c, w: 2.5 }); });
   // reflective bands on the coveralls
@@ -460,7 +461,7 @@ function quality() {
   [-1.25, 0.35].forEach(x => { rod(m, [x, g, 0.2], [x, y - rp, 0.2], 0.03, { w: 2 }); m.add(box(0.3, 0.03, 0.3), { p: [x, g + 0.015, 0.2], e: 2 }); m.add(new THREE.CylinderGeometry(rp + 0.03, rp + 0.03, 0.12, 16, 1, true, PI * 0.6, PI * 0.8), { p: [x, y, 0.2], r: AX, w: 2 }); });
   // inspector at the weld with his checklist: clipboard in both hands, looking at the joint; red ticks are the only red in the scene
   const ib = [-0.95, g, 0.78], iry = PI - 0.75;
-  worker(m, ib, iry, { suit: 0, muffs: false, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.03], footL: [-0.12, 0.06, 0], kneeR: [0.11, 0.48, 0.03], footR: [0.12, 0.06, 0],
+  worker(m, ib, iry, { suit: 0, muffs: false, hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.12, 0.5, 0.15], footL: [-0.13, 0.06, 0.2], kneeR: [0.12, 0.49, 0.0], footR: [0.14, 0.06, -0.14],
     chest: [0, 1.2, 0.03], lean: [0.12, 0, 0], shL: [-0.2, 1.4, 0.06], elL: [-0.23, 1.14, 0.14], hdL: [-0.13, 1.02, 0.28], shR: [0.2, 1.4, 0.06], elR: [0.23, 1.14, 0.14], hdR: [0.13, 1.02, 0.28],
     head: [0, 1.6, 0.08], tilt: [0.55, 0, 0] });
   m.push(ib, [0, iry, 0]); m.push([0, 1.1, 0.33], [0.93, 0, 0]);
