@@ -83,10 +83,9 @@ img{display:block}
 .svc .num{font-family:var(--head);font-size:6.5rem;line-height:.8;color:var(--red)}
 .svc h2{font-family:var(--head);font-weight:400;font-size:clamp(2.6rem,3.6vw,3.6rem);line-height:.92;margin:10px 0 18px}
 .svc ul{list-style:none}
-.svc li{display:flex;gap:12px;padding:10px 6px 10px 0;font-size:.95rem;line-height:1.35;color:var(--ink2);border-top:1px solid var(--line);transition:color .3s,background .3s}
-.svc li i{flex:none;width:9px;height:9px;margin-top:5px;border-radius:50%;border:2px solid var(--red);transition:.3s}
-.svc li.hl{color:var(--ink);font-weight:600;background:linear-gradient(90deg,rgba(235,31,39,.08),transparent)}
-.svc li.hl i{background:var(--red);transform:scale(1.2)}
+.svc li{display:flex;gap:12px;padding:10px 6px 10px 0;font-size:.95rem;line-height:1.35;color:var(--ink);border-top:1px solid var(--line);transition:color .3s,background .3s}
+.svc li i{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;background:rgba(235,31,39,.1);display:grid;place-items:center}
+.svc li i svg{width:12px;height:12px;fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .svc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--ink)}
 .svc-nav button{display:flex;align-items:center;gap:8px;height:42px;font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .svc-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
@@ -124,7 +123,8 @@ img{display:block}
   .svc .num{display:none}
   .svc h2{font-size:2rem;margin:4px 0 8px}
   .svc li{padding:6px 4px 6px 0;font-size:.8rem;gap:10px}
-  .svc li i{margin-top:4px}
+  .svc li i{width:16px;height:16px;margin-top:1px}
+  .svc li i svg{width:11px;height:11px}
   .svc-nav{margin-top:6px;padding-top:8px}
   .steps{left:14px;right:auto;top:calc(var(--nav) + 12px)}
   .steps button{width:38px}
@@ -233,11 +233,11 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 .tl::before{content:"";position:absolute;left:0;right:0;top:15px;height:2px;background:#d6d6d6}
 .tl-fill{position:absolute;left:0;top:15px;height:2px;background:var(--red);width:0;transition:width .7s var(--ease)}
 .tl button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px;text-align:left;padding-right:16px;color:var(--mute);transition:color .3s}
-.tl button i{width:30px;height:30px;border-radius:50%;background:var(--soft);box-shadow:inset 0 0 0 2px #c9c9c9;font-style:normal;font-family:var(--head);font-size:1rem;display:grid;place-items:center;transition:.4s var(--ease);position:relative;z-index:1}
+.tl button i{width:18px;height:18px;margin-top:6px;border-radius:50%;background:var(--soft);box-shadow:inset 0 0 0 2px #c9c9c9;font-style:normal;font-family:var(--head);font-size:1rem;display:grid;place-items:center;transition:.4s var(--ease);position:relative;z-index:1}
 .tl button span{font-size:.78rem;font-weight:600;line-height:1.3;max-width:180px}
 .tl button.done i{box-shadow:inset 0 0 0 2px var(--red);color:var(--red);background:#fff}
 .tl button.on{color:var(--ink)}
-.tl button.on i{background:var(--red);box-shadow:0 0 0 6px rgba(235,31,39,.15);color:#fff;transform:scale(1.12)}
+.tl button.on i{background:var(--red);box-shadow:0 0 0 6px rgba(235,31,39,.15);transform:scale(1.15)}
 .dl-track{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 6vw 26px;scroll-padding:0 6vw;scrollbar-width:none;outline:none;cursor:grab}
 .dl-track::-webkit-scrollbar{display:none}
 .dl-track.drag{cursor:grabbing;scroll-snap-type:none}
@@ -251,7 +251,7 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 .dl-card h3{font-family:var(--head);font-weight:400;font-size:clamp(1.9rem,3.2vw,2.9rem);line-height:.95;margin-top:12px}
 .dl-card .bar{width:56px;height:3px;background:var(--red);margin-top:18px;transform:scaleX(0);transform-origin:left;transition:transform .8s .2s var(--ease)}
 .dl-card.on .bar{transform:none}
-.dl-card svg{position:absolute;right:clamp(18px,3vw,36px);top:clamp(18px,3vw,36px);width:54px;height:54px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;z-index:1;opacity:.9}
+.dl-card svg{display:block;width:clamp(46px,5vw,60px);height:clamp(46px,5vw,60px);fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:14px}
 .dl-card svg .r{stroke:var(--red)}
 .dl-hint{display:none;align-items:center;gap:8px;justify-content:center;font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
 .dl-hint svg{width:20px;height:20px;fill:none;stroke:var(--red);stroke-width:2;animation:sway 2.2s infinite var(--ease)}
@@ -401,7 +401,7 @@ SC.forEach((c, n) => {
 });
 SVC.forEach((s, k) => {
   const d = document.createElement('article'); d.className = 'svc';
-  d.innerHTML = `<p class="num">0${k + 1}</p><p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li data-i="${i}"><i></i><span>${x}</span></li>`).join('')}</ul>`
+  d.innerHTML = `<p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li><i><svg viewBox=\"0 0 16 16\"><path d=\"M3.5 8.5l3 3 6-7\"/></svg></i><span>${x}</span></li>`).join('')}</ul>`
     + `<div class="svc-nav"><button class="pv">${al}Back</button><span class="sw">Swipe up</span><button class="nx">Next: ${NEXT[k]}${ar}</button></div>`;
   col.appendChild(d);
   d.querySelector('.pv').onclick = () => go(k ? (k - 1) * 2 : -1); d.querySelector('.nx').onclick = () => k < 3 ? go((k + 1) * 2) : release();
@@ -442,7 +442,6 @@ function ui() {
   const k = idx < 0 ? -1 : SC[idx].k;
   svcEls.forEach((e, i) => e.classList.toggle('on', i === k)); stepEls.forEach((e, i) => { e.classList.toggle('on', i === k); e.querySelector('u').style.width = (i < k ? 100 : i === k ? (idx % 2 + 1) * 50 : 0) + '%'; });
   SC.forEach(c => c.chip.classList.remove('on')); const me = idx; if (idx >= 0) setTimeout(() => { if (idx === me) SC[me].chip.classList.add('on'); }, DUR * 0.65);
-  if (k >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', SC[idx].hl.includes(+li.dataset.i)));
   svcEls.forEach((e, i) => { const nx = e.querySelector('.nx'); nx.innerHTML = (idx === i * 2 ? `Next${ar}` : `Next: ${NEXT[i]}${ar}`); nx.onclick = () => idx === i * 2 ? go(idx + 1) : (i < 3 ? go((i + 1) * 2) : release()); });
   stick.classList.toggle('touring', idx >= 0); heroCopy.classList.toggle('gone', idx >= 0);
   cue.style.opacity = idx >= 0 ? 0 : 1; cue.style.pointerEvents = idx >= 0 ? 'none' : '';
@@ -488,9 +487,9 @@ const DELIVERY = [
   const track = $('.dl-track'), tl = $('.tl'), fill = $('.tl-fill'), count = $('.dl-count b'), prev = $('.dl-prev'), next = $('.dl-next');
   DELIVERY.forEach(([t, img, fx, ic], i) => {
     const c = document.createElement('article'); c.className = 'dl-card';
-    c.dataset.fx = fx; c.innerHTML = `<img src="img/${img}.jpg" alt="" loading="lazy" decoding="async"><svg viewBox="0 0 64 64">${ic}</svg><div class="in"><p class="n">0${i + 1}</p><h3>${t}</h3><div class="bar"></div></div>`;
+    c.dataset.fx = fx; c.innerHTML = `<img src="img/${img}.jpg" alt="" loading="lazy" decoding="async"><div class="in"><svg viewBox="0 0 64 64">${ic}</svg><h3>${t}</h3><div class="bar"></div></div>`;
     track.appendChild(c);
-    const li = document.createElement('li'), b = document.createElement('button'); b.innerHTML = `<i>${i + 1}</i><span>${t}</span>`; b.setAttribute('aria-label', t.replace('&amp;', '&')); b.onclick = () => show(i); li.appendChild(b); tl.appendChild(li);
+    const li = document.createElement('li'), b = document.createElement('button'); b.innerHTML = `<i></i><span>${t}</span>`; b.setAttribute('aria-label', t.replace('&amp;', '&')); b.onclick = () => show(i); li.appendChild(b); tl.appendChild(li);
   });
   const cards = [...track.children], dots = [...tl.querySelectorAll('button')];
   // place each subject just right of the card's centre (clear of the title), whatever shape the card is
