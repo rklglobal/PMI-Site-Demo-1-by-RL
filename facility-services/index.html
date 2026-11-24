@@ -47,10 +47,7 @@ img{display:block}
 .hero{position:absolute;inset:0;z-index:25;background:#fff;will-change:opacity,filter,transform}
 .photo{position:absolute;right:0;bottom:0;width:100vw;aspect-ratio:2400/1340;max-height:66vh}
 .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 50%}
-.photo .lines{-webkit-mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%);mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%)}
 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0) 28%),linear-gradient(90deg,#fff 0%,rgba(255,255,255,.75) 12%,rgba(255,255,255,0) 34%);pointer-events:none}
-.ring{position:absolute;left:0;top:0;width:var(--d,220px);height:var(--d,220px);margin:calc(var(--d,220px)/-2) 0 0 calc(var(--d,220px)/-2);border-radius:50%;border:1px solid rgba(235,31,39,.6);pointer-events:none}
-.ring::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--red)}
 .hero-copy{position:absolute;left:6vw;top:calc(var(--nav) + 5vh);max-width:600px;z-index:26;transition:opacity .6s,transform .8s var(--ease)}
 .hero-copy.gone{opacity:0;transform:translateY(-40px);pointer-events:none}
 .hero-copy h1{font-family:var(--head);font-weight:400;font-size:clamp(4rem,9vw,8.4rem);line-height:.86;letter-spacing:.01em;margin:18px 0}
@@ -69,9 +66,6 @@ img{display:block}
 @keyframes nudge{0%,100%{transform:translateY(3px)}50%{transform:translateY(-4px)}}
 .cue b{display:block;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
 .cue small{display:block;font-size:.72rem;color:#b9bcc0;margin-top:2px}
-.reveal-hint{position:absolute;right:4vw;bottom:calc(30px + env(safe-area-inset-bottom));z-index:27;transition:opacity .4s;display:flex;align-items:center;gap:10px;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);background:rgba(255,255,255,.92);padding:9px 14px 9px 10px;box-shadow:0 0 0 1px var(--line)}
-.reveal-hint i{width:20px;height:20px;border-radius:50%;border:1px solid var(--red);position:relative}
-.reveal-hint i::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--red)}
 
 /* tour: white text column + full-bleed photography */
 .shots{position:absolute;inset:0;overflow:hidden;background:#fff;perspective:1200px}
@@ -80,7 +74,8 @@ img{display:block}
 .wash{position:absolute;inset:0;z-index:20;pointer-events:none;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.97) calc(6vw + var(--col) - 40px),rgba(255,255,255,.55) calc(6vw + var(--col) + 6vw),rgba(255,255,255,0) calc(6vw + var(--col) + 16vw)),linear-gradient(0deg,rgba(10,12,14,.32) 0%,rgba(10,12,14,0) 22%);opacity:0;transition:opacity .8s}
 .stick.touring .wash{opacity:1}
 .chip{position:absolute;right:5vw;bottom:34px;z-index:21;display:flex;align-items:center;gap:12px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.01em;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .6s var(--ease);text-shadow:0 1px 12px rgba(0,0,0,.35)}
-.chip i{width:26px;height:26px;border-radius:50%;background:var(--red);font-style:normal;font-size:.72rem;font-weight:700;display:grid;place-items:center;text-shadow:none}
+.chip span{min-width:0}
+.chip b{flex:none;white-space:nowrap;font-size:.7rem;font-weight:700;letter-spacing:.14em;padding:5px 9px;background:var(--red);text-shadow:none}
 .chip.on{opacity:1;transform:none}
 .col{position:absolute;left:6vw;top:0;bottom:0;width:var(--col);z-index:22;display:flex;align-items:center;pointer-events:none}
 .svc{position:absolute;left:0;right:0;opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity .5s,visibility .5s,transform .7s var(--ease)}
@@ -89,9 +84,9 @@ img{display:block}
 .svc h2{font-family:var(--head);font-weight:400;font-size:clamp(2.6rem,3.6vw,3.6rem);line-height:.92;margin:10px 0 18px}
 .svc ul{list-style:none}
 .svc li{display:flex;gap:12px;padding:10px 6px 10px 0;font-size:.95rem;line-height:1.35;color:var(--ink2);border-top:1px solid var(--line);transition:color .3s,background .3s}
-.svc li i{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--red);font-style:normal;font-size:.62rem;font-weight:700;color:var(--red);display:grid;place-items:center;transition:.3s}
-.svc li.hl{color:var(--ink);background:linear-gradient(90deg,rgba(235,31,39,.08),transparent)}
-.svc li.hl i{background:var(--red);color:#fff}
+.svc li i{flex:none;width:9px;height:9px;margin-top:5px;border-radius:50%;border:2px solid var(--red);transition:.3s}
+.svc li.hl{color:var(--ink);font-weight:600;background:linear-gradient(90deg,rgba(235,31,39,.08),transparent)}
+.svc li.hl i{background:var(--red);transform:scale(1.2)}
 .svc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--ink)}
 .svc-nav button{display:flex;align-items:center;gap:8px;height:42px;font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .svc-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
@@ -117,19 +112,19 @@ img{display:block}
   .hero-copy h1{font-size:clamp(3.6rem,17vw,5.4rem);margin:12px 0}
   .hero-copy .lead{font-size:.92rem;margin-top:12px}
   .tag{font-size:.7rem}
-  .photo{width:auto;height:36vh;max-height:none;right:-34vw;bottom:calc(104px + env(safe-area-inset-bottom))}
-  .reveal-hint{right:auto;left:6vw;bottom:calc(36vh + 116px + env(safe-area-inset-bottom));font-size:.62rem}
+  .photo{width:100vw;height:42vh;max-height:none;aspect-ratio:auto;right:0;bottom:calc(100px + env(safe-area-inset-bottom))}
+  .photo img{object-position:76% 50%}
+  .photo::after{background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0) 26%)}
   .shots{left:0;right:0;top:var(--nav);bottom:auto;height:46svh}
   .wash{background:linear-gradient(0deg,rgba(10,12,14,.35) 0%,rgba(10,12,14,0) 30%);top:var(--nav);bottom:auto;height:46svh}
   .hint{bottom:auto;top:calc(var(--nav) + 46svh - 30px);left:auto;right:14px;transform:none}
   .chip{left:14px;right:auto;bottom:auto;top:calc(var(--nav) + 46svh - 38px);font-size:.78rem;max-width:62vw}
-  .chip i{width:22px;height:22px}
   .col{left:0;right:0;width:auto;top:calc(var(--nav) + 46svh);background:#fff;bottom:0;align-items:flex-start;padding:16px 5vw calc(8px + env(safe-area-inset-bottom))}
   .svc{left:5vw;right:5vw}
   .svc .num{display:none}
   .svc h2{font-size:2rem;margin:4px 0 8px}
   .svc li{padding:6px 4px 6px 0;font-size:.8rem;gap:10px}
-  .svc li i{width:18px;height:18px;font-size:.58rem}
+  .svc li i{margin-top:4px}
   .svc-nav{margin-top:6px;padding-top:8px}
   .steps{left:14px;right:auto;top:calc(var(--nav) + 12px)}
   .steps button{width:38px}
@@ -221,6 +216,60 @@ footer .l a{font-size:.85rem;color:var(--mute)}
 footer .r{font-size:.82rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
 footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 
+/* service delivery: a timeline that fills as you move through a swipeable deck of photo cards */
+.dl{padding:96px 0 70px;background:var(--soft);overflow:hidden}
+.dl .wrap{padding:0 6vw}
+.dl-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px}
+.dl-head h2{font-family:var(--head);font-weight:400;font-size:clamp(2.8rem,5.4vw,4.6rem);line-height:.92;margin-top:14px}
+.dl-head h2 span{color:var(--red)}
+.dl-ctl{display:flex;align-items:center;gap:10px}
+.dl-count{font-family:var(--head);font-size:1.5rem;letter-spacing:.04em;color:var(--mute);margin-right:10px;min-width:74px}
+.dl-count b{color:var(--ink);font-weight:400}
+.dl-ctl button{width:52px;height:52px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--ink);display:grid;place-items:center;transition:background .25s,color .25s,opacity .25s}
+.dl-ctl button:hover{background:var(--ink);color:#fff}
+.dl-ctl button[disabled]{opacity:.25;pointer-events:none}
+.dl-ctl svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
+.tl{position:relative;list-style:none;display:grid;grid-template-columns:repeat(5,1fr);margin:34px 0 26px;padding-top:2px}
+.tl::before{content:"";position:absolute;left:0;right:0;top:15px;height:2px;background:#d6d6d6}
+.tl-fill{position:absolute;left:0;top:15px;height:2px;background:var(--red);width:0;transition:width .7s var(--ease)}
+.tl button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px;text-align:left;padding-right:16px;color:var(--mute);transition:color .3s}
+.tl button i{width:30px;height:30px;border-radius:50%;background:var(--soft);box-shadow:inset 0 0 0 2px #c9c9c9;font-style:normal;font-family:var(--head);font-size:1rem;display:grid;place-items:center;transition:.4s var(--ease);position:relative;z-index:1}
+.tl button span{font-size:.78rem;font-weight:600;line-height:1.3;max-width:180px}
+.tl button.done i{box-shadow:inset 0 0 0 2px var(--red);color:var(--red);background:#fff}
+.tl button.on{color:var(--ink)}
+.tl button.on i{background:var(--red);box-shadow:0 0 0 6px rgba(235,31,39,.15);color:#fff;transform:scale(1.12)}
+.dl-track{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 6vw 26px;scroll-padding:0 6vw;scrollbar-width:none;outline:none;cursor:grab}
+.dl-track::-webkit-scrollbar{display:none}
+.dl-track.drag{cursor:grabbing;scroll-snap-type:none}
+.dl-card{position:relative;flex:0 0 min(820px,60vw,calc((100svh - 330px) * 1.9));aspect-ratio:16/8.4;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:#222;color:#fff;transition:transform .6s var(--ease),opacity .6s;transform:scale(.94);opacity:.45;transform-origin:left center;user-select:none}
+.dl-card.on{transform:none;opacity:1}
+.dl-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 6s ease-out;transform:scale(1.08);pointer-events:none}
+.dl-card.on img{transform:scale(1)}
+.dl-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,12,14,.82) 0%,rgba(10,12,14,.55) 42%,rgba(10,12,14,.05) 75%)}
+.dl-card .in{position:absolute;left:clamp(22px,4vw,48px);bottom:clamp(22px,4vw,44px);right:40%;z-index:1}
+.dl-card .n{font-family:var(--head);font-size:clamp(4rem,8vw,7rem);line-height:.8;color:var(--red)}
+.dl-card h3{font-family:var(--head);font-weight:400;font-size:clamp(1.9rem,3.2vw,2.9rem);line-height:.95;margin-top:12px}
+.dl-card .bar{width:56px;height:3px;background:var(--red);margin-top:18px;transform:scaleX(0);transform-origin:left;transition:transform .8s .2s var(--ease)}
+.dl-card.on .bar{transform:none}
+.dl-card svg{position:absolute;right:clamp(18px,3vw,36px);top:clamp(18px,3vw,36px);width:54px;height:54px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;z-index:1;opacity:.9}
+.dl-card svg .r{stroke:var(--red)}
+.dl-hint{display:none;align-items:center;gap:8px;justify-content:center;font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.dl-hint svg{width:20px;height:20px;fill:none;stroke:var(--red);stroke-width:2;animation:sway 2.2s infinite var(--ease)}
+@keyframes sway{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+@media(max-width:900px){
+  .dl{padding:80px 0 60px}
+  .dl-head{flex-direction:column;align-items:flex-start;gap:18px}
+  .dl-ctl button{width:44px;height:44px}
+  .tl{margin:30px 0 22px}
+  .tl button span{display:none}
+  .tl button{align-items:center;padding:0}
+  .tl::before,.tl-fill{top:15px}
+  .dl-card{flex-basis:86vw;aspect-ratio:4/5;transform-origin:center}
+  .dl-card::after{background:linear-gradient(0deg,rgba(10,12,14,.88) 0%,rgba(10,12,14,.5) 45%,rgba(10,12,14,0) 75%)}
+  .dl-card .in{left:22px;right:22px;bottom:24px}
+  .dl-hint{display:flex}
+}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.hero-copy>*{opacity:1!important}.hero-copy h1 i{transform:none}.rv{opacity:1;transform:none}}
 </style>
 </head>
@@ -241,8 +290,6 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
     <div class="hero">
       <div class="photo">
         <img src="img/entrance.jpg" alt="PMI-branded guard house at a plant entrance, with gate, landscaping and process units">
-        <img class="lines" src="img/entrance-lines.jpg" alt="" aria-hidden="true">
-        <div class="ring"></div>
       </div>
     </div>
     <div class="hero-copy">
@@ -251,22 +298,23 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
       <p class="tag">Construction<b>•</b>Maintenance<b>•</b>Turnarounds</p>
       <p class="lead">Janitorial, routine maintenance, grounds and security, delivered by one turnkey industrial contractor.</p>
     </div>
-    <div class="reveal-hint"><i></i><span class="rt">Drag over the drawing to see the site</span></div>
     <button class="cue" data-go="0"><i><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></i><span><b class="ct">Swipe up to explore</b><small>Tour 4 service lines</small></span></button>
-    <div class="hint tour-ui"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span class="ht">Swipe up</span></div>
-    <div class="progress"></div>
+        <div class="progress"></div>
   </div>
 </div>
 
-<section class="blk" id="delivery">
+<section class="dl" id="delivery">
   <div class="wrap">
-    <div class="sec-head rv">
+    <div class="dl-head rv">
       <div><p class="eyebrow"><b>05</b> · How we deliver</p><h2>Service delivery &amp; <span>workforce support</span></h2></div>
-      <p>How PMI leads, staffs and reports on facility services at each site.</p>
+      <div class="dl-ctl"><p class="dl-count"><b>01</b> / 05</p><button class="dl-prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button class="dl-next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
     </div>
-    <div class="rack rv"><div class="rail"></div><div class="cards"></div></div>
+    <ol class="tl rv"><li class="tl-fill" aria-hidden="true"></li></ol>
   </div>
+  <div class="dl-track" tabindex="0" aria-label="Service delivery and workforce support"></div>
+  <p class="dl-hint"><svg viewBox="0 0 24 24"><path d="M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg><span>Swipe to see all five</span></p>
 </section>
+
 
 <section class="blk state">
   <svg class="tri" viewBox="0 0 100 87"><path d="M50 0L100 87H0z" fill="#EB1F27"/></svg>
@@ -325,33 +373,35 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 {
 const SVC = [
   { t: 'Janitorial &amp; Site Services', items: ['Day Porter &amp; Recurring Janitorial Services', 'Office, In-Plant &amp; Common Area Cleaning', 'Restroom Cleaning &amp; Supply Replenishment', 'Carpet Extraction &amp; Complete Floor Care', 'Floor Scrubbing, Stripping, Recoating &amp; Waxing', 'Trash &amp; Recycling Services', 'Facility Setups, Furniture Moves &amp; Site Deliveries'],
-    shots: [['cart', 0, [0.6, 0.6], 'PMI janitorial cart stocked with supplies in a plant hallway'], ['scrubber', 4, [0.66, 0.55], 'Crew member running a walk-behind floor scrubber across a polished lobby floor']] },
+    shots: [['cart', [0, 1, 2, 5], [0.6, 0.6], 'PMI janitorial cart stocked with supplies in a plant hallway', 'Day porter &amp; janitorial'], ['scrubber', [3, 4], [0.66, 0.55], 'Crew member running a walk-behind floor scrubber across a polished lobby floor', 'Floor care']] },
   { t: 'Security Services', items: ['Gate Guard &amp; Site Entry Services', 'Access Control, Badging &amp; Credential Management', 'Visitor Check-In &amp; Site Escort Services', 'Roving Patrols &amp; Perimeter Monitoring', 'Site Access Documentation &amp; Reporting'],
-    shots: [['guard', 0, [0.7, 0.55], 'Security officer checking a badge at the guard house barrier'], ['truck', 3, [0.66, 0.62], 'PMI security patrol truck along the plant perimeter fence']] },
+    shots: [['guard', [0, 1, 2], [0.7, 0.55], 'Security officer checking a badge at the guard house barrier', 'Gate &amp; site entry'], ['truck', [3], [0.66, 0.62], 'PMI security patrol truck along the plant perimeter fence', 'Roving patrols']] },
   { t: 'Routine Facility Maintenance', items: ['Preventive &amp; Routine Building Maintenance', 'Minor Repairs &amp; General Facility Upkeep', 'Facility Walkdowns &amp; Condition Reporting', 'Work Order &amp; Corrective-Action Coordination', 'Daily Operations &amp; General Site Support', 'Multi-Building Facility Support'],
-    shots: [['ladder', 1, [0.7, 0.4], 'PMI technician on a step ladder servicing an exterior wall light'], ['walk', 2, [0.66, 0.55], 'PMI technician with a tablet on a facility walkdown, checking a building entry']] },
+    shots: [['ladder', [0, 1], [0.7, 0.4], 'PMI technician on a step ladder servicing an exterior wall light', 'Building maintenance &amp; repairs'], ['walk', [2, 3], [0.66, 0.55], 'PMI technician with a tablet on a facility walkdown, checking a building entry', 'Walkdowns &amp; work orders']] },
   { t: 'Grounds &amp; Exterior Maintenance', items: ['Mowing, Landscaping &amp; Groundskeeping', 'Litter, Debris &amp; Exterior Site Cleanup', 'Sidewalk, Entryway &amp; Common Area Maintenance', 'Exterior Pressure Washing', 'Routine Grounds Inspections &amp; Upkeep'],
-    shots: [['mower', 0, [0.64, 0.6], 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower'], ['wash', 3, [0.63, 0.55], 'PMI crew member pressure washing a sidewalk at a plant entryway']] },
+    shots: [['mower', [0], [0.64, 0.6], 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower', 'Mowing &amp; groundskeeping'], ['wash', [2, 3], [0.63, 0.55], 'PMI crew member pressure washing a sidewalk at a plant entryway', 'Pressure washing &amp; entryways']] },
 ];
 const NEXT = ['Security', 'Maintenance', 'Grounds', 'Delivery'];
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const stick = $('.stick'), heroEl = $('.hero'), photo = $('.photo'), ring = $('.ring'), heroCopy = $('.hero-copy'), cue = $('.cue'), rhint = $('.reveal-hint');
+const stick = $('.stick'), heroEl = $('.hero'), heroCopy = $('.hero-copy'), cue = $('.cue'), heroImg = $('.photo img');
+// where the guard house sits on screen, so the opening zoom flies straight into it at any screen size
+function boothOrigin() { const r = heroImg.getBoundingClientRect(), k = Math.max(r.width / 2400, r.height / 1340), dw = 2400 * k, dh = 1340 * k, op = getComputedStyle(heroImg).objectPosition.split(' ').map(v => parseFloat(v) / 100); return `${(r.left + (r.width - dw) * op[0] + 0.78 * dw).toFixed(0)}px ${(r.top + (r.height - dh) * (op[1] ?? 0.5) + 0.52 * dh).toFixed(0)}px`; }
 const shotsEl = $('.shots'), col = $('.col'), steps = $('.steps'), bar = $('.progress'), nav = $('.nav');
 const touch = matchMedia('(pointer:coarse)').matches, reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-if (!touch) { $('.ct').textContent = 'Scroll to explore'; $('.rt').textContent = 'Move over the drawing to see the site'; $('.ht').textContent = 'Scroll for next'; }
+if (!touch) $('.ct').textContent = 'Scroll to explore';
 
-const SC = []; SVC.forEach((s, k) => s.shots.forEach(([f, i, fp, alt]) => SC.push({ k, i, f, fp, alt })));
+const SC = []; SVC.forEach((s, k) => s.shots.forEach(([f, hl, fp, alt, cap], j) => SC.push({ k, j, hl, f, fp, alt, cap })));
 const LAST = SC.length - 1;
 const ar = '<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>', al = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
 SC.forEach((c, n) => {
   const d = document.createElement('div'); d.className = 'shot';
   d.innerHTML = `<img src="img/${c.f}.jpg" alt="${c.alt}" style="object-position:${c.fp[0] * 100}% ${c.fp[1] * 100}%" decoding="async">`;
   shotsEl.appendChild(d); c.el = d; c.img = d.querySelector('img'); c.st = 'off';
-  const ch = document.createElement('p'); ch.className = 'chip'; ch.innerHTML = `<i>${c.i + 1}</i><span>${SVC[c.k].items[c.i]}</span>`; stick.appendChild(ch); c.chip = ch;
+  const ch = document.createElement('p'); ch.className = 'chip'; ch.innerHTML = `<span>${c.cap}</span><b>${c.j + 1} / 2</b>`; stick.appendChild(ch); c.chip = ch;
 });
 SVC.forEach((s, k) => {
   const d = document.createElement('article'); d.className = 'svc';
-  d.innerHTML = `<p class="num">0${k + 1}</p><p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li data-i="${i}"><i>${i + 1}</i><span>${x}</span></li>`).join('')}</ul>`
+  d.innerHTML = `<p class="num">0${k + 1}</p><p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li data-i="${i}"><i></i><span>${x}</span></li>`).join('')}</ul>`
     + `<div class="svc-nav"><button class="pv">${al}Back</button><span class="sw">Swipe up</span><button class="nx">Next: ${NEXT[k]}${ar}</button></div>`;
   col.appendChild(d);
   d.querySelector('.pv').onclick = () => go(k ? (k - 1) * 2 : -1); d.querySelector('.nx').onclick = () => k < 3 ? go((k + 1) * 2) : release();
@@ -391,19 +441,14 @@ cue.addEventListener('click', () => go(0)); $$('[data-go]').forEach(el => el.add
 function ui() {
   const k = idx < 0 ? -1 : SC[idx].k;
   svcEls.forEach((e, i) => e.classList.toggle('on', i === k)); stepEls.forEach((e, i) => { e.classList.toggle('on', i === k); e.querySelector('u').style.width = (i < k ? 100 : i === k ? (idx % 2 + 1) * 50 : 0) + '%'; });
-  SC.forEach((c, n) => c.chip.classList.toggle('on', n === idx));
-  if (k >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', +li.dataset.i === SC[idx].i));
-  svcEls.forEach((e, i) => { const nx = e.querySelector('.nx'); nx.innerHTML = (idx === i * 2 ? `Next photo${ar}` : `Next: ${NEXT[i]}${ar}`); nx.onclick = () => idx === i * 2 ? go(idx + 1) : (i < 3 ? go((i + 1) * 2) : release()); });
+  SC.forEach(c => c.chip.classList.remove('on')); const me = idx; if (idx >= 0) setTimeout(() => { if (idx === me) SC[me].chip.classList.add('on'); }, DUR * 0.65);
+  if (k >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', SC[idx].hl.includes(+li.dataset.i)));
+  svcEls.forEach((e, i) => { const nx = e.querySelector('.nx'); nx.innerHTML = (idx === i * 2 ? `Next${ar}` : `Next: ${NEXT[i]}${ar}`); nx.onclick = () => idx === i * 2 ? go(idx + 1) : (i < 3 ? go((i + 1) * 2) : release()); });
   stick.classList.toggle('touring', idx >= 0); heroCopy.classList.toggle('gone', idx >= 0);
-  cue.style.opacity = rhint.style.opacity = idx >= 0 ? 0 : 1; cue.style.pointerEvents = idx >= 0 ? 'none' : '';
+  cue.style.opacity = idx >= 0 ? 0 : 1; cue.style.pointerEvents = idx >= 0 ? 'none' : '';
   bar.style.width = ((idx + 1) / (LAST + 1) * 100).toFixed(1) + '%';
 }
 
-/* ---- the drawing you wipe away ---- */
-const pt = { x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0 }; let lastMove = -1e9;
-function point(cx, cy) { const b = photo.getBoundingClientRect(); pt.tx = cx - b.left; pt.ty = cy - b.top; lastMove = now(); pt.tr = touch ? 110 : 170; }
-heroEl.addEventListener('pointermove', e => point(e.clientX, e.clientY)); heroEl.addEventListener('pointerdown', e => point(e.clientX, e.clientY));
-stick.addEventListener('touchmove', e => { if (idx < 0) { const t = e.touches[0]; point(t.clientX, t.clientY); } }, { passive: true });
 // gentle parallax: the photo leans toward the pointer
 const par = { x: 0, y: 0, tx: 0, ty: 0 };
 stick.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; par.tx = e.clientX / innerWidth - 0.5; par.ty = e.clientY / innerHeight - 0.5; });
@@ -415,15 +460,9 @@ function frame() {
   if (scrollY > innerHeight * 1.2) return;
   par.x += (par.tx - par.x) * 0.06; par.y += (par.ty - par.y) * 0.06;
   // hero: on the first swipe the camera flies into the guard house and through to the first scene
-  { const u = (t - heroT.t0) / DUR, origin = '78% 62%';
+  { const u = (t - heroT.t0) / DUR, origin = heroT.o || (heroT.o = boothOrigin());
     let s, o, b; if (heroT.st === 'out') { const q = EIO(u); s = 1 + q * 2.4; o = 1 - E((u - 0.35) / 0.55); b = q * 10; } else { const q = E(u); s = 1 + (1 - q) * 2.4 * (heroT.t0 > 0 ? 1 : 0); o = heroT.t0 > 0 ? E(u / 0.6) : 1; b = (1 - q) * 10 * (heroT.t0 > 0 ? 1 : 0); }
     heroEl.style.transformOrigin = origin; heroEl.style.transform = `scale(${s.toFixed(4)})`; heroEl.style.opacity = o.toFixed(3); heroEl.style.filter = b > 0.2 ? `blur(${b.toFixed(1)}px)` : ''; heroEl.style.visibility = o <= 0.001 ? 'hidden' : ''; }
-  if (idx < 0 && !reduce) {
-    if (t - lastMove > 2600) { const b = photo.getBoundingClientRect(), u = t / 1000; pt.tx = b.width * (0.66 + Math.sin(u * 0.45) * 0.14); pt.ty = b.height * (0.58 + Math.sin(u * 0.8) * 0.16); pt.tr = touch ? 90 : 150; }
-    pt.x += (pt.tx - pt.x) * 0.12; pt.y += (pt.ty - pt.y) * 0.12; pt.r += (pt.tr - pt.r) * 0.08;
-    photo.style.setProperty('--mx', pt.x.toFixed(1) + 'px'); photo.style.setProperty('--my', pt.y.toFixed(1) + 'px'); photo.style.setProperty('--mr', pt.r.toFixed(1) + 'px');
-    ring.style.transform = `translate(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px)`; ring.style.setProperty('--d', (pt.r * 1.25).toFixed(1) + 'px');
-  }
   // photos: the outgoing shot zooms past the camera and dissolves; the incoming one settles out of a blur, then keeps pushing in slowly
   SC.forEach(c => {
     if (c.st === 'off') return;
@@ -437,27 +476,42 @@ function frame() {
 }
 ui(); requestAnimationFrame(frame);
 
-/* ---- delivery rack ---- */
+/* ---- service delivery: deck + timeline ---- */
 const DELIVERY = [
-  ['Dedicated On-Site Operational Leadership', '<circle cx="32" cy="18" r="8"/><path d="M16 50c0-9 7-16 16-16s16 7 16 16"/><path class="r" d="M26 8l6-4 6 4"/>'],
-  ['Site-Specific Mobilization, Training &amp; Readiness', '<path d="M10 22l22-10 22 10-22 10z"/><path d="M20 27v12c0 4 6 7 12 7s12-3 12-7V27"/><path class="r" d="M54 22v14"/>'],
-  ['Quality Inspections &amp; Corrective-Action Tracking', '<rect x="14" y="8" width="36" height="48" rx="2"/><path d="M24 8v-2h16v2"/><path class="r" d="M22 26l4 4 8-8M22 42l4 4 8-8"/><path d="M38 28h6M38 44h6"/>'],
-  ['Safety, Compliance &amp; Performance Reporting', '<path d="M32 6l20 7v14c0 14-9 23-20 27C21 50 12 41 12 27V13z"/><path class="r" d="M23 31l6 6 12-12"/>'],
-  ['Service Continuity &amp; Backup Coverage', '<path d="M50 30a18 18 0 1 1-6-13"/><path d="M45 8v10H35"/><path class="r" d="M32 20v12l8 5"/>'],
+  ['Dedicated On-Site Operational Leadership', 'walk', '<circle cx="32" cy="18" r="8"/><path d="M16 50c0-9 7-16 16-16s16 7 16 16"/><path class="r" d="M26 8l6-4 6 4"/>'],
+  ['Site-Specific Mobilization, Training &amp; Readiness', 'entrance', '<path d="M10 22l22-10 22 10-22 10z"/><path d="M20 27v12c0 4 6 7 12 7s12-3 12-7V27"/><path class="r" d="M54 22v14"/>'],
+  ['Quality Inspections &amp; Corrective-Action Tracking', 'ladder', '<rect x="14" y="8" width="36" height="48" rx="2"/><path d="M24 8v-2h16v2"/><path class="r" d="M22 26l4 4 8-8M22 42l4 4 8-8"/><path d="M38 28h6M38 44h6"/>'],
+  ['Safety, Compliance &amp; Performance Reporting', 'guard', '<path d="M32 6l20 7v14c0 14-9 23-20 27C21 50 12 41 12 27V13z"/><path class="r" d="M23 31l6 6 12-12"/>'],
+  ['Service Continuity &amp; Backup Coverage', 'truck', '<path d="M50 30a18 18 0 1 1-6-13"/><path d="M45 8v10H35"/><path class="r" d="M32 20v12l8 5"/>'],
 ];
-const cards = $('.cards');
-DELIVERY.forEach(([tt, ic], i) => { const c = document.createElement('div'); c.className = 'card'; c.tabIndex = 0; c.innerHTML = `<span class="n">0${i + 1}</span><svg viewBox="0 0 64 64">${ic}</svg><h3>${tt}</h3><div class="bar"></div>`; cards.appendChild(c); });
-const cardEls = [...cards.children];
-function act(c) { cards.classList.toggle('focus', !!c); cardEls.forEach(x => x.classList.toggle('act', x === c)); }
-if (!touch) {
-  cardEls.forEach(c => { c.addEventListener('pointerenter', () => act(c)); c.addEventListener('focus', () => act(c));
-    c.addEventListener('pointermove', e => { const b = c.getBoundingClientRect(); c.style.setProperty('--ry', (((e.clientX - b.left) / b.width - 0.5) * 14).toFixed(1) + 'deg'); c.style.setProperty('--rx', ((0.5 - (e.clientY - b.top) / b.height) * 10).toFixed(1) + 'deg'); }); });
-  cards.addEventListener('pointerleave', () => act(null));
-} else {
-  const pk = () => { const m = cards.scrollLeft + cards.clientWidth / 2; let best = null, d = 1e9; cardEls.forEach(c => { const x = Math.abs(c.offsetLeft + c.offsetWidth / 2 - m); if (x < d) { d = x; best = c; } }); act(best); };
-  cards.addEventListener('scroll', () => requestAnimationFrame(pk), { passive: true }); setTimeout(pk, 300);
-  cardEls.forEach(c => c.addEventListener('click', () => c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })));
+{
+  const track = $('.dl-track'), tl = $('.tl'), fill = $('.tl-fill'), count = $('.dl-count b'), prev = $('.dl-prev'), next = $('.dl-next');
+  DELIVERY.forEach(([t, img, ic], i) => {
+    const c = document.createElement('article'); c.className = 'dl-card';
+    c.innerHTML = `<img src="img/${img}.jpg" alt="" loading="lazy" decoding="async"><svg viewBox="0 0 64 64">${ic}</svg><div class="in"><p class="n">0${i + 1}</p><h3>${t}</h3><div class="bar"></div></div>`;
+    track.appendChild(c);
+    const li = document.createElement('li'), b = document.createElement('button'); b.innerHTML = `<i>${i + 1}</i><span>${t}</span>`; b.setAttribute('aria-label', t.replace('&amp;', '&')); b.onclick = () => show(i); li.appendChild(b); tl.appendChild(li);
+  });
+  const cards = [...track.children], dots = [...tl.querySelectorAll('button')];
+  let cur = -1;
+  function mark(i) { if (i === cur) return; cur = i; cards.forEach((c, k) => c.classList.toggle('on', k === i)); dots.forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); });
+    fill.style.width = (i / (cards.length - 1) * (dots[dots.length - 1].getBoundingClientRect().left - dots[0].getBoundingClientRect().left + 0) + 15) + 'px';
+    count.textContent = String(i + 1).padStart(2, '0'); prev.disabled = i === 0; next.disabled = i === cards.length - 1; }
+  const pad = () => parseFloat(getComputedStyle(track).paddingLeft);
+  function show(i) { i = Math.max(0, Math.min(cards.length - 1, i)); track.scrollTo({ left: cards[i].offsetLeft - pad(), behavior: 'smooth' }); mark(i); }
+  function nearest() { const x = track.scrollLeft + pad(); let best = 0, d = 1e9; cards.forEach((c, k) => { const q = Math.abs(c.offsetLeft - x); if (q < d) { d = q; best = k; } }); return best; }
+  let raf = 0; track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => mark(nearest())); }, { passive: true });
+  prev.onclick = () => show(cur - 1); next.onclick = () => show(cur + 1);
+  track.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { e.preventDefault(); show(cur + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); } });
+  // mouse: drag the deck sideways; it settles on the nearest card, one card per drag
+  let dr = null;
+  track.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; dr = { x: e.clientX, s: track.scrollLeft, i: cur }; track.classList.add('drag'); });
+  addEventListener('pointermove', e => { if (dr) track.scrollLeft = dr.s - (e.clientX - dr.x); });
+  addEventListener('pointerup', e => { if (!dr) return; const dx = e.clientX - dr.x, i0 = dr.i; dr = null; track.classList.remove('drag'); show(Math.abs(dx) > 60 ? i0 - Math.sign(dx) : i0); });
+  addEventListener('resize', () => { const i = cur; cur = -1; mark(i); });
+  mark(0);
 }
+
 /* ---- locations ---- */
 const CITIES = [['Port Lavaca', 'TX', 1], ['Corpus Christi', 'TX'], ['Victoria', 'TX'], ['Freeport', 'TX'], ['Deer Park', 'TX'], ['Houston', 'TX'], ['Lake Charles', 'LA'], ['Baton Rouge', 'LA'], ['Mobile', 'AL'], ['Clarendon', 'Jamaica']];
 const list = $('.cities'), mpins = $$('.map .pin'), sts = $$('.map .st');
