@@ -259,6 +259,16 @@ function pick(i, g) {
 }
 document.querySelectorAll('button, a').forEach(wire);
 
+// PMI logo: back to the opening screen (the ring of models with the welcome card), from anywhere
+function home() {
+  if (mode === 'intro') return;
+  closeCard(true); closeAll(); closeLoc(); focus = null; mode = 'intro'; cur = -1; lock = 0;
+  hots.innerHTML = ''; pins.innerHTML = ''; hotEls = []; pinEls = [];
+  document.body.classList.remove('live', 'detail', 'map', 'tour', 'zoomed');
+  snd.morph(); setTarget({ pos: RING, tint: RT }, 2.2); area();
+  setTimeout(() => { if (mode === 'intro') $('.intro').classList.remove('gone'); }, 900);
+}
+wire($('.logo')).addEventListener('click', e => { e.preventDefault(); home(); });
 $('.start').onclick = () => { snd.start(); mode = 'over'; $('.intro').classList.add('gone'); document.body.classList.add('live'); lock = 0; cur = -1; go(0); };
 pill.onclick = () => mode === 'detail' ? leave() : enter();
 $('.card .card-x').onclick = () => closeCard();
