@@ -19,7 +19,7 @@
 @font-face{font-family:'Inter';src:url(assets/fonts/inter-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
 :root{color-scheme:light;--red:#EB1F27;--ink:#121417;--ink2:#2b2f34;--mute:#5F5F5F;--line:#e3e3e3;--soft:#F3F3F3;--head:'Bebas Neue',Impact,'Arial Narrow',sans-serif;--ease:cubic-bezier(.2,.8,.2,1);--nav:72px;--col:min(500px,38vw)}
 *{box-sizing:border-box;margin:0;padding:0;min-width:0}
-html{-webkit-text-size-adjust:100%;scroll-snap-type:y proximity}
+html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
 body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -41,18 +41,18 @@ img{display:block}
 @media(max-width:900px){.nav ul{display:none}.nav .logo img{height:38px}.nav .btn{padding:0 14px;font-size:.66rem}}
 
 /* ======== stage ======== */
-.stage{position:relative;height:1000vh}
-.snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start}
-.stick{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:#fff}
+.stage{position:relative;height:100vh;height:100svh}
+.stick{position:absolute;inset:0;overflow:hidden;background:#fff;touch-action:none}
 /* hero */
-.hero{position:absolute;inset:0;z-index:4;background:#fff;will-change:opacity,filter,transform;transform-origin:72% 78%}
+.hero{position:absolute;inset:0;z-index:25;background:#fff;will-change:opacity,filter,transform}
 .photo{position:absolute;right:0;bottom:0;width:100vw;aspect-ratio:2400/1340;max-height:66vh}
 .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 50%}
 .photo .lines{-webkit-mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%);mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%)}
 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0) 28%),linear-gradient(90deg,#fff 0%,rgba(255,255,255,.75) 12%,rgba(255,255,255,0) 34%);pointer-events:none}
 .ring{position:absolute;left:0;top:0;width:var(--d,220px);height:var(--d,220px);margin:calc(var(--d,220px)/-2) 0 0 calc(var(--d,220px)/-2);border-radius:50%;border:1px solid rgba(235,31,39,.6);pointer-events:none}
 .ring::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--red)}
-.hero-copy{position:absolute;left:6vw;top:calc(var(--nav) + 5vh);max-width:600px;z-index:5}
+.hero-copy{position:absolute;left:6vw;top:calc(var(--nav) + 5vh);max-width:600px;z-index:26;transition:opacity .6s,transform .8s var(--ease)}
+.hero-copy.gone{opacity:0;transform:translateY(-40px);pointer-events:none}
 .hero-copy h1{font-family:var(--head);font-weight:400;font-size:clamp(4rem,9vw,8.4rem);line-height:.86;letter-spacing:.01em;margin:18px 0}
 .hero-copy h1 span{display:block;overflow:hidden}
 .hero-copy h1 i{display:block;font-style:normal;transform:translateY(105%);animation:rise 1.1s var(--ease) forwards}
@@ -63,25 +63,26 @@ img{display:block}
 .hero-copy .lead{margin-top:18px;font-size:1.02rem;line-height:1.6;color:var(--ink2);max-width:440px}
 .hero-copy>*:not(h1){opacity:0;animation:fin .9s .45s var(--ease) forwards}
 @keyframes fin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.cue{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));z-index:8;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:12px 22px 12px 14px;background:var(--ink);color:#fff;box-shadow:0 14px 40px rgba(18,20,23,.25);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.cue{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));z-index:27;transition:opacity .4s;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:12px 22px 12px 14px;background:var(--ink);color:#fff;box-shadow:0 14px 40px rgba(18,20,23,.25);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
 .cue i{width:34px;height:34px;border-radius:50%;background:var(--red);display:grid;place-items:center}
 .cue i svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;animation:nudge 1.4s infinite var(--ease)}
 @keyframes nudge{0%,100%{transform:translateY(3px)}50%{transform:translateY(-4px)}}
 .cue b{display:block;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
 .cue small{display:block;font-size:.72rem;color:#b9bcc0;margin-top:2px}
-.reveal-hint{position:absolute;right:4vw;bottom:calc(30px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);background:rgba(255,255,255,.92);padding:9px 14px 9px 10px;box-shadow:0 0 0 1px var(--line)}
+.reveal-hint{position:absolute;right:4vw;bottom:calc(30px + env(safe-area-inset-bottom));z-index:27;transition:opacity .4s;display:flex;align-items:center;gap:10px;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);background:rgba(255,255,255,.92);padding:9px 14px 9px 10px;box-shadow:0 0 0 1px var(--line)}
 .reveal-hint i{width:20px;height:20px;border-radius:50%;border:1px solid var(--red);position:relative}
 .reveal-hint i::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--red)}
 
 /* tour: white text column + full-bleed photography */
-.shots{position:absolute;top:0;right:0;bottom:0;left:calc(6vw + var(--col) + 4vw);overflow:hidden;background:#e9ebee}
-.shot{position:absolute;inset:0;opacity:0;will-change:opacity,transform,filter}
-.shot img{width:100%;height:100%;object-fit:cover}
-.shot::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,12,14,.38) 0%,rgba(10,12,14,0) 26%);pointer-events:none}
-.chip{position:absolute;left:28px;bottom:28px;z-index:3;display:flex;align-items:center;gap:12px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.01em;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .6s var(--ease);text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.shots{position:absolute;inset:0;overflow:hidden;background:#fff;perspective:1200px}
+.shot{position:absolute;inset:-3%;opacity:0;visibility:hidden;will-change:opacity,transform,filter}
+.shot img{width:100%;height:100%;object-fit:cover;will-change:transform}
+.wash{position:absolute;inset:0;z-index:20;pointer-events:none;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.97) calc(6vw + var(--col) - 40px),rgba(255,255,255,.55) calc(6vw + var(--col) + 6vw),rgba(255,255,255,0) calc(6vw + var(--col) + 16vw)),linear-gradient(0deg,rgba(10,12,14,.32) 0%,rgba(10,12,14,0) 22%);opacity:0;transition:opacity .8s}
+.stick.touring .wash{opacity:1}
+.chip{position:absolute;right:5vw;bottom:34px;z-index:21;display:flex;align-items:center;gap:12px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.01em;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .6s var(--ease);text-shadow:0 1px 12px rgba(0,0,0,.35)}
 .chip i{width:26px;height:26px;border-radius:50%;background:var(--red);font-style:normal;font-size:.72rem;font-weight:700;display:grid;place-items:center;text-shadow:none}
 .chip.on{opacity:1;transform:none}
-.col{position:absolute;left:6vw;top:0;bottom:0;width:var(--col);z-index:3;display:flex;align-items:center;pointer-events:none}
+.col{position:absolute;left:6vw;top:0;bottom:0;width:var(--col);z-index:22;display:flex;align-items:center;pointer-events:none}
 .svc{position:absolute;left:0;right:0;opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity .5s,visibility .5s,transform .7s var(--ease)}
 .svc.on{opacity:1;visibility:visible;transform:none;pointer-events:auto}
 .svc .num{font-family:var(--head);font-size:6.5rem;line-height:.8;color:var(--red)}
@@ -98,7 +99,7 @@ img{display:block}
 .svc-nav .nx:hover{background:#c4141b}
 .svc-nav .pv{color:var(--mute)}.svc-nav .pv:hover{color:var(--ink)}
 .svc-nav .sw{font-size:.64rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
-.steps{position:absolute;left:calc(6vw + var(--col) + 4vw + 28px);top:calc(var(--nav) + 22px);z-index:6;display:flex;gap:8px}
+.steps{position:absolute;right:5vw;top:calc(var(--nav) + 22px);z-index:23;display:flex;gap:8px}
 .steps button{position:relative;width:54px;height:20px}
 .steps button::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:rgba(255,255,255,.45)}
 .steps button u{position:absolute;left:0;top:9px;height:2px;width:0;background:#fff}
@@ -106,7 +107,9 @@ img{display:block}
 .steps button.on span{opacity:1}
 .tour-ui{opacity:0;transition:opacity .5s;pointer-events:none}
 .stick.touring .tour-ui{opacity:1;pointer-events:auto}
-.progress{position:absolute;left:0;bottom:0;height:3px;background:var(--red);z-index:7;width:0}
+.progress{position:absolute;left:0;bottom:0;height:3px;background:var(--red);z-index:30;width:0;transition:width .9s var(--ease)}
+.hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));z-index:24;transform:translateX(-50%);display:flex;align-items:center;gap:8px;font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.hint svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2;animation:nudge 1.4s infinite var(--ease)}
 
 @media(max-width:900px){
   :root{--col:auto}
@@ -116,17 +119,19 @@ img{display:block}
   .tag{font-size:.7rem}
   .photo{width:auto;height:36vh;max-height:none;right:-34vw;bottom:calc(104px + env(safe-area-inset-bottom))}
   .reveal-hint{right:auto;left:6vw;bottom:calc(36vh + 116px + env(safe-area-inset-bottom));font-size:.62rem}
-  .shots{left:0;top:var(--nav);bottom:auto;height:44svh}
-  .chip{left:14px;bottom:14px;font-size:.8rem;right:14px}
+  .shots{left:0;right:0;top:var(--nav);bottom:auto;height:46svh}
+  .wash{background:linear-gradient(0deg,rgba(10,12,14,.35) 0%,rgba(10,12,14,0) 30%);top:var(--nav);bottom:auto;height:46svh}
+  .hint{bottom:auto;top:calc(var(--nav) + 46svh - 30px);left:auto;right:14px;transform:none}
+  .chip{left:14px;right:auto;bottom:auto;top:calc(var(--nav) + 46svh - 38px);font-size:.78rem;max-width:62vw}
   .chip i{width:22px;height:22px}
-  .col{left:0;right:0;width:auto;top:calc(var(--nav) + 44svh);bottom:0;align-items:flex-start;padding:16px 5vw calc(8px + env(safe-area-inset-bottom))}
+  .col{left:0;right:0;width:auto;top:calc(var(--nav) + 46svh);background:#fff;bottom:0;align-items:flex-start;padding:16px 5vw calc(8px + env(safe-area-inset-bottom))}
   .svc{left:5vw;right:5vw}
   .svc .num{display:none}
   .svc h2{font-size:2rem;margin:4px 0 8px}
   .svc li{padding:6px 4px 6px 0;font-size:.8rem;gap:10px}
   .svc li i{width:18px;height:18px;font-size:.58rem}
   .svc-nav{margin-top:6px;padding-top:8px}
-  .steps{left:14px;top:calc(var(--nav) + 12px)}
+  .steps{left:14px;right:auto;top:calc(var(--nav) + 12px)}
   .steps button{width:38px}
   .steps button span{display:none}
 }
@@ -227,9 +232,9 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 </header>
 
 <div class="stage" id="top">
-  <div class="snaps"></div>
-  <div class="stick">
+    <div class="stick">
     <div class="shots" id="services"></div>
+    <div class="wash"></div>
     <div class="col"></div>
     <nav class="steps tour-ui" aria-label="Service lines"></nav>
 
@@ -248,6 +253,7 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
     </div>
     <div class="reveal-hint"><i></i><span class="rt">Drag over the drawing to see the site</span></div>
     <button class="cue" data-go="0"><i><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></i><span><b class="ct">Swipe up to explore</b><small>Tour 4 service lines</small></span></button>
+    <div class="hint tour-ui"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span class="ht">Swipe up</span></div>
     <div class="progress"></div>
   </div>
 </div>
@@ -319,82 +325,117 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 {
 const SVC = [
   { t: 'Janitorial &amp; Site Services', items: ['Day Porter &amp; Recurring Janitorial Services', 'Office, In-Plant &amp; Common Area Cleaning', 'Restroom Cleaning &amp; Supply Replenishment', 'Carpet Extraction &amp; Complete Floor Care', 'Floor Scrubbing, Stripping, Recoating &amp; Waxing', 'Trash &amp; Recycling Services', 'Facility Setups, Furniture Moves &amp; Site Deliveries'],
-    shots: [['scrubber', 4, '66% 50%', 'Crew member running a walk-behind floor scrubber across a polished lobby floor'], ['cart', 0, '58% 60%', 'PMI janitorial cart stocked with supplies in a plant hallway']] },
+    shots: [['scrubber', 4, [0.66, 0.55], 'Crew member running a walk-behind floor scrubber across a polished lobby floor'], ['cart', 0, [0.6, 0.6], 'PMI janitorial cart stocked with supplies in a plant hallway']] },
   { t: 'Security Services', items: ['Gate Guard &amp; Site Entry Services', 'Access Control, Badging &amp; Credential Management', 'Visitor Check-In &amp; Site Escort Services', 'Roving Patrols &amp; Perimeter Monitoring', 'Site Access Documentation &amp; Reporting'],
-    shots: [['guard', 1, '68% 50%', 'Security officer checking a badge at the guard house barrier'], ['truck', 3, '66% 60%', 'PMI security patrol truck along the plant perimeter fence']] },
+    shots: [['guard', 1, [0.7, 0.55], 'Security officer checking a badge at the guard house barrier'], ['truck', 3, [0.66, 0.62], 'PMI security patrol truck along the plant perimeter fence']] },
   { t: 'Routine Facility Maintenance', items: ['Preventive &amp; Routine Building Maintenance', 'Minor Repairs &amp; General Facility Upkeep', 'Facility Walkdowns &amp; Condition Reporting', 'Work Order &amp; Corrective-Action Coordination', 'Daily Operations &amp; General Site Support', 'Multi-Building Facility Support'],
-    shots: [['ladder', 1, '70% 40%', 'PMI technician on a step ladder servicing an exterior wall light'], ['hvac', 0, '66% 45%', 'PMI technician with a tablet inspecting a rooftop HVAC unit']] },
+    shots: [['ladder', 1, [0.7, 0.4], 'PMI technician on a step ladder servicing an exterior wall light'], ['walk', 2, [0.66, 0.55], 'PMI technician with a tablet on a facility walkdown, checking a building entry']] },
   { t: 'Grounds &amp; Exterior Maintenance', items: ['Mowing, Landscaping &amp; Groundskeeping', 'Litter, Debris &amp; Exterior Site Cleanup', 'Sidewalk, Entryway &amp; Common Area Maintenance', 'Exterior Pressure Washing', 'Routine Grounds Inspections &amp; Upkeep'],
-    shots: [['mower', 0, '64% 60%', 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower'], ['wash', 3, '63% 50%', 'PMI crew member pressure washing a sidewalk at a plant entryway']] },
+    shots: [['mower', 0, [0.64, 0.6], 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower'], ['wash', 3, [0.63, 0.55], 'PMI crew member pressure washing a sidewalk at a plant entryway']] },
 ];
 const NEXT = ['Security', 'Maintenance', 'Grounds', 'Delivery'];
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const stage = $('.stage'), stick = $('.stick'), heroEl = $('.hero'), photo = $('.photo'), ring = $('.ring'), heroCopy = $('.hero-copy'), cue = $('.cue'), rhint = $('.reveal-hint');
+const stick = $('.stick'), heroEl = $('.hero'), photo = $('.photo'), ring = $('.ring'), heroCopy = $('.hero-copy'), cue = $('.cue'), rhint = $('.reveal-hint');
 const shotsEl = $('.shots'), col = $('.col'), steps = $('.steps'), bar = $('.progress'), nav = $('.nav');
 const touch = matchMedia('(pointer:coarse)').matches, reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-if (!touch) { $('.ct').textContent = 'Scroll to explore'; $('.rt').textContent = 'Move over the drawing to see the site'; }
+if (!touch) { $('.ct').textContent = 'Scroll to explore'; $('.rt').textContent = 'Move over the drawing to see the site'; $('.ht').textContent = 'Scroll for next'; }
 
-// one scene per photo: two per service line
-const SC = []; SVC.forEach((s, k) => s.shots.forEach(([f, i, pos, alt]) => SC.push({ k, i, f, pos, alt })));
+const SC = []; SVC.forEach((s, k) => s.shots.forEach(([f, i, fp, alt]) => SC.push({ k, i, f, fp, alt })));
+const LAST = SC.length - 1;
 const ar = '<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>', al = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
-SC.forEach((c, n) => { const d = document.createElement('div'); d.className = 'shot'; d.innerHTML = `<img src="img/${c.f}.jpg" alt="${c.alt}" style="object-position:${c.pos}" ${n > 1 ? 'loading="lazy"' : ''} decoding="async"><p class="chip"><i>${c.i + 1}</i><span>${SVC[c.k].items[c.i]}</span></p>`; shotsEl.appendChild(d); c.el = d; c.chip = d.querySelector('.chip'); c.img = d.querySelector('img'); });
+SC.forEach((c, n) => {
+  const d = document.createElement('div'); d.className = 'shot';
+  d.innerHTML = `<img src="img/${c.f}.jpg" alt="${c.alt}" style="object-position:${c.fp[0] * 100}% ${c.fp[1] * 100}%" decoding="async">`;
+  shotsEl.appendChild(d); c.el = d; c.img = d.querySelector('img'); c.st = 'off';
+  const ch = document.createElement('p'); ch.className = 'chip'; ch.innerHTML = `<i>${c.i + 1}</i><span>${SVC[c.k].items[c.i]}</span>`; stick.appendChild(ch); c.chip = ch;
+});
 SVC.forEach((s, k) => {
   const d = document.createElement('article'); d.className = 'svc';
   d.innerHTML = `<p class="num">0${k + 1}</p><p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li data-i="${i}"><i>${i + 1}</i><span>${x}</span></li>`).join('')}</ul>`
-    + `<div class="svc-nav"><button class="pv" ${k ? '' : 'style="visibility:hidden"'}>${al}Back</button><span class="sw">Swipe up</span><button class="nx">Next: ${NEXT[k]}${ar}</button></div>`;
+    + `<div class="svc-nav"><button class="pv">${al}Back</button><span class="sw">Swipe up</span><button class="nx">Next: ${NEXT[k]}${ar}</button></div>`;
   col.appendChild(d);
-  d.querySelector('.pv').onclick = () => goScene((k - 1) * 2); d.querySelector('.nx').onclick = () => k < 3 ? goScene((k + 1) * 2) : scrollTo({ top: $('#delivery').offsetTop, behavior: 'smooth' });
-  const b = document.createElement('button'); b.innerHTML = `<u></u><span>${s.t}</span>`; b.setAttribute('aria-label', s.t.replace('&amp;', '&')); b.onclick = () => goScene(k * 2); steps.appendChild(b);
+  d.querySelector('.pv').onclick = () => go(k ? (k - 1) * 2 : -1); d.querySelector('.nx').onclick = () => k < 3 ? go((k + 1) * 2) : release();
+  const b = document.createElement('button'); b.innerHTML = `<u></u><span>${s.t}</span>`; b.setAttribute('aria-label', s.t.replace('&amp;', '&')); b.onclick = () => go(k * 2); steps.appendChild(b);
 });
 const svcEls = $$('.svc'), stepEls = [...steps.children];
 
-// scroll timeline, in screen heights: 0 = hero, 1..8 = the eight photos
-let H, len;
-function measure() { H = stick.clientHeight; len = stage.offsetHeight - H; $('.snaps').innerHTML = Array.from({ length: 9 }, (_, n) => `<div class="snap" style="top:${(n * H).toFixed(0)}px"></div>`).join(''); }
-const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const unit = () => Math.max(0, -stage.getBoundingClientRect().top) / H;
-function goScene(n) { scrollTo({ top: stage.offsetTop + (n + 1) * H, behavior: 'smooth' }); }
-$$('[data-go]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); goScene(0); }));
+/* ---- one gesture = one scene. Nothing moves again until the transition has finished and the gesture has stopped. ---- */
+let idx = -1, lockUntil = 0, lastWheel = 0, heroT = { st: 'in', t0: -9 };
+const DUR = 1400;
+const now = () => performance.now();
+function go(n, fromUser) {
+  n = Math.max(-1, Math.min(LAST, n)); if (n === idx) return;
+  if (scrollY > 0) scrollTo({ top: 0, behavior: 'instant' in document.documentElement ? 'instant' : 'auto' });
+  const dir = n > idx ? 1 : -1, t = now(), prev = idx; idx = n; lockUntil = t + DUR;
+  if (prev >= 0) { const c = SC[prev]; c.st = 'out'; c.t0 = t; c.dir = dir; c.s0 = c.s || 1; }
+  if (n >= 0) { const c = SC[n]; c.st = 'in'; c.t0 = t; c.dir = dir; }
+  if (prev === -1) heroT = { st: 'out', t0: t }; if (n === -1) heroT = { st: 'in', t0: t };
+  ui();
+}
+const step = d => { if (now() < lockUntil) return; if (d > 0 && idx === LAST) return release(); go(idx + d); };
+function release() { lockUntil = now() + 700; scrollTo({ top: $('#delivery').offsetTop - 10, behavior: 'smooth' }); }
+const inTour = () => scrollY <= 2;
+addEventListener('wheel', e => {
+  if (!inTour() || Math.abs(e.deltaY) < 2) return;
+  const d = Math.sign(e.deltaY), quiet = now() - lastWheel > 320; lastWheel = now();
+  if (d > 0 && idx === LAST && now() >= lockUntil) return;            // past the last photo: let the page scroll on
+  e.preventDefault(); if (quiet && now() >= lockUntil) step(d);
+}, { passive: false });
+let ty = null, tx = null;
+addEventListener('touchstart', e => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchmove', e => { if (!inTour() || ty === null) return; const dy = ty - e.touches[0].clientY; if (dy > 0 && idx === LAST && now() >= lockUntil) return; e.preventDefault(); }, { passive: false });
+addEventListener('touchend', e => { if (ty === null) return; const dy = ty - e.changedTouches[0].clientY, dx = tx - e.changedTouches[0].clientX; ty = null; if (!inTour() || Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(dx)) return; step(Math.sign(dy)); }, { passive: true });
+addEventListener('keydown', e => { if (!inTour()) return; if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { if (idx === LAST && now() >= lockUntil) return; e.preventDefault(); step(1); } if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); } });
+cue.addEventListener('click', () => go(0)); $$('[data-go]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); scrollTo({ top: 0 }); go(0); }));
 
-// touchable surface: the line drawing covers the photo; pointer or a slow drift wipes it away
+function ui() {
+  const k = idx < 0 ? -1 : SC[idx].k;
+  svcEls.forEach((e, i) => e.classList.toggle('on', i === k)); stepEls.forEach((e, i) => { e.classList.toggle('on', i === k); e.querySelector('u').style.width = (i < k ? 100 : i === k ? (idx % 2 + 1) * 50 : 0) + '%'; });
+  SC.forEach((c, n) => c.chip.classList.toggle('on', n === idx));
+  if (k >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', +li.dataset.i === SC[idx].i));
+  svcEls.forEach((e, i) => { const nx = e.querySelector('.nx'); nx.innerHTML = (idx === i * 2 ? `Next photo${ar}` : `Next: ${NEXT[i]}${ar}`); nx.onclick = () => idx === i * 2 ? go(idx + 1) : (i < 3 ? go((i + 1) * 2) : release()); });
+  stick.classList.toggle('touring', idx >= 0); heroCopy.classList.toggle('gone', idx >= 0);
+  cue.style.opacity = rhint.style.opacity = idx >= 0 ? 0 : 1; cue.style.pointerEvents = idx >= 0 ? 'none' : '';
+  bar.style.width = ((idx + 1) / (LAST + 1) * 100).toFixed(1) + '%';
+}
+
+/* ---- the drawing you wipe away ---- */
 const pt = { x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0 }; let lastMove = -1e9;
-function point(cx, cy) { const b = photo.getBoundingClientRect(); pt.tx = cx - b.left; pt.ty = cy - b.top; lastMove = performance.now(); pt.tr = touch ? 110 : 170; }
+function point(cx, cy) { const b = photo.getBoundingClientRect(); pt.tx = cx - b.left; pt.ty = cy - b.top; lastMove = now(); pt.tr = touch ? 110 : 170; }
 heroEl.addEventListener('pointermove', e => point(e.clientX, e.clientY)); heroEl.addEventListener('pointerdown', e => point(e.clientX, e.clientY));
-stick.addEventListener('touchmove', e => { if (U < 0.3) { const t = e.touches[0]; point(t.clientX, t.clientY); } }, { passive: true });
+stick.addEventListener('touchmove', e => { if (idx < 0) { const t = e.touches[0]; point(t.clientX, t.clientY); } }, { passive: true });
+// gentle parallax: the photo leans toward the pointer
+const par = { x: 0, y: 0, tx: 0, ty: 0 };
+stick.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; par.tx = e.clientX / innerWidth - 0.5; par.ty = e.clientY / innerHeight - 0.5; });
 
-let U = 0, curK = -2, curS = -2;
-function frame(now) {
+const E = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3), EIO = x => { x = Math.min(1, Math.max(0, x)); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+function frame() {
   requestAnimationFrame(frame);
-  U = unit(); const live = stage.getBoundingClientRect().bottom > 0; nav.classList.toggle('solid', U > 0.5 || !live); if (!live) return;
-  const t = now / 1000;
-  // hero dissolves into the first photo: drift forward, blur, fade
-  const h = sm(0.35, 0.95, U); heroEl.style.opacity = 1 - h; heroEl.style.transform = `scale(${1 + h * 0.12})`; heroEl.style.filter = h > 0.01 && h < 0.99 ? `blur(${(h * 14).toFixed(1)}px)` : ''; heroEl.style.visibility = h >= 1 ? 'hidden' : '';
-  const hc = sm(0.05, 0.45, U); heroCopy.style.opacity = 1 - hc; heroCopy.style.transform = `translateY(${(-hc * 50).toFixed(1)}px)`; heroCopy.style.visibility = hc >= 1 ? 'hidden' : '';
-  cue.style.opacity = rhint.style.opacity = 1 - sm(0, 0.2, U); cue.style.pointerEvents = U > 0.15 ? 'none' : '';
-  stick.classList.toggle('touring', U > 0.75);
-  if (U < 1) {
-    if (now - lastMove > 2600 && !reduce) { const b = photo.getBoundingClientRect(); pt.tx = b.width * (0.66 + Math.sin(t * 0.45) * 0.14); pt.ty = b.height * (0.58 + Math.sin(t * 0.8) * 0.16); pt.tr = touch ? 90 : 150; }
+  const t = now(); nav.classList.toggle('solid', idx >= 0 || scrollY > 10);
+  if (scrollY > innerHeight * 1.2) return;
+  par.x += (par.tx - par.x) * 0.06; par.y += (par.ty - par.y) * 0.06;
+  // hero: on the first swipe the camera flies into the guard house and through to the first scene
+  { const u = (t - heroT.t0) / DUR, origin = '78% 62%';
+    let s, o, b; if (heroT.st === 'out') { const q = EIO(u); s = 1 + q * 2.4; o = 1 - E((u - 0.35) / 0.55); b = q * 10; } else { const q = E(u); s = 1 + (1 - q) * 2.4 * (heroT.t0 > 0 ? 1 : 0); o = heroT.t0 > 0 ? E(u / 0.6) : 1; b = (1 - q) * 10 * (heroT.t0 > 0 ? 1 : 0); }
+    heroEl.style.transformOrigin = origin; heroEl.style.transform = `scale(${s.toFixed(4)})`; heroEl.style.opacity = o.toFixed(3); heroEl.style.filter = b > 0.2 ? `blur(${b.toFixed(1)}px)` : ''; heroEl.style.visibility = o <= 0.001 ? 'hidden' : ''; }
+  if (idx < 0 && !reduce) {
+    if (t - lastMove > 2600) { const b = photo.getBoundingClientRect(), u = t / 1000; pt.tx = b.width * (0.66 + Math.sin(u * 0.45) * 0.14); pt.ty = b.height * (0.58 + Math.sin(u * 0.8) * 0.16); pt.tr = touch ? 90 : 150; }
     pt.x += (pt.tx - pt.x) * 0.12; pt.y += (pt.ty - pt.y) * 0.12; pt.r += (pt.tr - pt.r) * 0.08;
     photo.style.setProperty('--mx', pt.x.toFixed(1) + 'px'); photo.style.setProperty('--my', pt.y.toFixed(1) + 'px'); photo.style.setProperty('--mr', pt.r.toFixed(1) + 'px');
     ring.style.transform = `translate(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px)`; ring.style.setProperty('--d', (pt.r * 1.25).toFixed(1) + 'px');
   }
-  // photos: each arrives out of a soft blur and slight zoom as the one before it hands over, then pushes in slowly while you read
-  const f = U - 1; let act = 0;
-  SC.forEach((c, n) => {
-    const d = f - n, a = n === 0 ? sm(-0.65, -0.1, d) : sm(-0.45, -0.05, d);
-    if (a > 0.5) act = n;
-    const push = reduce ? 1 : 1.04 + Math.max(-0.4, Math.min(1, d)) * 0.05 + (1 - a) * 0.08;
-    c.el.style.opacity = a.toFixed(3); c.el.style.zIndex = n; c.el.style.visibility = a <= 0 || (n < SC.length - 1 && f - (n + 1) > 0.05) ? 'hidden' : '';
-    c.el.style.transform = `scale(${push.toFixed(4)})`; c.el.style.filter = a < 0.99 ? `blur(${((1 - a) * 16).toFixed(1)}px)` : '';
+  // photos: the outgoing shot zooms past the camera and dissolves; the incoming one settles out of a blur, then keeps pushing in slowly
+  SC.forEach(c => {
+    if (c.st === 'off') return;
+    const u = (t - c.t0) / DUR; let s, o, b, z;
+    if (c.st === 'in') { const q = EIO(u), from = c.dir > 0 ? 1.35 : 0.82; s = (from + (1 - from) * q) * (1 + 0.09 * E((t - c.t0) / 11000)); o = E(u / 0.7); b = (1 - q) * 14; z = c.dir > 0 ? 1 : 2; }
+    else { const q = EIO(u); s = c.s0 * (c.dir > 0 ? 1 + q * 0.9 : 1 - q * 0.22); o = 1 - E((u - 0.15) / 0.7); b = q * 16; z = c.dir > 0 ? 2 : 1; if (u >= 1) { c.st = 'off'; c.el.style.visibility = 'hidden'; return; } }
+    c.s = s; c.el.style.visibility = 'visible'; c.el.style.zIndex = z; c.el.style.opacity = reduce ? (c.st === 'in' ? 1 : 0) : o.toFixed(3);
+    c.el.style.transformOrigin = `${c.fp[0] * 100}% ${c.fp[1] * 100}%`; c.el.style.transform = reduce ? '' : `scale(${s.toFixed(4)})`; c.el.style.filter = !reduce && b > 0.3 ? `blur(${b.toFixed(1)}px)` : '';
+    if (!touch && !reduce) c.img.style.transform = `translate3d(${(-par.x * 26).toFixed(1)}px, ${(-par.y * 16).toFixed(1)}px, 0) rotateY(${(par.x * 2.2).toFixed(2)}deg) rotateX(${(-par.y * 1.6).toFixed(2)}deg)`;
   });
-  if (U < 0.75) act = -1;
-  const k = act < 0 ? -1 : SC[act].k;
-  if (k !== curK) { curK = k; svcEls.forEach((e, i) => e.classList.toggle('on', i === k)); stepEls.forEach((e, i) => e.classList.toggle('on', i === k)); }
-  if (act !== curS) { curS = act; SC.forEach((c, n) => c.chip.classList.toggle('on', n === act)); if (act >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', +li.dataset.i === SC[act].i)); }
-  stepEls.forEach((b, i) => { b.querySelector('u').style.width = (Math.min(1, Math.max(0, (f + 0.5 - i * 2) / 2)) * 100).toFixed(1) + '%'; });
-  bar.style.width = (Math.min(1, U / (len / H)) * 100).toFixed(2) + '%';
 }
-measure(); addEventListener('resize', measure); requestAnimationFrame(frame);
+ui(); requestAnimationFrame(frame);
 
 /* ---- delivery rack ---- */
 const DELIVERY = [
