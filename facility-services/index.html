@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PMI Facility Services | Site Concept Demo</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="assets/logo.png">
+<link rel="preload" as="image" href="img/entrance.jpg">
+<style>
+/* VOICE: the PMI facility services flyer as a cinematic site. IDEA: a walk through the plant - entrance, then each service line as
+   full-bleed photography that dissolves from one shot to the next as you scroll (the "transition as scroll" reel).
+   PICTURE: the entrance photo drawn as a line drawing you wipe away, then two photos per service line. COLOUR and TYPE: white,
+   PMI red #EB1F27, near-black; Bebas Neue titles, Inter text. LAYOUT: white text column beside the photo, delivery, locations, contact. */
+@font-face{font-family:'Bebas Neue';src:url(assets/fonts/bebas-neue-latin-400-normal.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-latin-400-normal.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-latin-600-normal.woff2) format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'Inter';src:url(assets/fonts/inter-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
+:root{color-scheme:light;--red:#EB1F27;--ink:#121417;--ink2:#2b2f34;--mute:#5F5F5F;--line:#e3e3e3;--soft:#F3F3F3;--head:'Bebas Neue',Impact,'Arial Narrow',sans-serif;--ease:cubic-bezier(.2,.8,.2,1);--nav:72px;--col:min(500px,38vw)}
+*{box-sizing:border-box;margin:0;padding:0;min-width:0}
+html{-webkit-text-size-adjust:100%;scroll-snap-type:y proximity}
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block}
+.eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.eyebrow b{color:var(--red);font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 24px;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;transition:background .25s,color .25s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.btn.red{background:var(--red);color:#fff}.btn.red:hover{background:#c4141b}
+.btn.line{box-shadow:inset 0 0 0 1px var(--ink)}.btn.line:hover{background:var(--ink);color:#fff}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+.nav{position:fixed;inset:0 0 auto 0;height:var(--nav);z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;transition:background .3s,box-shadow .3s}
+.nav.solid{background:rgba(255,255,255,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.nav .logo img{height:44px;width:auto}
+.nav ul{display:flex;gap:34px;list-style:none;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.nav ul a{position:relative;padding:6px 0}
+.nav ul a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--red);transition:right .35s var(--ease)}
+.nav ul a:hover::after{right:0}
+.nav .btn{height:40px;padding:0 20px}
+@media(max-width:900px){.nav ul{display:none}.nav .logo img{height:38px}.nav .btn{padding:0 14px;font-size:.66rem}}
+
+/* ======== stage ======== */
+.stage{position:relative;height:1000vh}
+.snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start}
+.stick{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:#fff}
+/* hero */
+.hero{position:absolute;inset:0;z-index:4;background:#fff;will-change:opacity,filter,transform;transform-origin:72% 78%}
+.photo{position:absolute;right:0;bottom:0;width:100vw;aspect-ratio:2400/1340;max-height:66vh}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% 50%}
+.photo .lines{-webkit-mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%);mask-image:radial-gradient(circle var(--mr,150px) at var(--mx,-999px) var(--my,-999px),transparent 0,transparent 55%,#000 100%)}
+.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,0) 28%),linear-gradient(90deg,#fff 0%,rgba(255,255,255,.75) 12%,rgba(255,255,255,0) 34%);pointer-events:none}
+.ring{position:absolute;left:0;top:0;width:var(--d,220px);height:var(--d,220px);margin:calc(var(--d,220px)/-2) 0 0 calc(var(--d,220px)/-2);border-radius:50%;border:1px solid rgba(235,31,39,.6);pointer-events:none}
+.ring::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--red)}
+.hero-copy{position:absolute;left:6vw;top:calc(var(--nav) + 5vh);max-width:600px;z-index:5}
+.hero-copy h1{font-family:var(--head);font-weight:400;font-size:clamp(4rem,9vw,8.4rem);line-height:.86;letter-spacing:.01em;margin:18px 0}
+.hero-copy h1 span{display:block;overflow:hidden}
+.hero-copy h1 i{display:block;font-style:normal;transform:translateY(105%);animation:rise 1.1s var(--ease) forwards}
+.hero-copy h1 span+span i{animation-delay:.12s}
+@keyframes rise{to{transform:none}}
+.tag{font-size:.82rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.tag b{color:var(--red);margin:0 .5em}
+.hero-copy .lead{margin-top:18px;font-size:1.02rem;line-height:1.6;color:var(--ink2);max-width:440px}
+.hero-copy>*:not(h1){opacity:0;animation:fin .9s .45s var(--ease) forwards}
+@keyframes fin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cue{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));z-index:8;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:12px 22px 12px 14px;background:var(--ink);color:#fff;box-shadow:0 14px 40px rgba(18,20,23,.25);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.cue i{width:34px;height:34px;border-radius:50%;background:var(--red);display:grid;place-items:center}
+.cue i svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;animation:nudge 1.4s infinite var(--ease)}
+@keyframes nudge{0%,100%{transform:translateY(3px)}50%{transform:translateY(-4px)}}
+.cue b{display:block;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+.cue small{display:block;font-size:.72rem;color:#b9bcc0;margin-top:2px}
+.reveal-hint{position:absolute;right:4vw;bottom:calc(30px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);background:rgba(255,255,255,.92);padding:9px 14px 9px 10px;box-shadow:0 0 0 1px var(--line)}
+.reveal-hint i{width:20px;height:20px;border-radius:50%;border:1px solid var(--red);position:relative}
+.reveal-hint i::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--red)}
+
+/* tour: white text column + full-bleed photography */
+.shots{position:absolute;top:0;right:0;bottom:0;left:calc(6vw + var(--col) + 4vw);overflow:hidden;background:#e9ebee}
+.shot{position:absolute;inset:0;opacity:0;will-change:opacity,transform,filter}
+.shot img{width:100%;height:100%;object-fit:cover}
+.shot::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,12,14,.38) 0%,rgba(10,12,14,0) 26%);pointer-events:none}
+.chip{position:absolute;left:28px;bottom:28px;z-index:3;display:flex;align-items:center;gap:12px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:.01em;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .6s var(--ease);text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.chip i{width:26px;height:26px;border-radius:50%;background:var(--red);font-style:normal;font-size:.72rem;font-weight:700;display:grid;place-items:center;text-shadow:none}
+.chip.on{opacity:1;transform:none}
+.col{position:absolute;left:6vw;top:0;bottom:0;width:var(--col);z-index:3;display:flex;align-items:center;pointer-events:none}
+.svc{position:absolute;left:0;right:0;opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity .5s,visibility .5s,transform .7s var(--ease)}
+.svc.on{opacity:1;visibility:visible;transform:none;pointer-events:auto}
+.svc .num{font-family:var(--head);font-size:6.5rem;line-height:.8;color:var(--red)}
+.svc h2{font-family:var(--head);font-weight:400;font-size:clamp(2.6rem,3.6vw,3.6rem);line-height:.92;margin:10px 0 18px}
+.svc ul{list-style:none}
+.svc li{display:flex;gap:12px;padding:10px 6px 10px 0;font-size:.95rem;line-height:1.35;color:var(--ink2);border-top:1px solid var(--line);transition:color .3s,background .3s}
+.svc li i{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--red);font-style:normal;font-size:.62rem;font-weight:700;color:var(--red);display:grid;place-items:center;transition:.3s}
+.svc li.hl{color:var(--ink);background:linear-gradient(90deg,rgba(235,31,39,.08),transparent)}
+.svc li.hl i{background:var(--red);color:#fff}
+.svc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--ink)}
+.svc-nav button{display:flex;align-items:center;gap:8px;height:42px;font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.svc-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
+.svc-nav .nx{color:#fff;background:var(--red);padding:0 16px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.svc-nav .nx:hover{background:#c4141b}
+.svc-nav .pv{color:var(--mute)}.svc-nav .pv:hover{color:var(--ink)}
+.svc-nav .sw{font-size:.64rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.steps{position:absolute;left:calc(6vw + var(--col) + 4vw + 28px);top:calc(var(--nav) + 22px);z-index:6;display:flex;gap:8px}
+.steps button{position:relative;width:54px;height:20px}
+.steps button::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:rgba(255,255,255,.45)}
+.steps button u{position:absolute;left:0;top:9px;height:2px;width:0;background:#fff}
+.steps button span{position:absolute;left:0;top:18px;white-space:nowrap;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:0;transition:.3s;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.steps button.on span{opacity:1}
+.tour-ui{opacity:0;transition:opacity .5s;pointer-events:none}
+.stick.touring .tour-ui{opacity:1;pointer-events:auto}
+.progress{position:absolute;left:0;bottom:0;height:3px;background:var(--red);z-index:7;width:0}
+
+@media(max-width:900px){
+  :root{--col:auto}
+  .hero-copy{left:6vw;right:6vw;top:calc(var(--nav) + 2vh)}
+  .hero-copy h1{font-size:clamp(3.6rem,17vw,5.4rem);margin:12px 0}
+  .hero-copy .lead{font-size:.92rem;margin-top:12px}
+  .tag{font-size:.7rem}
+  .photo{width:auto;height:36vh;max-height:none;right:-34vw;bottom:calc(104px + env(safe-area-inset-bottom))}
+  .reveal-hint{right:auto;left:6vw;bottom:calc(36vh + 116px + env(safe-area-inset-bottom));font-size:.62rem}
+  .shots{left:0;top:var(--nav);bottom:auto;height:44svh}
+  .chip{left:14px;bottom:14px;font-size:.8rem;right:14px}
+  .chip i{width:22px;height:22px}
+  .col{left:0;right:0;width:auto;top:calc(var(--nav) + 44svh);bottom:0;align-items:flex-start;padding:16px 5vw calc(8px + env(safe-area-inset-bottom))}
+  .svc{left:5vw;right:5vw}
+  .svc .num{display:none}
+  .svc h2{font-size:2rem;margin:4px 0 8px}
+  .svc li{padding:6px 4px 6px 0;font-size:.8rem;gap:10px}
+  .svc li i{width:18px;height:18px;font-size:.58rem}
+  .svc-nav{margin-top:6px;padding-top:8px}
+  .steps{left:14px;top:calc(var(--nav) + 12px)}
+  .steps button{width:38px}
+  .steps button span{display:none}
+}
+@media(min-width:901px){.svc-nav .sw{display:none}}
+/* ======== sections ======== */
+section.blk{padding:120px 6vw}
+.wrap{max-width:1240px;margin:0 auto}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:56px}
+.sec-head h2{font-family:var(--head);font-weight:400;font-size:clamp(2.8rem,5.4vw,4.6rem);line-height:.92;margin-top:14px}
+.sec-head h2 span{color:var(--red)}
+.sec-head p{font-size:1rem;line-height:1.65;color:var(--ink2);max-width:480px}
+@media(max-width:900px){section.blk{padding:84px 6vw}.sec-head{grid-template-columns:1fr;gap:16px;margin-bottom:36px}}
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s var(--ease),transform 1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+/* spatial rack */
+.rack{position:relative;perspective:1400px}
+.rail{position:absolute;left:-2vw;right:-2vw;top:0;height:2px;background:var(--ink)}
+.rail::before,.rail::after{content:"";position:absolute;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--ink)}
+.rail::before{left:0}.rail::after{right:0}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;padding-top:44px;transform-style:preserve-3d}
+.card{position:relative;background:#fff;min-height:300px;padding:28px 24px 26px;box-shadow:0 0 0 1px var(--line);display:flex;flex-direction:column;transform-style:preserve-3d;transition:transform .7s var(--ease),box-shadow .5s,opacity .5s,filter .5s;cursor:pointer;outline:none}
+.card::before{content:"";position:absolute;left:50%;top:-44px;width:1px;height:44px;background:var(--ink)}
+.card::after{content:"";position:absolute;left:calc(50% - 4px);top:-48px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
+.card .n{font-family:var(--head);font-size:1.1rem;color:var(--red);letter-spacing:.06em}
+.card svg{width:54px;height:54px;margin:26px 0 auto;fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.card svg .r{stroke:var(--red)}
+.card h3{font-size:1.06rem;line-height:1.3;font-weight:700;margin-top:34px}
+.card .bar{height:2px;background:var(--line);margin-top:20px;position:relative;overflow:hidden}
+.card .bar::after{content:"";position:absolute;inset:0;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
+.cards.focus .card{opacity:.38;filter:grayscale(1)}
+.cards.focus .card.act{opacity:1;filter:none;box-shadow:0 40px 80px rgba(18,20,23,.18),0 0 0 1px var(--line);transform:translateY(-14px) translateZ(60px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+.card.act .bar::after{transform:none}
+@media(max-width:900px){
+  .rack{margin:0 -6vw}.rail{left:0;right:0}
+  .cards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:44px 18vw 30px;gap:14px;scrollbar-width:none}
+  .cards::-webkit-scrollbar{display:none}
+  .card{flex:0 0 64vw;scroll-snap-align:center;min-height:260px}
+}
+
+/* statement */
+.state{background:var(--soft);position:relative;overflow:hidden}
+.state .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:60px;align-items:center}
+.state blockquote{font-family:var(--head);font-size:clamp(2.6rem,5vw,4.4rem);line-height:.95}
+.state blockquote span{color:var(--red)}
+.state p{font-size:1.02rem;line-height:1.7;color:var(--ink2);margin-bottom:18px}
+.state .tri{position:absolute;right:-120px;bottom:-160px;width:520px;opacity:.05;pointer-events:none}
+@media(max-width:900px){.state .wrap{grid-template-columns:1fr;gap:26px}}
+
+/* locations */
+.loc-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:56px;align-items:center}
+.map{position:relative;width:100%}
+.map svg{width:100%;height:auto;overflow:visible;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%);mask-image:linear-gradient(180deg,transparent 0,#000 14%)}
+.map .st{fill:#f4f4f4;stroke:#c9c9c9;stroke-width:1.2;stroke-linejoin:round;transition:fill .4s}
+.map .st.on{fill:#ececec}
+.map .pin{cursor:pointer}
+.map .pin circle.d{fill:var(--red);stroke:#fff;stroke-width:2.5;transition:r .3s}
+.map .pin circle.h{fill:none;stroke:var(--red);stroke-width:1.2;opacity:0;transform-box:fill-box;transform-origin:center}
+.map .pin.on circle.h{opacity:1;animation:ping 1.6s infinite}
+.map .pin text{font-family:Inter,sans-serif;font-size:13px;font-weight:600;fill:var(--ink);opacity:0;transition:opacity .3s;paint-order:stroke;stroke:#fff;stroke-width:5px}
+.map .pin.on text,.map .pin.hq text{opacity:1}
+.map .lbl{font-family:Inter,sans-serif;font-size:11px;font-weight:600;letter-spacing:.2em;fill:#9a9a9a}
+.cities{list-style:none;columns:2;column-gap:28px}
+.cities li{break-inside:avoid}
+.cities button{display:flex;justify-content:space-between;align-items:center;width:100%;padding:13px 0;border-top:1px solid var(--line);font-size:.95rem;text-align:left;transition:color .25s,padding .35s var(--ease)}
+.cities button small{font-size:.66rem;font-weight:600;letter-spacing:.14em;color:var(--mute)}
+.cities button:hover,.cities button.on{color:var(--red);padding-left:8px}
+.hqnote{margin-top:26px;font-size:.88rem;line-height:1.6;color:var(--ink2)}
+.hqnote b{display:block;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+@media(max-width:900px){.loc-grid{grid-template-columns:1fr;gap:30px}.map .pin text{font-size:20px;stroke-width:7px}}
+
+/* contact */
+.cta{border-top:1px solid var(--line)}
+.cta .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:56px;align-items:end}
+.cta h2{font-family:var(--head);font-weight:400;font-size:clamp(3rem,6.4vw,5.8rem);line-height:.88;margin-top:14px}
+.cta h2 span{color:var(--red)}
+.cta .lead{margin-top:20px;font-size:1rem;line-height:1.65;color:var(--ink2);max-width:520px}
+.contact{list-style:none}
+.contact li{padding:16px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;font-size:1rem}
+.contact li small{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding-top:4px}
+.contact a:hover{color:var(--red)}
+.cta .btn{margin-top:24px}
+@media(max-width:900px){.cta .wrap{grid-template-columns:1fr;gap:30px}.contact li{flex-direction:column;gap:4px}}
+footer{border-top:3px solid var(--red);padding:30px 6vw 40px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+footer .l b{display:block;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+footer .l a{font-size:.85rem;color:var(--mute)}
+footer .r{font-size:.82rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.hero-copy>*{opacity:1!important}.hero-copy h1 i{transform:none}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="#top" aria-label="PMI home"><img src="assets/logo.png" alt="Palacios Marine &amp; Industrial"></a>
+  <ul><li><a href="#services" data-go="0">Services</a></li><li><a href="#delivery">Delivery</a></li><li><a href="#locations">Locations</a></li><li><a href="#contact">Contact</a></li></ul>
+  <a class="btn red" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>
+</header>
+
+<div class="stage" id="top">
+  <div class="snaps"></div>
+  <div class="stick">
+    <div class="shots" id="services"></div>
+    <div class="col"></div>
+    <nav class="steps tour-ui" aria-label="Service lines"></nav>
+
+    <div class="hero">
+      <div class="photo">
+        <img src="img/entrance.jpg" alt="PMI-branded guard house at a plant entrance, with gate, landscaping and process units">
+        <img class="lines" src="img/entrance-lines.jpg" alt="" aria-hidden="true">
+        <div class="ring"></div>
+      </div>
+    </div>
+    <div class="hero-copy">
+      <p class="eyebrow">Palacios Marine &amp; Industrial</p>
+      <h1><span><i>Facility</i></span><span><i>Services</i></span></h1>
+      <p class="tag">Construction<b>•</b>Maintenance<b>•</b>Turnarounds</p>
+      <p class="lead">Janitorial, routine maintenance, grounds and security, delivered by one turnkey industrial contractor.</p>
+    </div>
+    <div class="reveal-hint"><i></i><span class="rt">Drag over the drawing to see the site</span></div>
+    <button class="cue" data-go="0"><i><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></i><span><b class="ct">Swipe up to explore</b><small>Tour 4 service lines</small></span></button>
+    <div class="progress"></div>
+  </div>
+</div>
+
+<section class="blk" id="delivery">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><p class="eyebrow"><b>05</b> · How we deliver</p><h2>Service delivery &amp; <span>workforce support</span></h2></div>
+      <p>How PMI leads, staffs and reports on facility services at each site.</p>
+    </div>
+    <div class="rack rv"><div class="rail"></div><div class="cards"></div></div>
+  </div>
+</section>
+
+<section class="blk state">
+  <svg class="tri" viewBox="0 0 100 87"><path d="M50 0L100 87H0z" fill="#EB1F27"/></svg>
+  <div class="wrap">
+    <blockquote class="rv">One contractor.<br>Multiple scopes.<br><span>Fewer handoffs.</span></blockquote>
+    <div class="rv">
+      <p>Simplify project delivery through one team managing civil, mechanical, soft craft, pipeline, and facility services, reducing handoff delays and improving coordination.</p>
+      <p>PMI strives to be our customers’ greatest asset by providing exceptional service through unrivaled responsiveness, reliability, and accountability.</p>
+      <a class="btn line" href="https://palaciosmarineindustrial.com" target="_blank" rel="noopener">All PMI services</a>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="locations">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><p class="eyebrow"><b>06</b> · Locations</p><h2>Gulf Coast <span>and beyond</span></h2></div>
+      <p>Ten PMI locations across Texas, Louisiana, Alabama and Jamaica.</p>
+    </div>
+    <div class="loc-grid">
+      <div class="map rv"><svg viewBox="0 0 1000 433" role="img" aria-label="Map of PMI locations"><defs><clipPath id="mc"><rect width="1000" height="433"/></clipPath></defs><g clip-path="url(#mc)"><path class="st" data-s="AL" d="M837.8 -61.8L862.2 -61.8L872.1 -61.8L898.2 -61.3L913.1 -61.3L918.9 -61.3L944.6 -61.3L954.5 -60.8L957.2 -46.9L960.8 -27.3L963.5 -10.3L965.8 2.6L968.0 16.5L973.4 47.9L975.2 49.4L976.6 53.0L977.5 59.2L978.8 62.8L981.5 65.9L982.0 69.5L983.8 71.1L982.0 76.2L984.7 77.3L986.9 79.3L985.1 81.4L981.5 83.4L979.3 85.5L979.7 88.1L979.7 92.2L978.4 95.8L976.1 98.9L975.7 100.9L976.6 106.6L979.3 112.3L979.7 117.4L978.8 120.0L977.9 125.7L977.9 129.3L977.5 132.4L977.0 134.4L980.2 138.5L981.5 141.6L982.0 144.2L971.2 144.2L959.5 144.2L941.9 144.7L913.5 144.7L891.9 144.2L864.9 144.2L863.5 150.9L867.6 155.5L873.9 161.2L874.3 163.8L871.6 168.4L872.1 171.0L875.2 173.0L872.5 174.6L871.2 178.2L868.5 181.3L862.2 182.8L855.9 183.9L846.8 183.9L849.5 182.3L851.8 183.3L857.2 182.3L855.4 178.7L854.1 176.7L850.9 174.6L850.0 170.5L851.4 167.4L850.9 163.8L849.5 161.7L846.4 160.7L844.1 162.2L842.8 166.9L842.3 170.0L841.9 176.1L840.5 179.2L838.3 179.2L835.1 176.1L832.9 176.7L828.8 176.7L828.4 166.9L827.9 150.9L827.0 132.4L825.7 98.4L827.0 85.5L830.2 54.1L831.1 44.8L836.5 -4.6L837.4 -11.8L840.5 -40.2L842.3 -56.1L839.6 -57.7L837.8 -61.8Z"/><path class="st" data-s="FL" d="M1125.7 475.4L1128.8 470.7L1132.0 468.7L1136.0 466.6L1142.3 463.0L1148.2 465.6L1149.1 468.2L1151.4 470.2L1144.1 472.8L1139.2 471.8L1131.5 475.9L1125.7 476.4Z"/><path class="st" data-s="FL" d="M1105.0 365.7L1109.0 376.0L1113.1 378.0L1116.7 378.5L1114.4 379.6L1109.5 377.5L1106.3 371.3L1105.0 367.7L1105.0 365.7Z"/><path class="st" data-s="FL" d="M982.0 144.2L982.9 147.8L984.7 149.9L984.7 153.5L986.0 157.1L988.3 159.1L1009.9 160.2L1052.3 162.7L1085.6 164.8L1107.7 166.4L1106.8 169.4L1107.7 174.1L1109.5 177.2L1115.3 176.7L1115.3 173.6L1116.2 171.0L1116.7 165.8L1114.9 161.7L1115.3 159.1L1115.3 157.1L1118.0 155.5L1119.4 153.0L1121.6 153.5L1125.7 155.0L1128.8 156.1L1135.1 158.1L1137.8 159.1L1140.1 158.1L1142.3 159.1L1142.3 164.8L1142.8 168.9L1143.7 171.0L1144.1 175.1L1144.6 180.3L1148.2 197.3L1150.5 202.9L1150.5 205.5L1155.0 218.4L1159.9 231.2L1164.9 241.5L1175.2 259.6L1181.5 268.3L1182.0 271.4L1183.8 275.0L1180.6 277.6L1180.2 280.2L1179.7 283.8L1180.6 289.4L1181.5 293.6L1184.2 300.3L1190.1 312.1L1192.3 319.3L1193.2 322.9L1195.5 330.6L1198.6 337.3L1200.0 340.4L1200.9 344.6L1203.2 349.2L1205.9 360.5L1205.4 371.3L1204.5 379.1L1203.6 388.3L1201.8 402.2L1201.8 410.0L1201.4 413.6L1200.5 417.2L1199.1 414.6L1196.4 416.1L1194.6 420.3L1193.7 423.9L1192.3 425.9L1191.9 429.0L1192.3 432.6L1192.3 435.7L1190.5 438.3L1194.1 436.7L1198.2 428.0L1199.1 426.4L1198.2 432.1L1192.3 441.9L1191.0 445.5L1186.9 449.6L1181.5 455.8L1177.5 458.4L1182.4 452.7L1184.7 450.6L1186.0 448.6L1186.5 445.0L1186.5 442.4L1183.8 441.9L1177.5 443.4L1175.2 445.5L1170.7 443.4L1167.6 444.5L1166.7 446.0L1162.2 447.0L1158.6 447.0L1155.9 445.0L1154.5 441.9L1155.0 438.3L1155.9 435.7L1156.3 433.7L1154.5 429.5L1152.7 427.5L1151.8 422.8L1150.0 421.8L1149.1 417.7L1146.4 417.7L1145.0 413.0L1141.0 412.0L1137.4 409.4L1134.2 406.9L1132.4 407.4L1131.1 409.4L1128.4 403.8L1126.1 397.1L1125.2 389.4L1123.9 384.7L1123.0 382.1L1118.5 377.0L1116.7 377.0L1116.7 374.4L1114.4 373.4L1114.4 376.5L1112.2 377.0L1112.2 373.9L1110.8 368.8L1109.0 366.7L1111.3 365.7L1113.1 367.2L1114.9 360.5L1114.4 356.4L1113.1 354.3L1111.7 352.8L1109.0 354.3L1110.4 361.0L1105.9 362.6L1105.0 364.6L1105.0 361.5L1104.1 359.0L1101.4 354.9L1097.3 347.1L1095.5 343.0L1092.3 336.8L1088.3 330.1L1086.0 327.6L1085.1 325.0L1083.8 322.4L1085.6 324.5L1087.8 323.4L1089.6 319.8L1091.4 318.8L1093.7 314.7L1095.5 313.1L1097.7 311.1L1099.5 307.0L1098.6 303.9L1095.0 302.8L1095.9 308.0L1092.3 306.4L1093.2 302.3L1086.0 297.2L1086.0 300.3L1084.7 301.3L1086.0 302.8L1088.7 303.3L1090.5 308.0L1089.2 310.0L1089.2 312.6L1085.1 314.2L1085.6 317.3L1084.2 318.8L1083.8 313.1L1081.5 309.5L1078.8 305.9L1079.7 297.7L1078.8 294.6L1078.4 287.4L1079.7 291.5L1080.6 295.6L1081.1 288.9L1082.9 287.4L1084.2 283.8L1085.1 279.7L1086.9 276.1L1086.9 271.9L1087.8 268.3L1086.9 265.2L1086.9 262.7L1085.1 261.6L1084.2 254.9L1086.0 251.8L1082.9 247.2L1082.0 243.6L1081.1 239.5L1072.1 237.9L1070.7 240.5L1068.0 235.9L1068.5 233.8L1066.2 232.8L1064.4 232.3L1064.0 229.7L1063.1 227.1L1061.3 225.1L1058.6 224.6L1058.1 222.5L1054.1 220.4L1054.1 215.8L1053.6 212.7L1051.4 212.2L1050.0 210.6L1047.7 210.1L1045.5 207.0L1044.1 203.9L1043.2 201.4L1041.0 199.8L1036.5 196.7L1030.2 193.6L1026.1 190.6L1019.8 192.1L1014.9 190.6L1010.8 195.2L1012.2 199.8L1009.9 201.4L1007.7 200.3L1002.7 200.3L997.7 203.4L987.4 209.6L986.0 207.0L984.7 208.6L982.4 210.6L976.6 210.1L978.4 212.7L981.5 215.3L986.5 212.7L991.0 211.2L995.5 207.6L991.9 211.7L987.4 213.2L982.0 216.3L979.7 216.8L978.4 215.3L975.7 214.8L972.1 212.2L968.9 212.2L966.2 213.2L964.0 209.1L963.1 203.9L964.4 201.9L964.4 206.5L965.3 210.6L968.0 209.6L968.5 205.5L965.8 200.9L962.6 198.3L959.9 197.8L957.7 195.7L955.0 192.6L950.5 190.6L946.8 187.5L940.5 183.3L932.9 180.3L923.4 177.2L918.5 176.1L908.6 175.1L903.2 175.6L895.5 176.7L885.1 178.7L879.7 179.2L868.5 181.3L870.7 180.3L872.5 174.6L875.2 173.0L872.1 171.0L871.6 168.4L874.3 163.8L873.9 161.2L868.0 157.6L863.5 151.9L865.3 146.3L891.9 144.2L913.5 144.7L941.9 144.7L959.5 144.2L971.2 144.2L982.0 144.2Z"/><path class="st" data-s="TX" d="M171.2 -139.1L205.0 -139.1L233.3 -139.1L257.7 -139.1L286.5 -139.1L306.3 -139.1L306.3 -39.1L309.5 -40.2L315.3 -33.5L319.4 -30.4L324.3 -29.4L325.2 -31.9L327.9 -31.4L331.5 -29.4L333.3 -29.9L334.2 -34.0L336.9 -31.4L339.6 -30.9L341.9 -27.8L342.8 -21.6L345.5 -21.6L347.7 -21.1L351.8 -21.6L355.0 -19.6L357.7 -18.5L359.9 -18.5L361.7 -17.5L365.3 -17.0L367.1 -18.5L370.7 -17.5L374.3 -13.4L377.9 -14.4L380.2 -18.5L383.3 -17.0L385.6 -17.0L388.7 -16.0L391.4 -18.0L392.3 -16.0L391.0 -14.4L392.3 -10.3L395.5 -9.8L397.7 -10.8L397.7 -7.2L397.7 -4.1L401.8 -2.6L403.6 -3.1L408.6 -7.2L410.4 -9.8L414.9 -7.7L416.2 -5.2L418.9 -6.2L420.7 -5.2L420.7 -2.6L424.8 -1.0L426.6 -3.6L430.2 -3.1L432.0 -6.2L433.3 -4.6L433.8 -2.1L432.0 -0.5L434.2 3.6L436.0 4.1L437.4 3.1L436.9 0.0L439.2 -1.0L437.4 -2.6L439.6 -2.1L442.3 -4.6L441.4 -7.7L445.0 -8.2L446.8 -3.6L449.1 -4.1L451.4 -3.1L455.0 -1.5L455.9 -5.7L459.9 -4.6L458.1 -2.6L460.8 -1.0L464.0 1.5L467.1 1.0L469.8 4.6L472.1 5.7L473.0 2.1L476.1 2.6L478.4 2.1L479.7 -2.1L482.0 -1.5L484.2 -2.1L489.2 -3.1L494.1 -1.5L495.5 -3.1L497.7 -2.6L500.5 -4.6L504.5 -6.7L507.2 -4.1L510.8 -4.6L516.2 -3.6L518.5 -4.1L520.3 -5.2L521.2 -8.2L525.7 -7.2L529.3 -3.1L532.9 -3.1L533.8 -0.5L537.4 2.6L539.2 3.1L541.9 2.6L544.6 5.7L547.3 5.7L550.0 6.2L553.2 9.3L555.9 8.2L555.9 10.3L557.7 11.3L560.4 13.4L562.6 12.9L566.7 12.9L568.0 10.8L570.3 11.3L572.1 11.8L574.3 12.9L574.8 40.2L574.8 93.2L577.9 96.8L580.6 98.4L582.0 102.0L584.7 104.5L585.6 108.2L584.2 110.2L584.7 112.3L584.7 115.9L586.0 116.9L588.3 117.4L587.8 120.0L590.1 121.5L591.0 123.6L591.9 125.7L590.5 128.2L592.8 130.3L594.6 135.5L597.7 134.9L596.8 139.1L598.2 143.2L596.4 143.7L598.2 147.8L595.9 150.4L596.8 153.5L595.0 154.5L593.7 157.6L593.2 160.7L591.4 161.7L591.0 164.8L588.7 166.4L589.6 168.9L590.1 173.0L588.3 175.1L586.9 178.7L589.6 180.8L590.1 183.3L590.5 188.5L588.7 191.6L588.3 194.7L586.0 196.2L584.7 199.8L582.9 202.9L580.2 205.0L581.1 207.6L583.8 211.7L576.6 212.2L570.7 213.7L550.0 223.0L545.5 225.6L543.7 228.2L541.4 227.6L544.6 224.6L546.4 222.5L548.2 222.5L550.9 219.9L554.5 220.4L551.8 217.9L543.2 219.9L544.6 214.8L545.5 211.7L545.5 208.1L543.2 208.1L539.6 208.1L538.3 210.1L537.4 212.2L535.1 213.2L534.2 211.2L531.1 213.2L532.4 216.3L530.6 218.4L532.4 220.9L535.6 221.5L534.7 224.0L536.5 225.1L536.5 228.2L536.5 231.2L533.8 232.3L530.6 235.4L527.0 238.5L524.3 237.4L523.9 241.5L527.0 240.5L531.5 237.9L536.9 232.3L539.6 231.2L543.7 230.2L540.5 232.8L530.2 239.5L526.6 242.6L520.7 247.7L514.4 253.9L511.7 254.4L500.5 261.1L495.0 264.2L486.5 268.3L476.6 273.5L471.2 277.1L468.9 279.1L466.7 282.2L458.1 287.4L454.1 290.5L446.4 297.2L441.4 303.3L439.6 307.0L437.4 309.5L432.0 319.3L427.9 328.1L426.1 333.7L424.8 342.5L424.3 347.1L424.3 351.8L425.7 360.5L427.9 369.8L430.2 376.0L432.4 385.8L434.2 397.6L433.3 395.5L432.4 388.8L430.6 380.6L428.8 373.9L424.8 372.9L427.9 371.8L426.1 368.2L425.2 364.1L423.9 360.5L423.4 355.9L423.4 349.7L423.4 344.0L425.2 332.2L427.9 324.0L430.6 317.8L432.9 314.7L434.7 310.6L436.0 309.0L435.6 307.0L437.8 303.3L440.5 301.3L442.3 299.7L445.0 294.1L449.5 291.5L450.9 288.9L453.6 288.9L459.0 284.3L462.6 282.2L466.7 281.2L467.6 278.1L463.5 279.1L460.4 280.7L458.6 282.2L455.9 282.7L455.0 280.7L455.0 278.1L451.8 277.6L450.9 282.7L450.9 285.3L447.3 289.4L444.6 292.5L440.1 291.0L434.7 292.0L432.0 294.6L435.1 295.6L439.2 293.0L440.5 296.7L432.9 307.5L431.1 307.5L430.2 304.9L426.6 305.4L420.7 305.4L419.4 304.9L420.3 308.0L422.5 308.0L424.3 307.0L423.9 310.0L424.8 312.1L427.0 313.6L430.2 314.2L427.0 320.9L424.8 329.1L423.0 333.7L419.8 334.8L416.7 335.3L418.9 334.3L419.4 331.7L417.1 332.7L412.6 336.3L417.1 338.4L421.2 336.8L421.6 342.0L421.6 350.7L420.3 360.0L421.6 370.3L422.5 373.4L423.0 377.0L427.9 386.3L427.5 389.9L427.9 394.0L429.3 397.1L432.4 397.6L434.7 398.6L434.7 404.3L431.1 403.8L428.8 404.3L425.7 405.3L424.8 410.0L421.6 409.4L420.3 407.9L418.0 407.4L417.1 405.3L412.2 400.7L407.2 400.2L405.4 398.6L402.7 399.1L397.7 399.1L395.0 398.1L392.8 398.1L389.6 398.6L387.4 398.6L385.1 398.1L384.2 395.5L382.0 395.5L378.8 393.5L375.7 390.4L369.8 388.8L367.1 389.4L364.9 387.8L362.6 385.2L360.4 383.2L356.3 383.2L352.7 381.1L350.9 381.1L347.7 381.1L346.4 379.6L347.3 377.0L345.5 374.4L343.7 373.9L343.2 369.8L342.3 367.7L341.9 364.6L340.5 361.0L339.2 358.5L336.5 356.4L334.7 353.8L333.8 352.3L332.9 349.2L331.1 346.6L331.5 342.5L331.5 337.3L328.8 336.3L327.0 334.3L328.8 332.7L329.3 329.1L329.7 325.0L327.5 324.5L328.4 321.4L326.6 318.8L324.3 317.3L321.2 316.2L316.7 312.6L314.9 310.6L311.7 309.0L311.7 307.0L311.3 303.9L309.0 301.8L309.5 299.7L306.8 299.2L305.4 295.6L304.1 294.6L302.7 291.5L296.8 288.9L296.4 286.4L293.2 284.3L290.5 278.1L291.0 276.1L289.6 274.0L291.0 273.0L289.2 272.4L287.8 270.4L286.0 267.3L283.8 264.7L283.3 262.1L282.4 259.6L281.5 256.0L279.3 252.4L277.0 250.3L277.0 246.7L276.1 242.1L273.0 240.0L271.2 238.5L270.3 234.3L266.7 232.8L263.5 229.2L260.8 228.2L258.6 224.6L254.5 222.5L253.6 220.9L249.5 220.4L250.0 217.9L250.0 214.8L248.2 217.9L247.3 214.3L244.6 213.2L242.8 208.1L239.6 207.0L237.8 208.1L236.5 206.0L229.3 208.1L226.1 206.5L223.0 206.0L219.4 206.5L217.6 205.5L214.9 206.0L209.9 206.0L208.1 203.4L205.9 203.9L202.7 201.9L200.5 202.9L198.6 207.6L193.2 207.0L191.9 208.6L186.9 209.6L184.7 211.2L182.9 214.3L182.9 216.3L181.5 218.9L179.7 220.4L178.8 224.6L179.3 226.6L178.4 228.7L176.1 232.3L177.0 234.9L173.4 237.9L170.7 240.5L167.6 242.6L165.8 247.7L163.5 248.2L160.8 247.7L158.6 248.2L156.3 246.2L151.8 245.2L147.7 240.0L143.7 238.5L138.3 237.4L135.6 233.8L133.3 232.8L127.0 231.8L124.3 230.7L121.2 228.2L119.4 227.6L116.7 224.0L114.4 220.9L110.8 220.4L109.0 219.4L103.2 214.3L101.8 212.2L100.5 207.6L98.6 205.0L97.7 202.4L95.5 199.8L95.5 196.7L94.1 194.7L95.5 191.1L95.0 189.0L95.0 186.4L94.1 183.3L92.3 182.3L89.6 178.2L87.4 175.6L85.6 166.4L84.7 164.8L82.4 164.3L80.6 160.2L78.4 160.2L76.1 157.6L74.3 157.1L71.2 154.5L69.4 154.5L63.1 151.4L55.9 144.7L54.1 140.1L51.8 138.5L49.1 137.0L47.7 136.0L45.9 133.9L41.9 129.3L38.7 127.7L38.3 125.2L36.0 124.1L32.4 123.6L26.6 120.0L24.8 116.4L23.4 115.4L22.5 112.3L20.3 108.2L18.9 106.6L15.8 105.1L14.0 105.6L12.2 104.0L9.0 102.0L7.2 99.4L8.1 97.3L8.1 92.7L61.7 92.7L102.3 92.7L138.7 92.7L168.0 92.7L168.0 39.1L168.5 27.8L168.5 21.1L168.9 2.6L169.4 -7.7L169.4 -74.7L169.4 -93.7L169.4 -129.8L169.4 -139.1Z"/><path class="st" data-s="MS" d="M704.1 41.2L706.3 38.6L702.7 35.5L705.0 34.5L707.7 34.0L707.7 29.9L709.9 27.3L707.7 27.3L705.4 25.8L705.4 23.2L709.0 19.1L706.8 21.1L704.1 21.6L702.3 20.6L705.4 19.1L706.3 17.0L704.1 15.5L704.1 18.0L701.4 18.5L703.6 14.9L701.4 12.4L705.9 10.3L701.4 6.7L704.5 4.6L708.1 7.2L710.4 6.7L709.0 4.1L706.8 5.2L705.0 3.6L705.4 1.0L709.0 1.0L712.2 0.5L709.5 -1.0L708.6 -3.1L711.3 -6.7L707.7 -8.2L710.8 -10.3L711.7 -8.8L713.5 -9.3L712.2 -11.3L716.2 -11.3L717.6 -14.4L715.3 -14.9L714.0 -17.5L715.8 -19.1L718.5 -17.5L720.3 -18.5L716.7 -19.6L714.4 -21.6L716.2 -22.7L718.5 -21.1L719.4 -24.2L722.5 -24.7L722.1 -28.3L726.1 -29.4L725.7 -26.8L727.0 -29.9L731.1 -32.4L730.2 -36.1L732.4 -38.1L730.2 -42.2L730.2 -44.8L732.0 -45.8L731.5 -43.8L733.3 -42.7L735.6 -44.8L732.0 -46.4L731.1 -48.4L732.0 -50.5L733.8 -51.5L733.3 -48.9L736.5 -48.4L735.6 -51.5L735.1 -54.6L736.9 -55.6L737.8 -53.0L742.8 -55.1L745.5 -57.2L742.8 -61.8L779.7 -61.3L805.0 -61.3L837.8 -61.8L839.6 -57.7L842.3 -56.1L840.5 -40.2L837.4 -11.8L836.5 -4.6L831.1 44.8L830.2 54.1L827.0 85.5L825.7 98.4L827.0 132.4L827.9 150.9L828.4 166.9L828.8 176.7L827.0 177.7L825.7 179.2L822.5 178.2L820.7 178.7L817.1 177.2L814.0 178.2L810.4 176.1L806.8 175.6L803.2 175.6L798.2 176.7L793.2 178.7L788.7 180.3L789.2 177.7L787.8 176.1L785.6 177.7L786.9 180.3L782.9 182.8L781.5 185.9L777.9 186.4L776.1 186.4L773.9 184.4L773.4 181.3L773.4 178.2L771.2 174.6L771.2 172.5L769.4 170.5L767.6 169.4L765.3 166.4L764.9 162.2L764.9 157.6L765.3 155.0L767.1 149.4L768.0 146.8L768.0 144.2L741.4 144.2L719.4 144.2L682.9 144.2L685.1 143.2L686.5 140.6L683.8 138.5L685.1 135.5L682.9 132.4L685.6 130.8L688.7 129.8L686.9 126.2L685.6 123.6L686.9 122.1L687.8 124.1L690.5 125.2L688.3 120.5L688.3 117.4L691.4 116.4L693.2 114.9L689.6 113.8L688.3 112.8L691.0 112.3L693.7 112.3L693.7 107.6L695.5 106.1L699.5 105.6L695.5 104.5L696.4 100.4L698.2 99.9L700.0 102.5L699.5 100.4L703.6 96.8L703.2 94.8L707.7 93.2L707.7 90.6L704.5 89.6L707.2 90.1L709.9 87.6L711.3 84.5L709.0 83.4L709.5 86.5L704.1 86.0L704.5 82.4L709.0 81.4L712.2 81.4L713.1 79.8L712.6 77.3L714.9 77.8L717.1 74.2L715.8 75.2L712.2 74.7L712.2 72.1L712.2 69.5L706.8 68.0L707.2 65.4L710.8 67.5L708.1 63.9L710.4 62.8L711.7 61.3L710.4 59.2L709.5 61.3L706.3 62.8L705.0 59.7L706.3 58.2L709.0 56.7L704.1 54.1L704.5 51.0L708.6 46.9L707.7 42.2L705.9 45.3L703.6 46.4L702.7 43.3L704.1 41.2Z"/><path class="st" data-s="LA" d="M665.8 216.8L667.6 215.8L669.4 215.8L673.4 214.8L677.0 217.9L679.7 218.4L677.0 220.4L674.8 223.0L665.3 217.9Z"/><path class="st" data-s="LA" d="M574.8 40.2L604.5 40.2L618.5 40.2L643.7 40.7L668.9 40.7L704.1 41.2L702.7 43.3L702.3 45.3L705.9 45.3L705.9 42.2L709.0 45.3L705.0 49.4L704.1 54.1L709.0 55.1L706.3 58.2L705.0 59.7L705.4 61.8L709.5 61.3L710.4 59.2L711.7 61.3L710.4 62.8L708.1 63.9L711.3 66.4L708.1 65.4L706.8 68.0L710.4 70.6L713.1 71.1L712.2 74.7L715.8 75.2L716.7 73.6L714.9 77.8L712.6 77.3L713.1 79.8L712.2 81.4L709.9 80.3L704.5 82.4L704.1 86.0L709.5 86.5L709.0 83.4L711.3 84.5L709.9 87.6L708.1 88.6L705.0 88.6L707.7 90.6L707.7 93.2L704.5 93.7L703.6 96.8L699.5 100.4L700.0 102.5L698.2 99.9L696.4 100.4L695.5 104.5L700.0 105.1L695.5 106.1L693.7 107.6L693.7 112.3L691.0 112.3L689.2 111.2L689.6 113.8L692.8 113.3L691.4 116.4L688.3 117.4L688.3 120.5L690.5 123.6L689.2 125.2L686.9 122.1L685.6 123.6L686.9 126.2L688.7 127.7L685.6 130.8L682.9 130.3L684.7 133.4L683.3 137.5L686.5 140.6L685.1 143.2L682.9 144.2L719.4 144.2L741.4 144.2L768.0 144.2L768.0 146.8L767.1 149.4L765.3 155.0L764.9 157.6L763.5 161.7L765.3 166.4L767.1 167.9L769.4 170.5L771.2 172.5L771.2 174.6L773.4 178.2L773.4 181.3L773.9 184.4L776.1 186.4L777.9 186.4L775.2 188.0L771.2 190.0L768.9 192.6L764.9 193.6L763.1 195.7L764.0 198.3L767.1 198.8L768.9 197.8L768.5 200.3L769.8 201.9L772.1 202.9L774.3 202.4L776.1 196.7L779.7 193.6L782.9 193.1L785.1 193.1L782.4 195.2L784.7 197.8L785.1 200.3L787.8 199.8L789.2 196.2L791.9 197.3L791.4 199.3L789.2 199.3L787.4 201.4L791.0 201.4L785.6 203.4L787.4 206.5L789.2 205.5L788.3 208.1L784.2 206.5L782.4 209.1L782.4 213.2L779.7 209.6L777.9 212.7L779.7 215.3L777.9 213.7L775.7 213.7L771.6 214.3L774.8 215.8L771.2 215.3L773.0 217.3L771.2 218.4L773.0 221.5L776.1 222.0L777.9 224.0L778.8 227.1L780.2 226.1L784.7 227.1L787.4 228.7L791.0 231.2L792.8 229.2L796.8 234.3L796.8 236.9L800.5 236.4L801.8 237.9L797.7 238.5L800.0 240.0L798.6 242.6L796.8 241.5L795.0 245.7L791.9 246.2L791.9 243.6L785.6 249.3L782.9 250.8L784.2 247.7L785.6 246.7L786.5 244.6L787.8 241.0L789.2 237.9L787.4 236.9L786.9 239.5L784.2 241.0L782.4 239.5L780.2 236.4L774.3 234.3L773.0 232.3L764.0 230.7L761.7 231.2L754.1 237.9L746.8 242.6L746.4 240.5L744.1 240.0L745.0 237.9L742.8 233.3L741.4 232.3L738.7 235.4L739.2 231.8L737.4 229.2L735.1 232.3L732.9 231.8L730.6 231.2L731.5 235.4L729.3 234.9L727.5 238.5L725.7 240.5L721.2 241.5L720.3 245.2L717.6 244.1L716.2 240.5L713.5 237.9L711.7 238.5L707.7 237.4L705.9 235.9L701.8 235.4L699.1 234.3L696.4 231.8L698.6 231.2L699.5 228.7L702.7 231.2L704.1 233.3L706.3 234.3L705.9 229.7L701.8 226.6L700.0 224.6L698.6 226.6L696.4 227.1L695.5 225.6L697.3 222.5L695.5 220.9L691.0 223.0L689.2 219.4L686.9 214.8L682.4 214.8L683.8 209.1L678.4 208.6L676.6 209.1L673.0 210.6L672.1 208.1L673.4 206.5L674.3 204.5L671.6 203.9L669.4 205.0L667.6 206.0L664.0 207.6L661.7 209.1L657.7 208.6L659.0 211.2L662.2 211.7L660.4 212.7L661.7 215.8L664.9 214.8L664.9 216.8L659.5 217.3L655.4 219.4L652.3 219.9L638.7 216.8L633.3 215.3L623.9 210.6L620.3 209.1L613.5 207.6L608.1 207.6L605.9 208.1L600.5 207.6L591.0 208.6L588.3 209.1L583.8 211.7L581.1 207.6L579.7 206.0L582.9 202.9L584.7 199.8L586.0 196.2L588.3 194.7L590.1 192.1L590.5 188.5L589.2 184.9L589.6 180.8L586.9 178.7L588.3 175.1L590.1 173.0L589.6 168.9L588.7 166.4L591.0 164.8L591.4 161.7L593.2 160.7L593.7 157.6L595.0 154.5L596.8 153.5L595.9 150.4L598.2 147.8L595.9 145.2L598.2 143.2L598.2 140.6L597.7 134.9L594.6 135.5L593.7 130.3L590.5 128.2L591.9 125.7L591.0 123.6L590.1 121.5L587.8 120.0L588.3 117.4L586.0 116.9L584.7 115.9L583.8 113.3L584.2 110.2L585.6 108.2L584.2 105.6L582.0 102.0L580.6 98.4L577.9 96.8L576.1 93.7L574.8 40.2Z"/></g><text class="lbl" x="324" y="124" text-anchor="middle">TEXAS</text><text class="lbl" x="640" y="139" text-anchor="middle">LOUISIANA</text><text class="lbl" x="874" y="72" text-anchor="middle">ALABAMA</text><text class="lbl" x="658" y="330" text-anchor="middle">GULF OF MEXICO</text><g class="pin hq" transform="translate(458.1 267.3)"><circle class="h" r="16"/><circle class="d" r="7"/><text x="12" y="5" text-anchor="start">Port Lavaca · HQ</text></g><g class="pin" transform="translate(423.4 309.0)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="-12" y="5" text-anchor="end">Corpus Christi</text></g><g class="pin" transform="translate(441.4 257.0)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="-12" y="5" text-anchor="end">Victoria</text></g><g class="pin" transform="translate(515.3 249.8)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Freeport</text></g><g class="pin" transform="translate(526.1 211.2)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Deer Park</text></g><g class="pin" transform="translate(514.9 208.1)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="-12" y="5" text-anchor="end">Houston</text></g><g class="pin" transform="translate(611.7 183.9)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Lake Charles</text></g><g class="pin" transform="translate(705.0 172.5)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Baton Rouge</text></g><g class="pin" transform="translate(845.0 160.2)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Mobile</text></g><g transform="translate(800 318)"><rect x="-12" y="-28" width="174" height="113" fill="#fff" stroke="#d6d6d6"/><text class="lbl" x="0" y="-12">JAMAICA</text><path class="st" data-s="JM" d="M77.6 9.6L85.4 12.3L93.9 13.7L97.2 13.7L100.4 14.4L108.3 19.9L114.1 23.3L137.0 30.9L144.8 43.2L146.1 47.3L140.2 49.4L132.4 50.1L125.9 50.1L119.3 48.0L116.1 45.9L109.6 45.3L110.9 43.9L108.3 42.5L104.3 43.2L101.7 48.0L97.8 51.4L92.0 51.4L90.0 48.0L86.7 49.4L84.1 51.4L81.5 61.0L76.3 56.2L71.1 52.8L64.6 50.7L50.9 50.7L44.3 49.4L39.1 41.8L37.2 39.8L32.0 37.7L26.7 29.5L24.8 28.1L9.8 26.1L7.2 21.3L8.5 17.1L13.0 11.7L15.0 10.3L23.5 10.3L30.7 8.9L33.9 6.9L37.8 5.5L65.2 8.9L71.1 8.9L77.6 9.6Z"/><g class="pin" transform="translate(78.3 44.6)"><circle class="h" r="16"/><circle class="d" r="6"/><text x="12" y="5" text-anchor="start">Clarendon</text></g></g></svg></div>
+      <div class="rv">
+        <ul class="cities"></ul>
+        <p class="hqnote"><b>Corporate office</b>2392 State Highway 35 N, Port Lavaca, TX 77979</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blk cta" id="contact">
+  <div class="wrap">
+    <div class="rv">
+      <p class="eyebrow">Let’s discuss</p>
+      <h2>Creating value<br><span>through service.</span></h2>
+      <p class="lead">Planning facility support for your site? Connect with PMI to talk through your scope and service requirements.</p>
+      <a class="btn red" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>
+    </div>
+    <ul class="contact rv">
+      <li><small>Phone</small><a href="tel:+18887449699">888.744.9699</a></li>
+      <li><small>Email</small><a href="mailto:bids@palaciosmarineindustrial.com">bids@palaciosmarineindustrial.com</a></li>
+      <li><small>Corporate office</small><span>2392 State Highway 35 N, Port Lavaca, TX 77979</span></li>
+      <li><small>Web</small><a href="https://palaciosmarineindustrial.com" target="_blank" rel="noopener">palaciosmarineindustrial.com</a></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="l"><b>Turnkey Industrial Contractor</b><a href="https://palaciosmarineindustrial.com" target="_blank" rel="noopener">palaciosmarineindustrial.com</a></div>
+  <div class="r">Creating value through service</div>
+  <p class="demo">Concept demo by Ross Landry. Not the official PMI website.</p>
+</footer>
+
+
+
+<script>
+{
+const SVC = [
+  { t: 'Janitorial &amp; Site Services', items: ['Day Porter &amp; Recurring Janitorial Services', 'Office, In-Plant &amp; Common Area Cleaning', 'Restroom Cleaning &amp; Supply Replenishment', 'Carpet Extraction &amp; Complete Floor Care', 'Floor Scrubbing, Stripping, Recoating &amp; Waxing', 'Trash &amp; Recycling Services', 'Facility Setups, Furniture Moves &amp; Site Deliveries'],
+    shots: [['scrubber', 4, '66% 50%', 'Crew member running a walk-behind floor scrubber across a polished lobby floor'], ['cart', 0, '58% 60%', 'PMI janitorial cart stocked with supplies in a plant hallway']] },
+  { t: 'Security Services', items: ['Gate Guard &amp; Site Entry Services', 'Access Control, Badging &amp; Credential Management', 'Visitor Check-In &amp; Site Escort Services', 'Roving Patrols &amp; Perimeter Monitoring', 'Site Access Documentation &amp; Reporting'],
+    shots: [['guard', 1, '68% 50%', 'Security officer checking a badge at the guard house barrier'], ['truck', 3, '66% 60%', 'PMI security patrol truck along the plant perimeter fence']] },
+  { t: 'Routine Facility Maintenance', items: ['Preventive &amp; Routine Building Maintenance', 'Minor Repairs &amp; General Facility Upkeep', 'Facility Walkdowns &amp; Condition Reporting', 'Work Order &amp; Corrective-Action Coordination', 'Daily Operations &amp; General Site Support', 'Multi-Building Facility Support'],
+    shots: [['ladder', 1, '70% 40%', 'PMI technician on a step ladder servicing an exterior wall light'], ['hvac', 0, '66% 45%', 'PMI technician with a tablet inspecting a rooftop HVAC unit']] },
+  { t: 'Grounds &amp; Exterior Maintenance', items: ['Mowing, Landscaping &amp; Groundskeeping', 'Litter, Debris &amp; Exterior Site Cleanup', 'Sidewalk, Entryway &amp; Common Area Maintenance', 'Exterior Pressure Washing', 'Routine Grounds Inspections &amp; Upkeep'],
+    shots: [['mower', 0, '64% 60%', 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower'], ['wash', 3, '63% 50%', 'PMI crew member pressure washing a sidewalk at a plant entryway']] },
+];
+const NEXT = ['Security', 'Maintenance', 'Grounds', 'Delivery'];
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const stage = $('.stage'), stick = $('.stick'), heroEl = $('.hero'), photo = $('.photo'), ring = $('.ring'), heroCopy = $('.hero-copy'), cue = $('.cue'), rhint = $('.reveal-hint');
+const shotsEl = $('.shots'), col = $('.col'), steps = $('.steps'), bar = $('.progress'), nav = $('.nav');
+const touch = matchMedia('(pointer:coarse)').matches, reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+if (!touch) { $('.ct').textContent = 'Scroll to explore'; $('.rt').textContent = 'Move over the drawing to see the site'; }
+
+// one scene per photo: two per service line
+const SC = []; SVC.forEach((s, k) => s.shots.forEach(([f, i, pos, alt]) => SC.push({ k, i, f, pos, alt })));
+const ar = '<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>', al = '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+SC.forEach((c, n) => { const d = document.createElement('div'); d.className = 'shot'; d.innerHTML = `<img src="img/${c.f}.jpg" alt="${c.alt}" style="object-position:${c.pos}" ${n > 1 ? 'loading="lazy"' : ''} decoding="async"><p class="chip"><i>${c.i + 1}</i><span>${SVC[c.k].items[c.i]}</span></p>`; shotsEl.appendChild(d); c.el = d; c.chip = d.querySelector('.chip'); c.img = d.querySelector('img'); });
+SVC.forEach((s, k) => {
+  const d = document.createElement('article'); d.className = 'svc';
+  d.innerHTML = `<p class="num">0${k + 1}</p><p class="eyebrow"><b>0${k + 1}</b> / 04 · Facility services</p><h2>${s.t}</h2><ul>${s.items.map((x, i) => `<li data-i="${i}"><i>${i + 1}</i><span>${x}</span></li>`).join('')}</ul>`
+    + `<div class="svc-nav"><button class="pv" ${k ? '' : 'style="visibility:hidden"'}>${al}Back</button><span class="sw">Swipe up</span><button class="nx">Next: ${NEXT[k]}${ar}</button></div>`;
+  col.appendChild(d);
+  d.querySelector('.pv').onclick = () => goScene((k - 1) * 2); d.querySelector('.nx').onclick = () => k < 3 ? goScene((k + 1) * 2) : scrollTo({ top: $('#delivery').offsetTop, behavior: 'smooth' });
+  const b = document.createElement('button'); b.innerHTML = `<u></u><span>${s.t}</span>`; b.setAttribute('aria-label', s.t.replace('&amp;', '&')); b.onclick = () => goScene(k * 2); steps.appendChild(b);
+});
+const svcEls = $$('.svc'), stepEls = [...steps.children];
+
+// scroll timeline, in screen heights: 0 = hero, 1..8 = the eight photos
+let H, len;
+function measure() { H = stick.clientHeight; len = stage.offsetHeight - H; $('.snaps').innerHTML = Array.from({ length: 9 }, (_, n) => `<div class="snap" style="top:${(n * H).toFixed(0)}px"></div>`).join(''); }
+const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const unit = () => Math.max(0, -stage.getBoundingClientRect().top) / H;
+function goScene(n) { scrollTo({ top: stage.offsetTop + (n + 1) * H, behavior: 'smooth' }); }
+$$('[data-go]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); goScene(0); }));
+
+// touchable surface: the line drawing covers the photo; pointer or a slow drift wipes it away
+const pt = { x: 0, y: 0, tx: 0, ty: 0, r: 0, tr: 0 }; let lastMove = -1e9;
+function point(cx, cy) { const b = photo.getBoundingClientRect(); pt.tx = cx - b.left; pt.ty = cy - b.top; lastMove = performance.now(); pt.tr = touch ? 110 : 170; }
+heroEl.addEventListener('pointermove', e => point(e.clientX, e.clientY)); heroEl.addEventListener('pointerdown', e => point(e.clientX, e.clientY));
+stick.addEventListener('touchmove', e => { if (U < 0.3) { const t = e.touches[0]; point(t.clientX, t.clientY); } }, { passive: true });
+
+let U = 0, curK = -2, curS = -2;
+function frame(now) {
+  requestAnimationFrame(frame);
+  U = unit(); const live = stage.getBoundingClientRect().bottom > 0; nav.classList.toggle('solid', U > 0.5 || !live); if (!live) return;
+  const t = now / 1000;
+  // hero dissolves into the first photo: drift forward, blur, fade
+  const h = sm(0.35, 0.95, U); heroEl.style.opacity = 1 - h; heroEl.style.transform = `scale(${1 + h * 0.12})`; heroEl.style.filter = h > 0.01 && h < 0.99 ? `blur(${(h * 14).toFixed(1)}px)` : ''; heroEl.style.visibility = h >= 1 ? 'hidden' : '';
+  const hc = sm(0.05, 0.45, U); heroCopy.style.opacity = 1 - hc; heroCopy.style.transform = `translateY(${(-hc * 50).toFixed(1)}px)`; heroCopy.style.visibility = hc >= 1 ? 'hidden' : '';
+  cue.style.opacity = rhint.style.opacity = 1 - sm(0, 0.2, U); cue.style.pointerEvents = U > 0.15 ? 'none' : '';
+  stick.classList.toggle('touring', U > 0.75);
+  if (U < 1) {
+    if (now - lastMove > 2600 && !reduce) { const b = photo.getBoundingClientRect(); pt.tx = b.width * (0.66 + Math.sin(t * 0.45) * 0.14); pt.ty = b.height * (0.58 + Math.sin(t * 0.8) * 0.16); pt.tr = touch ? 90 : 150; }
+    pt.x += (pt.tx - pt.x) * 0.12; pt.y += (pt.ty - pt.y) * 0.12; pt.r += (pt.tr - pt.r) * 0.08;
+    photo.style.setProperty('--mx', pt.x.toFixed(1) + 'px'); photo.style.setProperty('--my', pt.y.toFixed(1) + 'px'); photo.style.setProperty('--mr', pt.r.toFixed(1) + 'px');
+    ring.style.transform = `translate(${pt.x.toFixed(1)}px, ${pt.y.toFixed(1)}px)`; ring.style.setProperty('--d', (pt.r * 1.25).toFixed(1) + 'px');
+  }
+  // photos: each arrives out of a soft blur and slight zoom as the one before it hands over, then pushes in slowly while you read
+  const f = U - 1; let act = 0;
+  SC.forEach((c, n) => {
+    const d = f - n, a = n === 0 ? sm(-0.65, -0.1, d) : sm(-0.45, -0.05, d);
+    if (a > 0.5) act = n;
+    const push = reduce ? 1 : 1.04 + Math.max(-0.4, Math.min(1, d)) * 0.05 + (1 - a) * 0.08;
+    c.el.style.opacity = a.toFixed(3); c.el.style.zIndex = n; c.el.style.visibility = a <= 0 || (n < SC.length - 1 && f - (n + 1) > 0.05) ? 'hidden' : '';
+    c.el.style.transform = `scale(${push.toFixed(4)})`; c.el.style.filter = a < 0.99 ? `blur(${((1 - a) * 16).toFixed(1)}px)` : '';
+  });
+  if (U < 0.75) act = -1;
+  const k = act < 0 ? -1 : SC[act].k;
+  if (k !== curK) { curK = k; svcEls.forEach((e, i) => e.classList.toggle('on', i === k)); stepEls.forEach((e, i) => e.classList.toggle('on', i === k)); }
+  if (act !== curS) { curS = act; SC.forEach((c, n) => c.chip.classList.toggle('on', n === act)); if (act >= 0) svcEls[k].querySelectorAll('li').forEach(li => li.classList.toggle('hl', +li.dataset.i === SC[act].i)); }
+  stepEls.forEach((b, i) => { b.querySelector('u').style.width = (Math.min(1, Math.max(0, (f + 0.5 - i * 2) / 2)) * 100).toFixed(1) + '%'; });
+  bar.style.width = (Math.min(1, U / (len / H)) * 100).toFixed(2) + '%';
+}
+measure(); addEventListener('resize', measure); requestAnimationFrame(frame);
+
+/* ---- delivery rack ---- */
+const DELIVERY = [
+  ['Dedicated On-Site Operational Leadership', '<circle cx="32" cy="18" r="8"/><path d="M16 50c0-9 7-16 16-16s16 7 16 16"/><path class="r" d="M26 8l6-4 6 4"/>'],
+  ['Site-Specific Mobilization, Training &amp; Readiness', '<path d="M10 22l22-10 22 10-22 10z"/><path d="M20 27v12c0 4 6 7 12 7s12-3 12-7V27"/><path class="r" d="M54 22v14"/>'],
+  ['Quality Inspections &amp; Corrective-Action Tracking', '<rect x="14" y="8" width="36" height="48" rx="2"/><path d="M24 8v-2h16v2"/><path class="r" d="M22 26l4 4 8-8M22 42l4 4 8-8"/><path d="M38 28h6M38 44h6"/>'],
+  ['Safety, Compliance &amp; Performance Reporting', '<path d="M32 6l20 7v14c0 14-9 23-20 27C21 50 12 41 12 27V13z"/><path class="r" d="M23 31l6 6 12-12"/>'],
+  ['Service Continuity &amp; Backup Coverage', '<path d="M50 30a18 18 0 1 1-6-13"/><path d="M45 8v10H35"/><path class="r" d="M32 20v12l8 5"/>'],
+];
+const cards = $('.cards');
+DELIVERY.forEach(([tt, ic], i) => { const c = document.createElement('div'); c.className = 'card'; c.tabIndex = 0; c.innerHTML = `<span class="n">0${i + 1}</span><svg viewBox="0 0 64 64">${ic}</svg><h3>${tt}</h3><div class="bar"></div>`; cards.appendChild(c); });
+const cardEls = [...cards.children];
+function act(c) { cards.classList.toggle('focus', !!c); cardEls.forEach(x => x.classList.toggle('act', x === c)); }
+if (!touch) {
+  cardEls.forEach(c => { c.addEventListener('pointerenter', () => act(c)); c.addEventListener('focus', () => act(c));
+    c.addEventListener('pointermove', e => { const b = c.getBoundingClientRect(); c.style.setProperty('--ry', (((e.clientX - b.left) / b.width - 0.5) * 14).toFixed(1) + 'deg'); c.style.setProperty('--rx', ((0.5 - (e.clientY - b.top) / b.height) * 10).toFixed(1) + 'deg'); }); });
+  cards.addEventListener('pointerleave', () => act(null));
+} else {
+  const pk = () => { const m = cards.scrollLeft + cards.clientWidth / 2; let best = null, d = 1e9; cardEls.forEach(c => { const x = Math.abs(c.offsetLeft + c.offsetWidth / 2 - m); if (x < d) { d = x; best = c; } }); act(best); };
+  cards.addEventListener('scroll', () => requestAnimationFrame(pk), { passive: true }); setTimeout(pk, 300);
+  cardEls.forEach(c => c.addEventListener('click', () => c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })));
+}
+/* ---- locations ---- */
+const CITIES = [['Port Lavaca', 'TX', 1], ['Corpus Christi', 'TX'], ['Victoria', 'TX'], ['Freeport', 'TX'], ['Deer Park', 'TX'], ['Houston', 'TX'], ['Lake Charles', 'LA'], ['Baton Rouge', 'LA'], ['Mobile', 'AL'], ['Clarendon', 'Jamaica']];
+const list = $('.cities'), mpins = $$('.map .pin'), sts = $$('.map .st');
+CITIES.forEach(([n, st, hq]) => { const li = document.createElement('li'); li.innerHTML = `<button>${n}<small>${hq ? 'HQ · ' : ''}${st}</small></button>`; list.appendChild(li); });
+const cityBtns = $$('.cities button');
+function city(i) { cityBtns.forEach((b, q) => b.classList.toggle('on', q === i)); mpins.forEach((p, q) => p.classList.toggle('on', q === i)); const st = i >= 0 ? CITIES[i][1] : ''; sts.forEach(s => s.classList.toggle('on', s.dataset.s === st || (st === 'Jamaica' && s.dataset.s === 'JM'))); }
+cityBtns.forEach((b, i) => { b.addEventListener('pointerenter', () => city(i)); b.addEventListener('click', () => city(i)); b.addEventListener('focus', () => city(i)); });
+mpins.forEach((p, i) => { p.addEventListener('pointerenter', () => city(i)); p.addEventListener('click', () => city(i)); });
+$('.loc-grid').addEventListener('pointerleave', () => city(-1));
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.15 });
+$$('.rv').forEach(el => io.observe(el));
+}
+</script>
+</body>
+</html>
