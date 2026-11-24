@@ -89,7 +89,7 @@ const TOPICS = [
   ] },
   { key: 'loc', eyebrow: 'Locations', title: 'Gulf Coast <span>and beyond</span>', items: ['Texas', 'Louisiana', 'Alabama', 'Clarendon, Jamaica'], states: ['TX', 'LA', 'AL', 'JM'], name: 'Locations', cta: 'Contact PMI', rot: 0, flat: true, hot: [
     { label: 'All locations', icon: IC.loc, sub: 'Gulf Coast and beyond', html: head('Locations', 'Gulf Coast and beyond') + diagram(IC.loc, ['Corporate Office: Port Lavaca, Texas', 'Texas: Corpus Christi · Victoria · Freeport · Deer Park · Houston', 'Louisiana: Lake Charles · Baton Rouge', 'Alabama: Mobile', 'International: Clarendon, Jamaica']) },
-    { label: 'Contact PMI', icon: IC.mail, sub: 'Your next project', html: head('Let’s discuss', 'Your next project') + `<p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>` + list(['888.744.9699', 'bids@palaciosmarineindustrial.com', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a>` },
+    { label: 'Contact PMI', icon: IC.mail, sub: 'Your next project', html: head('Let’s discuss', 'Your next project') + `<p>Planning an upcoming maintenance event, turnaround, capital project, or specialty service scope? Connect with PMI to discuss your project goals and execution requirements.</p>` + list(['888.744.9699', 'bids@palaciosmarineindustrial.com', '2392 State Highway 35 N, Port Lavaca, TX 77979']) + `<a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a quote</a>` },
   ] },
 ];
 
@@ -221,7 +221,7 @@ const locEl = document.createElement('div'); locEl.className = 'loc'; document.b
 function openLoc(k, ph) {
   if (locPin === ph) { closeLoc(); return; }
   const [region, img, extra] = LOCS[k];
-  locEl.innerHTML = `<button class="loc-x" aria-label="Close">×</button><figure><img src="../assets/${img}.jpg" alt=""><i></i></figure><div><p class="eyebrow">${region}</p><h4>${CITIES[k][0]}</h4><p class="t">${extra || 'PMI location'}</p><a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a bid</a></div>`;
+  locEl.innerHTML = `<button class="loc-x" aria-label="Close">×</button><figure><img src="../assets/${img}.jpg" alt=""><i></i></figure><div><p class="eyebrow">${region}</p><h4>${CITIES[k][0]}</h4><p class="t">${extra || 'PMI location'}</p><a class="cta" href="mailto:bids@palaciosmarineindustrial.com">Request a quote</a></div>`;
   wire(locEl.querySelector('.loc-x')).onclick = e => { e.stopPropagation(); closeLoc(); };
   pinEls.forEach(p => p.el.classList.toggle('sel', p === ph)); locPin = ph; placeLoc(); locEl.classList.add('open'); snd.open();
 }
