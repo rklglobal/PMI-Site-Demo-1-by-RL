@@ -372,16 +372,16 @@ footer .demo{flex-basis:100%;font-size:.72rem;color:#8a8a8a;margin-top:6px}
 <script>
 {
 const SVC = [
-  { t: 'Janitorial &amp; Site Services', items: ['Day Porter &amp; Recurring Janitorial Services', 'Office, In-Plant &amp; Common Area Cleaning', 'Restroom Cleaning &amp; Supply Replenishment', 'Carpet Extraction &amp; Complete Floor Care', 'Floor Scrubbing, Stripping, Recoating &amp; Waxing', 'Trash &amp; Recycling Services', 'Facility Setups, Furniture Moves &amp; Site Deliveries'],
-    shots: [['cart', [0, 1, 2, 5], [0.6, 0.6], 'PMI janitorial cart stocked with supplies in a plant hallway', 'Day porter &amp; janitorial'], ['scrubber', [3, 4], [0.66, 0.55], 'Crew member running a walk-behind floor scrubber across a polished lobby floor', 'Floor care']] },
   { t: 'Security Services', items: ['Gate Guard &amp; Site Entry Services', 'Access Control, Badging &amp; Credential Management', 'Visitor Check-In &amp; Site Escort Services', 'Roving Patrols &amp; Perimeter Monitoring', 'Site Access Documentation &amp; Reporting'],
     shots: [['guard', [0, 1, 2], [0.7, 0.55], 'Security officer checking a badge at the guard house barrier', 'Gate &amp; site entry'], ['truck', [3], [0.66, 0.62], 'PMI security patrol truck along the plant perimeter fence', 'Roving patrols']] },
   { t: 'Routine Facility Maintenance', items: ['Preventive &amp; Routine Building Maintenance', 'Minor Repairs &amp; General Facility Upkeep', 'Facility Walkdowns &amp; Condition Reporting', 'Work Order &amp; Corrective-Action Coordination', 'Daily Operations &amp; General Site Support', 'Multi-Building Facility Support'],
     shots: [['ladder', [0, 1], [0.7, 0.4], 'PMI technician on a step ladder servicing an exterior wall light', 'Building maintenance &amp; repairs'], ['walk', [2, 3], [0.66, 0.55], 'PMI technician with a tablet on a facility walkdown, checking a building entry', 'Walkdowns &amp; work orders']] },
   { t: 'Grounds &amp; Exterior Maintenance', items: ['Mowing, Landscaping &amp; Groundskeeping', 'Litter, Debris &amp; Exterior Site Cleanup', 'Sidewalk, Entryway &amp; Common Area Maintenance', 'Exterior Pressure Washing', 'Routine Grounds Inspections &amp; Upkeep'],
     shots: [['mower', [0], [0.64, 0.6], 'Groundskeeper cutting stripes into a lawn on a red zero-turn mower', 'Mowing &amp; groundskeeping'], ['wash', [2, 3], [0.63, 0.55], 'PMI crew member pressure washing a sidewalk at a plant entryway', 'Pressure washing &amp; entryways']] },
+  { t: 'Janitorial &amp; Site Services', items: ['Day Porter &amp; Recurring Janitorial Services', 'Office, In-Plant &amp; Common Area Cleaning', 'Restroom Cleaning &amp; Supply Replenishment', 'Carpet Extraction &amp; Complete Floor Care', 'Floor Scrubbing, Stripping, Recoating &amp; Waxing', 'Trash &amp; Recycling Services', 'Facility Setups, Furniture Moves &amp; Site Deliveries'],
+    shots: [['scrubber', [3, 4], [0.66, 0.55], 'Crew member running a walk-behind floor scrubber across a polished lobby floor', 'Floor care'], ['cart', [0, 1, 2, 5], [0.6, 0.6], 'PMI janitorial cart stocked with supplies in a plant hallway', 'Day porter &amp; janitorial']] },
 ];
-const NEXT = ['Security', 'Maintenance', 'Grounds', 'Delivery'];
+const NEXT = ['Maintenance', 'Grounds', 'Janitorial', 'Delivery'];
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const stick = $('.stick'), heroEl = $('.hero'), heroCopy = $('.hero-copy'), cue = $('.cue'), heroImg = $('.photo img');
 // where the guard house sits on screen, so the opening zoom flies straight into it at any screen size
@@ -478,21 +478,24 @@ ui(); requestAnimationFrame(frame);
 
 /* ---- service delivery: deck + timeline ---- */
 const DELIVERY = [
-  ['Dedicated On-Site Operational Leadership', 'walk', '<circle cx="32" cy="18" r="8"/><path d="M16 50c0-9 7-16 16-16s16 7 16 16"/><path class="r" d="M26 8l6-4 6 4"/>'],
-  ['Site-Specific Mobilization, Training &amp; Readiness', 'entrance', '<path d="M10 22l22-10 22 10-22 10z"/><path d="M20 27v12c0 4 6 7 12 7s12-3 12-7V27"/><path class="r" d="M54 22v14"/>'],
-  ['Quality Inspections &amp; Corrective-Action Tracking', 'ladder', '<rect x="14" y="8" width="36" height="48" rx="2"/><path d="M24 8v-2h16v2"/><path class="r" d="M22 26l4 4 8-8M22 42l4 4 8-8"/><path d="M38 28h6M38 44h6"/>'],
-  ['Safety, Compliance &amp; Performance Reporting', 'guard', '<path d="M32 6l20 7v14c0 14-9 23-20 27C21 50 12 41 12 27V13z"/><path class="r" d="M23 31l6 6 12-12"/>'],
-  ['Service Continuity &amp; Backup Coverage', 'truck', '<path d="M50 30a18 18 0 1 1-6-13"/><path d="M45 8v10H35"/><path class="r" d="M32 20v12l8 5"/>'],
+  ['Dedicated On-Site Operational Leadership', 'walk', 0.64, '<circle cx="32" cy="18" r="8"/><path d="M16 50c0-9 7-16 16-16s16 7 16 16"/><path class="r" d="M26 8l6-4 6 4"/>'],
+  ['Site-Specific Mobilization, Training &amp; Readiness', 'entrance', 0.74, '<path d="M10 22l22-10 22 10-22 10z"/><path d="M20 27v12c0 4 6 7 12 7s12-3 12-7V27"/><path class="r" d="M54 22v14"/>'],
+  ['Quality Inspections &amp; Corrective-Action Tracking', 'ladder', 0.69, '<rect x="14" y="8" width="36" height="48" rx="2"/><path d="M24 8v-2h16v2"/><path class="r" d="M22 26l4 4 8-8M22 42l4 4 8-8"/><path d="M38 28h6M38 44h6"/>'],
+  ['Safety, Compliance &amp; Performance Reporting', 'guard', 0.67, '<path d="M32 6l20 7v14c0 14-9 23-20 27C21 50 12 41 12 27V13z"/><path class="r" d="M23 31l6 6 12-12"/>'],
+  ['Service Continuity &amp; Backup Coverage', 'truck', 0.65, '<path d="M50 30a18 18 0 1 1-6-13"/><path d="M45 8v10H35"/><path class="r" d="M32 20v12l8 5"/>'],
 ];
 {
   const track = $('.dl-track'), tl = $('.tl'), fill = $('.tl-fill'), count = $('.dl-count b'), prev = $('.dl-prev'), next = $('.dl-next');
-  DELIVERY.forEach(([t, img, ic], i) => {
+  DELIVERY.forEach(([t, img, fx, ic], i) => {
     const c = document.createElement('article'); c.className = 'dl-card';
-    c.innerHTML = `<img src="img/${img}.jpg" alt="" loading="lazy" decoding="async"><svg viewBox="0 0 64 64">${ic}</svg><div class="in"><p class="n">0${i + 1}</p><h3>${t}</h3><div class="bar"></div></div>`;
+    c.dataset.fx = fx; c.innerHTML = `<img src="img/${img}.jpg" alt="" loading="lazy" decoding="async"><svg viewBox="0 0 64 64">${ic}</svg><div class="in"><p class="n">0${i + 1}</p><h3>${t}</h3><div class="bar"></div></div>`;
     track.appendChild(c);
     const li = document.createElement('li'), b = document.createElement('button'); b.innerHTML = `<i>${i + 1}</i><span>${t}</span>`; b.setAttribute('aria-label', t.replace('&amp;', '&')); b.onclick = () => show(i); li.appendChild(b); tl.appendChild(li);
   });
   const cards = [...track.children], dots = [...tl.querySelectorAll('button')];
+  // place each subject just right of the card's centre (clear of the title), whatever shape the card is
+  function frameCards() { cards.forEach(c => { const bw = c.clientWidth, bh = c.clientHeight, k = Math.max(bw / 2400, bh / 1340), iw = 2400 * k; if (iw - bw < 1) { c.firstChild.style.objectPosition = '50% 50%'; return; } const tx = bw > bh ? 0.68 : 0.6, x = (c.dataset.fx * iw - tx * bw) / (iw - bw); c.firstChild.style.objectPosition = `${(Math.min(1, Math.max(0, x)) * 100).toFixed(1)}% 50%`; }); }
+  frameCards(); addEventListener('resize', frameCards);
   let cur = -1;
   function mark(i) { if (i === cur) return; cur = i; cards.forEach((c, k) => c.classList.toggle('on', k === i)); dots.forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); });
     fill.style.width = (i / (cards.length - 1) * (dots[dots.length - 1].getBoundingClientRect().left - dots[0].getBoundingClientRect().left + 0) + 15) + 'px';
