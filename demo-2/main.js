@@ -347,6 +347,7 @@ function area() {
   const ppu = (h / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
   view.w = r - l; view.h = b - t; view.tx = (l + r) / 2 - w / 2; view.ty = (t + b) / 2 - h / 2;
   view.ts = mode === 'intro' ? Math.min(0.9, w / h * 1.1) : Math.min(1.15, view.w / (4.5 * ppu), view.h / (3.15 * ppu));
+  if (mode !== 'intro' && narrow && TOPICS[Math.max(0, cur)].flat) { view.ts = Math.min(view.w / (7.6 * ppu), view.h / (3.4 * ppu)); view.tx += 0.1 * view.ts * ppu; view.ty += 0.5 * view.ts * ppu; }      // phones: fit the whole map (west Texas, the panhandle, Florida, the Jamaica inset) inside the free area
   if (mode !== 'intro' && !narrow && TOPICS[Math.max(0, cur)].flat) { view.ts = Math.min(view.ts, view.w / (6.3 * ppu)); view.tx += 0.85 * view.ts * ppu; }      // wide screens: leave room for west Texas beside the text
 }
 window.addEventListener('resize', fit); fit();
