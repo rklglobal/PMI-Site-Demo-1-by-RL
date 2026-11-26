@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=50';
+import { buildAll, CITIES } from './models.js?v=51';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -282,7 +282,7 @@ let lastWheel = 0, ty = null;
 // ---- map zoom: tap a state to move in on its sites; any swipe / scroll / arrow zooms back out
 const FO0 = { x: 0, y: 0, k: 1 }, FOCUS = { TX: [-96.25, 28.8, 3.0, 'Texas'], LA: [-92.2, 30.3, 3.0, 'Louisiana'], AL: [-88.04, 30.69, 3.2, 'Alabama'], JM: [-77.3, 18.1, 2.3, 'Jamaica'] };
 let focus = null, fz = 1; const ray = new THREE.Raycaster(), inv = new THREE.Matrix4();
-function hintText() { document.body.classList.toggle('zoomed', !!focus); const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? 'Tap a pin for site details' : map ? 'Tap a state or a pin to zoom in' : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
+function hintText() { document.body.classList.toggle('zoomed', !!focus); const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? (touch ? 'Swipe ← → between states · tap a pin' : 'Drag ← → between states · click a pin') : map ? (touch ? 'Swipe ← → or tap a state' : 'Drag ← → or click a state') : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
 function stateBtns() { copy.querySelectorAll('.st').forEach(b => { b.classList.toggle('on', !!focus && focus.code === b.dataset.s); b.querySelector('b').textContent = focus && focus.code === b.dataset.s ? 'Show all' : ''; if (!b.wired) { b.wired = 1; wire(b).onclick = e => { e.stopPropagation(); setFocus(focus && focus.code === b.dataset.s ? null : b.dataset.s); }; } }); }
 function setFocus(code) {
   const f = code && FOCUS[code]; if (!f) { if (focus) { focus = null; snd.close(); closeLoc(); hintText(); stateBtns(); } return; }
@@ -291,8 +291,26 @@ function setFocus(code) {
   const kMax = f[2], fitK = pts.length > 1 ? Math.min(view.w * 0.72 / ((x1 - x0) * S), view.h * 0.62 / ((y1 - y0) * S * 0.95)) : kMax;
   focus = { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k: Math.max(1.3, Math.min(kMax, fitK)), code }; closeLoc(); snd.open(); hintText(); stateBtns();
 }
+// sideways drag on the map: the map follows the finger, then settles on the next stop (overview, then each state west to east)
+const STOPS = [null, 'TX', 'LA', 'AL', 'JM'], pan = { on: false, x0: 0, y0: 0, cx: 0, dx: 0, moved: false, horiz: false };
+const onMap = () => mode !== 'intro' && cur >= 0 && TOPICS[cur].flat && !blocked();
+const ppu = () => { const camZ = camera.position.z; return group.scale.x * (innerHeight / 2) / (Math.tan(camera.fov * Math.PI / 360) * camZ); };
+function panStart(x, y) { if (!onMap()) return; Object.assign(pan, { on: true, x0: x, y0: y, cx: cloud.position.x, dx: 0, moved: false, horiz: false }); }
+function panMove(x, y) { if (!pan.on) return; const dx = x - pan.x0, dy = y - pan.y0;
+  if (!pan.moved && Math.hypot(dx, dy) > 8) { pan.moved = true; pan.horiz = Math.abs(dx) > Math.abs(dy) * 1.2; }
+  if (!pan.horiz) return; const i = STOPS.indexOf(focus ? focus.code : null), edge = (dx > 0 && i === 0) || (dx < 0 && i === STOPS.length - 1);
+  pan.dx = edge ? dx * 0.3 : dx; }
+function panEnd() { if (!pan.on) return false; const was = pan.horiz && pan.moved; pan.on = false; if (!was) return false;
+  const i = STOPS.indexOf(focus ? focus.code : null), j = Math.abs(pan.dx) > Math.min(70, innerWidth * 0.15) ? Math.max(0, Math.min(STOPS.length - 1, i - Math.sign(pan.dx))) : i;
+  pan.dx = 0; if (j !== i) { setFocus(STOPS[j]); snd.tick && snd.tick(); } lock = performance.now() + 350; return true; }
+window.addEventListener('touchmove', e => { const t = e.touches[0]; if (!pan.on) return; panMove(t.clientX, t.clientY); }, { passive: true });
+canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') panStart(e.clientX, e.clientY); });
+window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && pan.on) panMove(e.clientX, e.clientY); });
+window.addEventListener('pointerup', e => { if (e.pointerType === 'mouse' && pan.on) { if (panEnd()) suppressClick = performance.now() + 250; } });
+let suppressClick = 0;
 const nav = d => { if (focus) { setFocus(null); lock = performance.now() + 500; return; } go(cur + d); };
 window.addEventListener('click', e => {
+  if (performance.now() < suppressClick) return;
   if (mode === 'intro' || cur < 0 || !TOPICS[cur].flat || blocked() || e.target !== canvas) return;
   ray.setFromCamera({ x: e.clientX / innerWidth * 2 - 1, y: -(e.clientY / innerHeight) * 2 + 1 }, camera);
   const o = ray.ray.origin.clone(), d = ray.ray.direction.clone(); inv.copy(cloud.matrixWorld).invert(); o.applyMatrix4(inv); d.transformDirection(inv); if (Math.abs(d.z) < 1e-6) return;
@@ -301,9 +319,10 @@ window.addEventListener('click', e => {
 });
 const blocked = () => cardEl.classList.contains('open') || allEl.classList.contains('open');
 window.addEventListener('wheel', e => { if (blocked()) return; const now = performance.now(), fresh = now - lastWheel > 200; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) nav(Math.sign(e.deltaY)); }, { passive: true });
-window.addEventListener('touchstart', e => { ty = e.touches[0].clientY; }, { passive: true });
-window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) nav(Math.sign(dy)); }, { passive: true });
-window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (blocked()) { closeCard(); closeAll(); } else leave(); return; } if (blocked()) return; if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) nav(1); if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) nav(-1); if (e.key === 'Enter') mode === 'detail' ? leave() : enter(); });
+window.addEventListener('touchstart', e => { ty = e.touches[0].clientY; if (e.target === canvas) panStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (panEnd()) { ty = null; suppressClick = performance.now() + 400; return; } if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) nav(Math.sign(dy)); }, { passive: true });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (blocked()) { closeCard(); closeAll(); } else leave(); return; } if (blocked()) return; if (onMap() && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { const i = STOPS.indexOf(focus ? focus.code : null), j = Math.max(0, Math.min(STOPS.length - 1, i + (e.key === 'ArrowRight' ? 1 : -1))); if (j !== i) setFocus(STOPS[j]); return; }
+  if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) nav(1); if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) nav(-1); if (e.key === 'Enter') mode === 'detail' ? leave() : enter(); });
 
 const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
 window.addEventListener('pointermove', e => { mouse.tx = e.clientX / innerWidth * 2 - 1; mouse.ty = -(e.clientY / innerHeight * 2 - 1); if (e.pointerType === 'mouse') U.uMouse.value.set(mouse.tx, mouse.ty); });
@@ -431,10 +450,11 @@ function frame() {
     sc = s0 + (1 / (TOUR ? TOUR.unit : 1) - s0) * te; fz = 1; cloud.position.set(TG.x * te, TG.y * te, TG.z * te);
   } else {
     tk = 0; te = 0; tiltNow = 0.36;
-    fz += (fo.k - fz) * 0.07; cloud.position.x += (-fo.x - cloud.position.x) * 0.07; cloud.position.y += (-fo.y - cloud.position.y) * 0.07; cloud.position.z += (0 - cloud.position.z) * 0.07;
+    const ke = 1 - Math.exp(-dt * (flat ? 3.6 : 4.2)); fz += (fo.k - fz) * ke; cloud.position.y += (-fo.y - cloud.position.y) * ke; cloud.position.z += (0 - cloud.position.z) * ke;
+    if (pan.on && pan.horiz) { const tx = pan.cx + pan.dx / Math.max(1e-6, ppu()); cloud.position.x += (tx - cloud.position.x) * Math.min(1, ke * 4); } else cloud.position.x += (-fo.x - cloud.position.x) * ke;
     sc = s0 * fz;
   }
-  U.uScale.value = te > 0 ? s0 + (0.8 - s0) * te : s0 * Math.pow(fz, 0.6);
+  U.uScale.value = te > 0 ? s0 + (0.8 - s0) * te : s0 * Math.pow(fz, flat ? 0.32 : 0.6);
   group.scale.setScalar(sc); U.uTour.value = te; WU.uWire.value = sm((te - 0.06) / 0.5); wireMesh.visible = WU.uWire.value > 0.003;
   const fov = 38 + ((narrow ? 88 : 62) - 38) * te; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; U.uPix.value = DU.uPix.value = innerHeight * DPR / (2 * Math.tan(fov * Math.PI / 360)); }
   if (flying) { /* heading handled above */ } else if (fly) ang += dt * 0.17;
