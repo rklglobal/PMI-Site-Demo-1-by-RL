@@ -113,7 +113,7 @@ function arc(m, c, dir = 1) {
 function column(m, x, z, r, y0, h, plats) {
   m.push([x, 0, z]);
   m.add(cyl(r, h, 36), { p: [0, y0 + h / 2 + 0.25, 0] }).add(dome(r), { p: [0, y0 + h + 0.25, 0], s: [1, 0.55, 1] }).add(cyl(r * 1.08, 0.25, 30, true, r), { p: [0, y0 + 0.125, 0] }).add(ring(r * 0.9, r * 1.35), { p: [0, y0 + 0.005, 0], r: UP, w: 2 });
-  for (let y = y0 + 0.5; y < y0 + h + 0.2; y += 0.28) m.add(tor(r + 0.004, 0.005), { p: [0, y, 0], r: UP, w: 1.5 });
+  for (let y = y0 + 0.5; y < y0 + h + 0.2; y += 0.56) m.add(tor(r + 0.004, 0.005), { p: [0, y, 0], r: UP, w: 1.5 });
   plats.forEach((y, i) => {
     const a0 = i * 1.9;
     m.add(new THREE.RingGeometry(r, r + 0.2, 30, 1, a0, PI * 1.5), { p: [0, y, 0], r: UP, w: 1.6, e: 2 });
@@ -562,13 +562,13 @@ function plant() {
       [a, b].forEach(c => { const q = []; for (let k = 0; k <= 8; k++) { const an = k / 8 * PI * 2; q.push(c.clone().addScaledVector(u, Math.cos(an) * r * 1.05).addScaledVector(v, Math.sin(an) * r * 1.05).toArray()); } m.poly(q, 0.8); }); }
     for (let i = 1; i < pts.length - 1; i++) m.add(ball(r * 1.08), { p: pts[i], w }); };
   // vertical shell outline: staves and hoops, so a column or stack reads crisply
-  const staves = (x, z, r, y0, y1, n = 12) => { for (let k = 0; k < n; k++) { const a = k / n * PI * 2; m.line([x + Math.cos(a) * r, y0, z + Math.sin(a) * r], [x + Math.cos(a) * r, y1, z + Math.sin(a) * r], 0.7); } for (let y = y0; y <= y1 + 0.01; y += 0.28) { const q = []; for (let k = 0; k <= 24; k++) { const a = k / 24 * PI * 2; q.push([x + Math.cos(a) * r * 1.01, y, z + Math.sin(a) * r * 1.01]); } m.poly(q, 0.7); } };
+  const staves = (x, z, r, y0, y1, n = 8) => { for (let k = 0; k < n; k++) { const a = k / n * PI * 2; m.line([x + Math.cos(a) * r, y0, z + Math.sin(a) * r], [x + Math.cos(a) * r, y1, z + Math.sin(a) * r], 0.7); } for (let y = y0; y <= y1 + 0.01; y += 0.84) { const q = []; for (let k = 0; k <= 24; k++) { const a = k / 24 * PI * 2; q.push([x + Math.cos(a) * r * 1.01, y, z + Math.sin(a) * r * 1.01]); } m.poly(q, 0.7); } };
   const col = (x, z, r, h, plats) => { column(m, x, z, r, g, h, plats); staves(x, z, r, g + 0.25, g + h + 0.25); for (let k = 0; k < 6; k++) { const q = [], a = k / 6 * PI; for (let j = 0; j <= 10; j++) { const b = j / 10 * PI; q.push([x + Math.cos(a) * Math.cos(b) * r, g + h + 0.25 + Math.sin(b) * r * 0.55, z + Math.sin(a) * Math.cos(b) * r]); } m.poly(q, 0.7); } };
   const valve = (p, rp, ry = 0) => { m.push(p, [0, ry, 0]); m.add(ball(rp * 1.7), { s: [1.15, 1, 0.9], w: 1.4 }).add(cyl(rp * 1.05, rp * 2.2, 12), { p: [0, rp * 2.2, 0], w: 1.4 }).add(cyl(rp * 1.6, rp * 0.4, 14, false), { p: [0, rp * 3.3, 0], e: 2 });
     rod(m, [0, rp * 3.3, 0], [0, rp * 7.4, 0], rp * 0.18, { w: 3 }); m.add(new THREE.TorusGeometry(rp * 2.3, rp * 0.2, 5, 20), { p: [0, rp * 7.2, 0], r: UP, w: 2.5 }); for (let k = 0; k < 2; k++) { const a = k * PI / 2; m.line([Math.cos(a) * rp * 2.3, rp * 7.2, Math.sin(a) * rp * 2.3], [-Math.cos(a) * rp * 2.3, rp * 7.2, -Math.sin(a) * rp * 2.3], 2); }
     [-1, 1].forEach(sg => m.add(cyl(rp * 1.75, rp * 0.5, 16, false), { p: [sg * rp * 2.2, 0, 0], r: AX, w: 1.3, e: 2 })); m.pop(); };
   // long straight pipe along local x: a light surface fill plus crisp lengthwise lines and hoops, so it reads as pipe rather than noise
-  const run = (L, r, y, z, axisZ) => { m.push([0, y, z], axisZ ? [0, PI / 2, 0] : [0, 0, 0]); m.add(new THREE.CylinderGeometry(r, r, L, 12, 1, true), { r: AX, w: 0.14 }); for (let k = 0; k < 6; k++) { const a = k / 6 * PI * 2 + 0.3; m.line([-L / 2, Math.cos(a) * r, Math.sin(a) * r], [L / 2, Math.cos(a) * r, Math.sin(a) * r], 0.7); }
+  const run = (L, r, y, z, axisZ) => { m.push([0, y, z], axisZ ? [0, PI / 2, 0] : [0, 0, 0]); m.add(new THREE.CylinderGeometry(r, r, L, 12, 1, true), { r: AX, w: 0.55 }); for (let k = 0; k < 4; k++) { const a = k / 4 * PI * 2 + 0.6; m.line([-L / 2, Math.cos(a) * r, Math.sin(a) * r], [L / 2, Math.cos(a) * r, Math.sin(a) * r], 0.7); }
     for (let x = -L / 2 + 0.4; x < L / 2; x += 0.75) { const c = []; for (let k = 0; k <= 10; k++) { const a = k / 10 * PI * 2; c.push([x, Math.cos(a) * r * 1.03, Math.sin(a) * r * 1.03]); } m.poly(c, r > 0.07 ? 1.2 : 0.7); } m.pop(); };
   // pipe rack along local x, centred on z = 0
   const rack = (L, hw, ys, top) => {
