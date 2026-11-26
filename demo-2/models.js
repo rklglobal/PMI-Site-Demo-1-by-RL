@@ -671,6 +671,28 @@ function plant() {
   // flare, far corner
   pipe([[-17.6, g, -3.6], [-17.6, g + 8.2, -3.6]], 0.06, 1.5); m.add(cyl(0.1, 0.34, 12), { p: [-17.6, g + 8.35, -3.6], w: 1.5 }); [0.4, 2.5, 4.6].forEach(a => m.line([-17.6, g + 5.5, -3.6], [-17.6 + Math.cos(a) * 2.6, g, -3.6 + Math.sin(a) * 2.6], 0.7));
   m.add(sph(0.22), { p: [-17.55, g + 8.85, -3.6], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.11), { p: [-17.5, g + 9.3, -3.6], s: [1, 2.4, 1], w: 5, t: 1 });
+  // ================= infill: units in the open lots the walk passes at its corners, so turning a corner never looks onto bare paving =================
+  // NE corner, past the east end of the main rack: compressor shelter, a tall column on its structure, a knockout drum and pumps
+  at(16.6, -2.0, PI / 2, shelter); col(17.2, -5.2, 0.42, 5.2, [1.8, 3.4]); at(17.2, -5.2, 0, () => structure(0.8, 3.4, [1.8, 3.4]));
+  at(14.9, -5.0, 0, () => hvessel(2.0, 0.38, 0.8)); [14.6, 15.6].forEach(x => at(x, -3.3, PI, () => pump(1.2, 0.5, 1.6)));
+  pipe([[17.2, 1.3, -4.4], [17.2, 1.3, -3.4], [15.6, 1.3, -3.4]], 0.05, 1); pipe([[14.2, 0.35, -5.0], [12.4, 0.35, -5.0], [12.4, 0.35, -2.9]], 0.06, 0.9);
+  // east road, outer side: an exchanger bank and a second column between the shelter and the heater
+  at(17.6, 0.6, 0, exch); col(17.6, 4.9, 0.3, 3.6, [1.5, 2.6]);
+  // SE corner, outside the turn onto the tank farm road: process structure with a horizontal drum, a reflux column, pumps and an exchanger
+  at(16.2, 12.4, 0, () => { structure(1.0, 3.2, [1.6, 3.2]); m.push([0, 1.6, 0]); hvessel(2.2, 0.42, 0.62); m.pop(); }); col(14.6, 14.4, 0.4, 4.6, [1.6, 3.0]);
+  [13.6, 14.6].forEach(x => at(x, 11.6, 0, () => pump(1.2, 0.55, 1.6))); at(17.4, 15.6, PI / 2, exch);
+  pipe([[14.6, 4.9, 14.4], [14.6, 5.2, 14.4], [15.6, 5.2, 14.4], [15.6, 2.0, 14.4], [15.6, 2.0, 12.4]], 0.05, 1);
+  // SW corner, outside the turn onto the west road: pump house, vertical vessels on a structure, a horizontal drum
+  at(-16.4, 13.0, PI / 2, shelter); at(-16.6, 16.8, 0, () => structure(0.9, 3.0, [1.5, 3.0])); col(-16.6, 16.8, 0.36, 3.6, [1.5]); col(-15.2, 18.6, 0.28, 2.8, [1.4]);
+  at(-12.6, 19.6, PI / 2, () => hvessel(1.8, 0.36, 0.78)); pipe([[-15.2, 0.35, 18.0], [-15.2, 0.35, 15.2], [-14.9, 0.35, 13.0]], 0.06, 0.9);
+  // west road, outer side between the cooling towers and the pump house: an exchanger bank
+  at(-16.3, 10.4, PI / 2, exch);
+  // NW corner, by the flare: flare knockout drum and seal drum with their pumps, and the flare header coming in
+  at(-16.2, 0.6, 0, () => hvessel(2.6, 0.5, 0.95)); col(-15.0, -1.8, 0.34, 2.6, [1.3]); [-14.9, -15.9].forEach(x => at(x, 2.1, 0, () => pump(1.1, 0.5, 1.5)));
+  pipe([[-17.6, 0.6, -3.0], [-17.6, 0.6, -0.4], [-16.2, 0.6, -0.4]], 0.09, 1); pipe([[-14.4, 2.35, 0.6], [-14.4, 2.35, -0.9]], 0.07, 1);
+  // inside the west road: the open pad behind the exchangers gets a small vessel structure and a drum
+  at(-9.4, 5.7, 0, () => structure(0.85, 2.6, [1.4, 2.6])); col(-9.4, 5.7, 0.32, 3.4, [1.4]); at(-7.2, 6.0, PI / 2, () => hvessel(1.6, 0.32, 0.72));
+  pipe([[-9.4, 1.4, 4.9], [-9.4, 1.4, 4.2], [-9.4, 2.14, 4.2], [-9.4, 2.14, 3.9]], 0.045, 1);
   // ---- the rest of the refinery, beyond the flown loop
   at(0, -9.5, 0, () => bgRack(33, 0.9)); [[-14, 5.2, 0.4], [-10.5, 7.4, 0.5], [-7, 4.0, 0.32], [-3, 6.2, 0.42], [1, 3.6, 0.3], [5, 8.0, 0.5], [9, 5.0, 0.36], [13, 6.6, 0.44]].forEach(([x, h, r]) => bgCol(x, -12.2, r, h)); [-12, -6, 0, 6, 12].forEach(x => at(x, -7.3, 0, () => hvessel(2.2, 0.4, 0.85))); [-8.8, 3.2, 11].forEach(x => bgHeater(x, -15));
   at(0, -18.5, 0, () => bgRack(30, 0.9)); [[-12, 8.6, 0.55], [-8, 6.0, 0.4], [-4, 9.4, 0.5], [0, 5.4, 0.36], [4, 7.6, 0.46], [8, 10.2, 0.56], [12, 6.4, 0.4]].forEach(([x, h, r]) => bgCol(x, -21, r, h));
