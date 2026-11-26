@@ -110,6 +110,19 @@ function arc(m, c, dir = 1) {
   for (let k = 0; k < 8; k++) { const a = k / 8 * PI * 2 + 0.3, l = k % 2 ? 0.022 : 0.04; m.line(c, [c[0] + Math.cos(a) * l, c[1] + Math.sin(a) * l, c[2]], 0.35, 3); }     // small arc-flash star
   for (let k = 0; k < 5; k++) { const a = R() * PI * 2, v = 0.05 + R() * 0.07; m.line([c[0] + Math.cos(a) * v * 0.5, c[1] - 0.01, c[2] - dir * 0.02], [c[0] + Math.cos(a) * v, c[1] - 0.03 - R() * 0.05, c[2] - dir * (0.03 + R() * 0.04)], 0.12, 3); }   // a few short sparks
 }
+// flare flame: a glowing red envelope, an orange / yellow body with wind-bent tongues, a hot core, and an orange wire outline so it still reads at distance
+function flame(m, c, k) {
+  const [x, y, z] = c, lean = 0.35;
+  m.add(sph(0.95 * k), { p: [x + 0.25 * k, y + 1.5 * k, z], s: [1, 2.1, 1], w: 2.4, t: 1 });
+  m.add(sph(0.62 * k), { p: [x + 0.1 * k, y + 1.0 * k, z], s: [1, 1.7, 1], w: 5, t: 3 });
+  m.add(sph(0.3 * k), { p: [x, y + 0.45 * k, z], w: 8, t: 3 });
+  [[-0.32, 2.3, 0.1], [0.2, 2.75, -0.15], [0.62, 2.2, 0.2], [0.35, 3.3, 0.0]].forEach(([dx, dy, dz], i) => m.add(sph((i === 3 ? 0.2 : 0.3) * k), { p: [x + (dx + lean * dy * 0.3) * k, y + dy * k, z + dz * k], s: [1, 2.3, 1], w: 6, t: 3 }));
+  for (let pl = 0; pl < 5; pl++) { const a = pl * PI / 5, ca = Math.cos(a), sa = Math.sin(a), pts = [];
+    for (let j = 0; j <= 24; j++) { const u = j / 24, th = u * PI * 2, h = 3.6 * k * (0.5 - 0.5 * Math.cos(th)), rr = 0.78 * k * Math.sin(th) * Math.pow(1 - h / (3.6 * k), 0.6) , xo = lean * h * 0.3;
+      pts.push([x + xo + ca * rr, y + h, z + sa * rr]); }
+    m.poly(pts, 1.3, false, 3); }
+  for (let r = 0; r < 2; r++) { const pts = [], h = (0.7 + r * 0.9) * k, rr = 0.78 * k * Math.sin(Math.acos(1 - 2 * h / (3.6 * k))) * Math.pow(1 - h / (3.6 * k), 0.6); for (let j = 0; j <= 20; j++) { const a = j / 20 * PI * 2; pts.push([x + lean * h * 0.3 + Math.cos(a) * rr, y + h, z + Math.sin(a) * rr]); } m.poly(pts, 1.1, false, 3); }
+}
 function column(m, x, z, r, y0, h, plats) {
   m.push([x, 0, z]);
   m.add(cyl(r, h, 36), { p: [0, y0 + h / 2 + 0.25, 0] }).add(dome(r), { p: [0, y0 + h + 0.25, 0], s: [1, 0.55, 1] }).add(cyl(r * 1.08, 0.25, 30, true, r), { p: [0, y0 + 0.125, 0] }).add(ring(r * 0.9, r * 1.35), { p: [0, y0 + 0.005, 0], r: UP, w: 2 });
@@ -144,7 +157,7 @@ function refinery() {
   // flare
   rod(m, [1.05, g, -0.75], [1.05, 1.7, -0.75], 0.03, { w: 1.6 }); m.add(cyl(0.05, 0.16, 12), { p: [1.05, 1.78, -0.75] });
   [0, 2.1, 4.2].forEach(a => m.line([1.05, 0.9, -0.75], [1.05 + Math.cos(a) * 0.9, g, -0.75 + Math.sin(a) * 0.9], 0.6));
-  m.add(sph(0.09), { p: [1.07, 1.98, -0.75], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.045), { p: [1.09, 2.14, -0.75], s: [1, 2.4, 1], w: 5, t: 1 });
+  flame(m, [1.05, 1.86, -0.75], 0.075);
   // pipe rack
   for (let x = -1.9; x <= 1.91; x += 0.63) { [0.58, 0.92].forEach(z => m.add(box(0.035, 0.75, 0.035), { p: [x, g + 0.375, z], e: 1.5, w: 0.5 })); [g + 0.42, g + 0.75].forEach(y => m.add(box(0.03, 0.035, 0.42), { p: [x, y, 0.75], e: 1.5, w: 0.5 })); }
   [[0.6, 0.03], [0.68, 0.045], [0.78, 0.03], [0.88, 0.04]].forEach(([z, r]) => m.add(cyl(r, 3.8, 12), { p: [0, g + 0.44 + r, z], r: AX }));
@@ -670,7 +683,7 @@ function plant() {
   at(-11.9, 7.7, PI / 2, exch); at(-11.9, 5.4, PI / 2, () => hvessel(1.7, 0.36, 0.78));
   // flare, far corner
   pipe([[-17.6, g, -3.6], [-17.6, g + 8.2, -3.6]], 0.06, 1.5); m.add(cyl(0.1, 0.34, 12), { p: [-17.6, g + 8.35, -3.6], w: 1.5 }); [0.4, 2.5, 4.6].forEach(a => m.line([-17.6, g + 5.5, -3.6], [-17.6 + Math.cos(a) * 2.6, g, -3.6 + Math.sin(a) * 2.6], 0.7));
-  m.add(sph(0.22), { p: [-17.55, g + 8.85, -3.6], s: [1, 2.0, 1], w: 3, t: 1 }).add(sph(0.11), { p: [-17.5, g + 9.3, -3.6], s: [1, 2.4, 1], w: 5, t: 1 });
+  flame(m, [-17.6, g + 8.42, -3.6], 0.27);
   // ================= infill: units in the open lots the walk passes at its corners, so turning a corner never looks onto bare paving =================
   // NE corner, past the east end of the main rack: compressor shelter, a tall column on its structure, a knockout drum and pumps
   at(16.6, -2.0, PI / 2, shelter); col(17.2, -5.2, 0.42, 5.2, [1.8, 3.4]); at(17.2, -5.2, 0, () => structure(0.8, 3.4, [1.8, 3.4]));

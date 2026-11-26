@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=53';
+import { buildAll, CITIES } from './models.js?v=54';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -377,7 +377,7 @@ function dock(h, now) {
 const WU = { uInk: U.uInk, uWire: { value: 0 } };
 const wireMesh = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms: WU, transparent: true, depthWrite: false,
   vertexShader: `uniform float uWire; attribute float aTint; varying float vA; varying float vT; void main(){ vT = aTint; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; float d = clamp((-mv.z - 2.0) / 10.0, 0.0, 1.0); vA = uWire * 0.2 * smoothstep(0.12, 0.7, -mv.z) * mix(1.0, 0.3, clamp((-mv.z - 14.0) / 32.0, 0.0, 1.0)); }`,      // far units fade off into the distance
-  fragmentShader: `uniform vec3 uInk; varying float vA; varying float vT; void main(){ float r = step(0.5, vT) * step(vT, 1.5); gl_FragColor = vec4(mix(uInk, vec3(0.89, 0.12, 0.14), r), min(1.0, vA * (1.0 + r))); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
+  fragmentShader: `uniform vec3 uInk; varying float vA; varying float vT; void main(){ float r = step(0.5, vT) * step(vT, 1.5), f = step(2.5, vT); gl_FragColor = vec4(mix(mix(uInk, vec3(0.89, 0.12, 0.14), r), vec3(1.0, 0.5, 0.05), f), min(1.0, vA * (1.0 + r + f * 3.0))); }` })); wireMesh.frustumCulled = false; wireMesh.visible = false; cloud.add(wireMesh);
 let TOUR = null; setTimeout(() => { if (SH[0].tourMake) { TOUR = SH[0].tourMake(); wireMesh.geometry.setAttribute('position', new THREE.BufferAttribute(TOUR.wire, 3)); wireMesh.geometry.setAttribute('aTint', new THREE.BufferAttribute(TOUR.wireTint, 1)); } }, 3400);
 const WN = 16, pslab = new Int16Array(N), TC = new THREE.Vector3(), TD = new THREE.Vector3(), TG = new THREE.Vector3();
 let tu = 0, tourAt = 0, tk = 0, lastCur = -9, phase = 0, cursor = 0, fly0 = 0, drawn = false, tiltNow = 0.36;
