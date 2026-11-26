@@ -241,13 +241,13 @@ function softCraft() {
   // insulator fitting cladding, painter spraying the lower shell
   person(m, [-0.3, g + 2.235, h - 0.16], PI * 0.9, 0.3);
   m.add(new THREE.CylinderGeometry(r + 0.075, r + 0.075, 0.42, 20, 1, true, -0.9, 1.5), { p: [0, 0.75, 0], w: 3, e: 3 });
-  // abrasive blaster on the first deck, front face: red hood and cape (so he reads against the dark shell), nozzle aimed down at the shell; blasted band shows red
+  // abrasive blaster on the first deck, front face: plain (untinted) hood and cape, no red on the worker, nozzle aimed down at the shell; blasted band shows red
   const bx = 0.22, by = g + 1.135, bz = h - 0.12;
   m.push([bx, by, bz], [0, PI, 0], 0.3);
   [-0.1, 0.1].forEach(x => m.add(cyl(0.065, 0.8, 10), { p: [x, 0.4, 0], w: 5 }));
   m.add(new THREE.CapsuleGeometry(0.17, 0.36, 4, 12), { p: [0, 1.12, 0], s: [1, 1, 0.7], w: 5 });
   rod(m, [-0.24, 1.3, 0], [-0.06, 1.05, 0.36], 0.05, { w: 5 }); rod(m, [0.24, 1.3, 0], [0.06, 1.12, 0.3], 0.05, { w: 5 });
-  m.add(new THREE.CylinderGeometry(0.13, 0.25, 0.34, 16, 1, true), { p: [0, 1.42, 0], w: 6, t: 1 }).add(dome(0.14), { p: [0, 1.56, 0], w: 6, t: 1 }).add(box(0.2, 0.1, 0.04), { p: [0, 1.57, 0.12], e: 3, w: 1 });   // blast hood with cape, visor
+  m.add(new THREE.CylinderGeometry(0.13, 0.25, 0.34, 16, 1, true), { p: [0, 1.42, 0], w: 6 }).add(dome(0.14), { p: [0, 1.56, 0], w: 6 }).add(box(0.2, 0.1, 0.04), { p: [0, 1.57, 0.12], e: 3, w: 1 });   // blast hood with cape, visor
   m.add(new THREE.CylinderGeometry(0.045, 0.03, 0.42, 12, 1, false), { p: [0, 0.96, 0.52], r: [PI / 2 + 0.55, 0, 0], w: 7, e: 3 });     // venturi nozzle
   m.pop();
   const tip = [bx, by + 0.25, bz - 0.165], hit = [bx, by + 0.12, r + 0.07];
