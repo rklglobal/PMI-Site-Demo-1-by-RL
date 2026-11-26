@@ -503,7 +503,7 @@ function experience() {
 
 /* ---------- Careers: the crew in front of the job trailer ---------- */
 function careers() {
-  // a foreman welcomes a new hire with a handshake (new hire in red, hard hat in his other hand), crew lined up behind, JOIN THE TEAM banner
+  // the PMI hiring rep (red PMI triangle on his chest, hard hat in his other hand to give the new hire) shakes hands with the recruit, crew lined up behind, JOIN THE TEAM banner
   const m = new Model(), g = -1.5, bz = -1.25, by = g + 2.3, BW = 3.5, BH = 0.78;
   [-1.6, 1.6].forEach(x => { rod(m, [x, g, bz], [x, by + BH / 2, bz], 0.04, { w: 2 }); m.add(box(0.22, 0.04, 0.22), { p: [x, g + 0.02, bz], e: 2 }); });
   m.add(box(BW, BH, 0.04), { p: [0, by, bz], e: 4, w: 0.1 });
@@ -512,8 +512,8 @@ function careers() {
   const legs = { hipL: [-0.1, 0.92, 0], hipR: [0.1, 0.92, 0], kneeL: [-0.11, 0.48, 0.02], footL: [-0.13, 0.06, 0], kneeR: [0.11, 0.48, 0.02], footR: [0.13, 0.06, 0], chest: [0, 1.2, 0], shL: [-0.2, 1.42, 0], shR: [0.2, 1.42, 0], head: [0, 1.62, 0.02], muffs: false };
   const down = { elL: [-0.23, 1.14, 0.02], hdL: [-0.18, 0.92, 0.06] }, shake = { elR: [0.17, 1.2, 0.2], hdR: [0.02, 1.06, 0.43] };
   worker(m, [-0.43, g, 0.55], PI / 2, { ...legs, ...down, ...shake, suit: 0 });                                   // foreman
-  worker(m, [0.43, g, 0.55], -PI / 2, { ...legs, ...shake, elL: [-0.25, 1.15, 0.06], hdL: [-0.24, 0.95, 0.2], suit: 1, hat: 'none', glasses: false });   // new hire
-  m.push([0.43, g, 0.55], [0, -PI / 2, 0]); m.add(dome(0.125), { p: [-0.26, 0.86, 0.22], s: [1, 0.9, 1.12], w: 3 }).add(ring(0.118, 0.15), { p: [-0.26, 0.86, 0.24], r: UP, s: [1, 1.28, 1], w: 3 }); m.pop();   // his new hard hat
+  worker(m, [0.43, g, 0.55], -PI / 2, { ...legs, ...shake, elL: [-0.25, 1.15, 0.06], hdL: [-0.24, 0.95, 0.2], suit: 0, hat: 'none', glasses: false });   // PMI hiring rep, in normal clothes
+  m.push([0.43, g, 0.55], [0, -PI / 2, 0]); m.add(new THREE.CircleGeometry(0.075, 3), { p: [-0.075, 1.31, 0.118], r: [0, 0, PI / 2], w: 9, t: 1 }); m.poly([[-0.075, 1.385, 0.12], [-0.14, 1.273, 0.12], [-0.01, 1.273, 0.12]], 4, true, 1); m.add(dome(0.125), { p: [-0.26, 0.86, 0.22], s: [1, 0.9, 1.12], w: 3 }).add(ring(0.118, 0.15), { p: [-0.26, 0.86, 0.24], r: UP, s: [1, 1.28, 1], w: 3 }); m.pop();   // the hard hat he's handing over
   [[-1.55, -0.3, 0.3], [-0.85, -0.5, 0.12], [0.85, -0.5, -0.12], [1.55, -0.3, -0.3]].forEach(([x, z, ry]) => worker(m, [x, g, z], ry, { ...legs, ...down, elR: [0.23, 1.14, 0.02], hdR: [0.18, 0.92, 0.06], suit: 0 }));
   return { m, hot: { enter: [2.2, 0.6, 0], a: [0, 0.5, 0.7], b: [-1.2, 0.9, -1.0], c: [1.9, -0.6, 0.9] } };
 }
