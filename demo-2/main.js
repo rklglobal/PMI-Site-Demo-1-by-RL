@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Snd } from './audio.js?v=26';
-import { buildAll, CITIES } from './models.js?v=54';
+import { buildAll, CITIES } from './models.js?v=55';
 
 /* =========================================================
    Content (copy from the PMI 2026 brochure)
@@ -282,7 +282,7 @@ let lastWheel = 0, ty = null;
 // ---- map zoom: tap a state to move in on its sites; any swipe / scroll / arrow zooms back out
 const FO0 = { x: 0, y: 0, k: 1 }, FOCUS = { TX: [-96.25, 28.8, 3.0, 'Texas'], LA: [-92.2, 30.3, 3.0, 'Louisiana'], AL: [-88.04, 30.69, 3.2, 'Alabama'], JM: [-77.3, 18.1, 2.3, 'Jamaica'] };
 let focus = null, fz = 1; const ray = new THREE.Raycaster(), inv = new THREE.Matrix4();
-function hintText() { document.body.classList.toggle('zoomed', !!focus); const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = focus ? (touch ? 'Swipe ← → between states · tap a pin' : 'Drag ← → between states · click a pin') : map ? (touch ? 'Swipe ← → or tap a state' : 'Drag ← → or click a state') : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
+function hintText() { document.body.classList.toggle('zoomed', !!focus); if (window.__mz) { const k = focus ? focus.k : 1; window.__mz.querySelector('[data-z=in]').classList.toggle('off', k >= KMAX - 0.01); window.__mz.querySelector('[data-z=out]').classList.toggle('off', !focus); window.__mz.querySelector('[data-z=home]').classList.toggle('off', !focus); } const sp = hint.querySelector('span'), map = mode !== 'intro' && cur >= 0 && TOPICS[cur].flat; sp.textContent = free() ? (touch ? 'Drag to explore · pinch to zoom · double tap to reset' : 'Drag to explore · scroll to zoom · double click to reset') : focus ? (touch ? 'Swipe ← → between states · pinch to zoom' : 'Drag ← → between states · ctrl + scroll to zoom') : map ? (touch ? 'Pinch to zoom · swipe ← → or tap a state' : 'Drag ← → or click a state · ctrl + scroll to zoom') : (touch ? 'Swipe up to explore' : 'Scroll to explore'); }
 function stateBtns() { copy.querySelectorAll('.st').forEach(b => { b.classList.toggle('on', !!focus && focus.code === b.dataset.s); b.querySelector('b').textContent = focus && focus.code === b.dataset.s ? 'Show all' : ''; if (!b.wired) { b.wired = 1; wire(b).onclick = e => { e.stopPropagation(); setFocus(focus && focus.code === b.dataset.s ? null : b.dataset.s); }; } }); }
 function setFocus(code) {
   const f = code && FOCUS[code]; if (!f) { if (focus) { focus = null; snd.close(); closeLoc(); hintText(); stateBtns(); } return; }
@@ -303,10 +303,37 @@ function panMove(x, y) { if (!pan.on) return; const dx = x - pan.x0, dy = y - pa
 function panEnd() { if (!pan.on) return false; const was = pan.horiz && pan.moved; pan.on = false; if (!was) return false;
   const i = STOPS.indexOf(focus ? focus.code : null), j = Math.abs(pan.dx) > Math.min(70, innerWidth * 0.15) ? Math.max(0, Math.min(STOPS.length - 1, i - Math.sign(pan.dx))) : i;
   pan.dx = 0; if (j !== i) { setFocus(STOPS[j]); snd.tick && snd.tick(); } lock = performance.now() + 350; return true; }
-window.addEventListener('touchmove', e => { const t = e.touches[0]; if (!pan.on) return; panMove(t.clientX, t.clientY); }, { passive: true });
-canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') panStart(e.clientX, e.clientY); });
-window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && pan.on) panMove(e.clientX, e.clientY); });
-window.addEventListener('pointerup', e => { if (e.pointerType === 'mouse' && pan.on) { if (panEnd()) suppressClick = performance.now() + 250; } });
+// free exploring: pinch (or ctrl / trackpad wheel, or the + − buttons) zooms about the fingers, and once zoomed in one finger drags the map
+// anywhere. The zoom is kept as a 'free' focus, so the normal easing, pins and state stops all keep working; double tap or ⟲ resets.
+const KMIN = 1, KMAX = 4.5, pinch = { on: false }, free = () => !!(focus && focus.free);
+const mapC = () => [innerWidth / 2 + view.x, innerHeight / 2 + view.y], cy = () => Math.max(0.5, Math.cos(group.rotation.x));
+const ppuAt = k => ppu() / Math.max(1e-6, group.scale.x) * view.s * zoom * k;      // screen px per map unit at zoom k
+function setFree(x, y, k, now) { const had = !!focus && !focus.free; focus = { x, y, k, free: true, code: null }; if (now) { fz = k; cloud.position.x = -x; cloud.position.y = -y; } if (had) { closeLoc(); stateBtns(); } hintText(); }
+function zoomAt(mx, my, k, now) { if (!onMap()) return; k = Math.max(KMIN, Math.min(KMAX, k)); const c = mapC(), p0 = ppuAt(fz), p1 = ppuAt(k);
+  const ux = (mx - c[0]) / p0 - cloud.position.x, uy = -(my - c[1]) / (p0 * cy()) - cloud.position.y;      // map point under the fingers
+  if (k <= KMIN + 0.02 && !now) { setFocus(null); return; }
+  setFree(ux - (mx - c[0]) / p1, uy + (my - c[1]) / (p1 * cy()), k, now); }
+function pinchStart(t) { if (!onMap() || t.length < 2) return; pan.on = false; const a = t[0], b = t[1];
+  Object.assign(pinch, { on: true, d0: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), k0: fz, mx: (a.clientX + b.clientX) / 2, my: (a.clientY + b.clientY) / 2 }); }
+function pinchMove(t) { if (!pinch.on || t.length < 2) return; const a = t[0], b = t[1], d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), mx = (a.clientX + b.clientX) / 2, my = (a.clientY + b.clientY) / 2;
+  const k = Math.max(KMIN, Math.min(KMAX, pinch.k0 * d / Math.max(1, pinch.d0))); zoomAt(pinch.mx, pinch.my, k, true);      // zoom about where the pinch began
+  const p = ppuAt(fz); setFree(focus.x - (mx - pinch.mx) / p, focus.y + (my - pinch.my) / (p * cy()), fz, true); pinch.mx = mx; pinch.my = my; }      // and follow the fingers as they slide
+const drag = { on: false };
+function dragStart(x, y) { if (!onMap() || !free()) return false; Object.assign(drag, { on: true, x, y, moved: false }); return true; }
+function dragMove(x, y) { if (!drag.on) return; const dx = x - drag.x, dy = y - drag.y; if (!drag.moved && Math.hypot(dx, dy) < 6) return; drag.moved = true; const p = ppuAt(fz);
+  setFree(focus.x - dx / p, focus.y + dy / (p * cy()), focus.k, true); drag.x = x; drag.y = y; }
+function dragEnd() { if (!drag.on) return false; drag.on = false; return drag.moved; }
+let lastTap = 0;
+const mz = document.createElement('div'); mz.className = 'mz'; mz.innerHTML = '<button data-z="in" aria-label="Zoom in">+</button><button data-z="out" aria-label="Zoom out">−</button><button data-z="home" aria-label="Show the whole map">⟲</button>'; document.body.appendChild(mz); window.__mz = mz;
+mz.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !onMap()) return; e.stopPropagation(); const c = mapC(); snd.tick && snd.tick();
+  if (b.dataset.z === 'home') { setFocus(null); return; } const x0 = focus ? focus.x : 0, y0 = focus ? focus.y : 0, k = Math.max(KMIN, Math.min(KMAX, fz * (b.dataset.z === 'in' ? 1.6 : 1 / 1.6)));
+  if (k <= KMIN + 0.02) { setFocus(null); return; } setFree(x0, y0, k); });      // buttons zoom about the middle of the view
+['pointerdown', 'touchstart'].forEach(t => mz.addEventListener(t, e => e.stopPropagation(), { passive: true }));
+window.addEventListener('touchmove', e => { if (pinch.on) { pinchMove(e.touches); return; } const t = e.touches[0]; if (drag.on) { dragMove(t.clientX, t.clientY); return; } if (!pan.on) return; panMove(t.clientX, t.clientY); }, { passive: true });
+canvas.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && !dragStart(e.clientX, e.clientY)) panStart(e.clientX, e.clientY); });
+window.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; if (drag.on) dragMove(e.clientX, e.clientY); else if (pan.on) panMove(e.clientX, e.clientY); });
+window.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') return; if (dragEnd()) suppressClick = performance.now() + 250; else if (pan.on && panEnd()) suppressClick = performance.now() + 250; });
+canvas.addEventListener('dblclick', e => { if (onMap()) { e.preventDefault(); free() || focus ? setFocus(null) : zoomAt(e.clientX, e.clientY, 2.6); } });
 let suppressClick = 0;
 const nav = d => { if (focus) { setFocus(null); lock = performance.now() + 500; return; } go(cur + d); };
 window.addEventListener('click', e => {
@@ -318,9 +345,11 @@ window.addEventListener('click', e => {
   if (code && FOCUS[code] && (!focus || focus.code !== code)) setFocus(code);
 });
 const blocked = () => cardEl.classList.contains('open') || allEl.classList.contains('open');
-window.addEventListener('wheel', e => { if (blocked()) return; const now = performance.now(), fresh = now - lastWheel > 200; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) nav(Math.sign(e.deltaY)); }, { passive: true });
-window.addEventListener('touchstart', e => { ty = e.touches[0].clientY; if (e.target === canvas) panStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (panEnd()) { ty = null; suppressClick = performance.now() + 400; return; } if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) nav(Math.sign(dy)); }, { passive: true });
+window.addEventListener('wheel', e => { if (blocked()) return; if (onMap() && (e.ctrlKey || free())) { e.preventDefault(); zoomAt(e.clientX, e.clientY, fz * Math.exp(-e.deltaY * (e.ctrlKey ? 0.012 : 0.0025))); return; } const now = performance.now(), fresh = now - lastWheel > 200; lastWheel = now; if (fresh && Math.abs(e.deltaY) > 4) nav(Math.sign(e.deltaY)); }, { passive: false });
+window.addEventListener('touchstart', e => { if (e.touches.length >= 2) { if (onMap()) { ty = null; pinchStart(e.touches); } return; } ty = e.touches[0].clientY; if (e.target !== canvas) return;
+  const now = performance.now(), t = e.touches[0]; if (onMap() && now - lastTap < 300 && Math.hypot(t.clientX - lastTap.x, t.clientY - lastTap.y) < 40) { lastTap = 0; ty = null; suppressClick = now + 400; free() || focus ? setFocus(null) : zoomAt(t.clientX, t.clientY, 2.6); return; }
+  lastTap = Object.assign(new Number(now), { x: t.clientX, y: t.clientY }); if (!dragStart(t.clientX, t.clientY)) panStart(t.clientX, t.clientY); }, { passive: true });
+window.addEventListener('touchend', e => { U.uMouse.value.set(9, 9); if (pinch.on) { if (e.touches.length < 2) { pinch.on = false; ty = null; suppressClick = performance.now() + 400; if (e.touches.length === 1 && free()) dragStart(e.touches[0].clientX, e.touches[0].clientY); } return; } if (drag.on) { if (dragEnd()) { ty = null; suppressClick = performance.now() + 400; return; } ty = null; return; } if (panEnd()) { ty = null; suppressClick = performance.now() + 400; return; } if (ty === null || blocked()) return; const dy = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(dy) > 45) nav(Math.sign(dy)); }, { passive: true });
 window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (blocked()) { closeCard(); closeAll(); } else leave(); return; } if (blocked()) return; if (onMap() && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { const i = STOPS.indexOf(focus ? focus.code : null), j = Math.max(0, Math.min(STOPS.length - 1, i + (e.key === 'ArrowRight' ? 1 : -1))); if (j !== i) setFocus(STOPS[j]); return; }
   if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) nav(1); if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) nav(-1); if (e.key === 'Enter') mode === 'detail' ? leave() : enter(); });
 
@@ -345,6 +374,7 @@ function area() {
     else { l = c.right + 10; r = (rail.getBoundingClientRect().left || w) - 16; b = pillT - 10 - (detail ? DOCK() + 6 : 0); }
   }
   const ppu = (h / 2) / (Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
+  document.documentElement.style.setProperty('--mzx', (w - r + 12) + 'px'); document.documentElement.style.setProperty('--mzy', (h - b + 10) + 'px'); document.documentElement.style.setProperty('--mzt', (t + 10) + 'px');
   view.w = r - l; view.h = b - t; view.tx = (l + r) / 2 - w / 2; view.ty = (t + b) / 2 - h / 2;
   view.ts = mode === 'intro' ? Math.min(0.9, w / h * 1.1) : Math.min(1.15, view.w / (4.5 * ppu), view.h / (3.15 * ppu));
   if (mode !== 'intro' && narrow && TOPICS[Math.max(0, cur)].flat) { view.ts = Math.min(view.w / (7.6 * ppu), view.h / (3.4 * ppu)); view.tx += 0.1 * view.ts * ppu; view.ty += 0.5 * view.ts * ppu; }      // phones: fit the whole map (west Texas, the panhandle, Florida, the Jamaica inset) inside the free area
@@ -455,7 +485,7 @@ function frame() {
     if (pan.on && pan.horiz) { const tx = pan.cx + pan.dx / Math.max(1e-6, ppu()); cloud.position.x += (tx - cloud.position.x) * Math.min(1, ke * 4); } else cloud.position.x += (-fo.x - cloud.position.x) * ke;
     sc = s0 * fz;
   }
-  U.uScale.value = te > 0 ? s0 + (0.8 - s0) * te : s0 * Math.pow(fz, flat ? 0.32 : 0.6);
+  U.uScale.value = te > 0 ? s0 + (0.8 - s0) * te : s0 * Math.pow(fz, flat ? 0.62 : 0.6);
   group.scale.setScalar(sc); U.uTour.value = te; WU.uWire.value = sm((te - 0.06) / 0.5); wireMesh.visible = WU.uWire.value > 0.003;
   const fov = 38 + ((narrow ? 88 : 62) - 38) * te; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; U.uPix.value = DU.uPix.value = innerHeight * DPR / (2 * Math.tan(fov * Math.PI / 360)); }
   if (flying) { /* heading handled above */ } else if (fly) ang += dt * 0.17;
